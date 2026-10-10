@@ -5,9 +5,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:timelay_health/core/theme/app_logos.dart';
 import 'package:timelay_health/core/theme/portal_system_ui.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/features/auth/data/auth_session.dart';
-import 'package:timelay_health/features/auth/presentation/screens/login_screen.dart';
-import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -132,17 +131,8 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     final employee = await sessionFuture;
     if (!mounted) return;
-    final next = employee != null
-        ? const EmployeeHomeShell()
-        : const LoginScreen();
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder<void>(
-        pageBuilder: (_, animation, __) => next,
-        transitionsBuilder: (_, animation, __, child) =>
-            FadeTransition(opacity: animation, child: child),
-        transitionDuration: const Duration(milliseconds: 320),
-      ),
-    );
+    final nextRoute = employee != null ? AppRoutes.home : AppRoutes.login;
+    AppRoutes.pushReplacement(context, nextRoute);
   }
 
   @override

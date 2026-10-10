@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/theme/app_theme.dart';
 import 'package:timelay_health/core/theme/portal_system_ui.dart';
-import 'package:timelay_health/features/auth/presentation/screens/splash_screen.dart';
 
 class TimelayHealthApp extends StatelessWidget {
   const TimelayHealthApp({super.key});
@@ -17,7 +17,8 @@ class TimelayHealthApp extends StatelessWidget {
         value: PortalSystemUi.lightStatusBar,
         child: child!,
       ),
-      home: const SplashScreen(),
+      initialRoute: AppRoutes.splash,
+      onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }
 }

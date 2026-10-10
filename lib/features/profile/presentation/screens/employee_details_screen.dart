@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/auth/domain/entities/employee.dart';
@@ -12,10 +13,10 @@ class EmployeeDetailsScreen extends StatelessWidget {
   final Employee employee;
 
   static Future<void> open(BuildContext context, Employee employee) {
-    return Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => EmployeeDetailsScreen(employee: employee),
-      ),
+    return AppRoutes.push(
+      context,
+      AppRoutes.employeeDetails,
+      arguments: employee,
     );
   }
 

@@ -3,20 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/features/auth/data/auth_sign_out.dart';
 import 'package:timelay_health/features/auth/domain/entities/employee.dart';
-import 'package:timelay_health/features/auth/presentation/screens/login_screen.dart';
 import 'package:timelay_health/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:timelay_health/features/profile/presentation/bloc/profile_state.dart';
-import 'package:timelay_health/features/events/presentation/screens/my_events_screen.dart';
-import 'package:timelay_health/features/expense/presentation/screens/expense_screen.dart';
-import 'package:timelay_health/features/letters/presentation/screens/my_letters_screen.dart';
-import 'package:timelay_health/features/profile/presentation/screens/holiday_calendar_screen.dart';
-import 'package:timelay_health/features/issues/presentation/screens/issues_screen.dart';
-import 'package:timelay_health/features/profile/presentation/screens/payslips_screen.dart';
-import 'package:timelay_health/features/profile/presentation/screens/profile_screen.dart';
-import 'package:timelay_health/features/profile/presentation/screens/profile_section_placeholder_screen.dart';
-import 'package:timelay_health/features/visits/presentation/screens/visits_screen.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
 
@@ -93,70 +84,42 @@ class _ProfileHubViewState extends State<_ProfileHubView> {
   ];
 
   Future<void> _openItem(BuildContext context, int index) async {
-    if (index == 0) {
-      await Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => const ProfileScreen()));
-      if (!context.mounted) return;
-      context.read<ProfileCubit>().syncFromSession();
-      return;
+    switch (index) {
+      case 0:
+        await AppRoutes.push(context, AppRoutes.profile);
+        if (!context.mounted) return;
+        context.read<ProfileCubit>().syncFromSession();
+        return;
+      case 1:
+        await AppRoutes.push(context, AppRoutes.payslips);
+        return;
+      case 2:
+        await AppRoutes.push(context, AppRoutes.expense);
+        return;
+      case 3:
+        await AppRoutes.push(context, AppRoutes.issues);
+        return;
+      case 4:
+        await AppRoutes.push(context, AppRoutes.holidayCalendar);
+        return;
+      case 5:
+        await AppRoutes.push(context, AppRoutes.visits);
+        return;
+      case 6:
+        await AppRoutes.push(context, AppRoutes.letters);
+        return;
+      case 7:
+        await AppRoutes.push(context, AppRoutes.events);
+        return;
+      default:
+        final item = _items[index];
+        await AppRoutes.push(
+          context,
+          AppRoutes.placeholder,
+          arguments: item.title,
+        );
+        return;
     }
-
-    if (index == 1) {
-      await Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => const PayslipsScreen()));
-      return;
-    }
-
-    if (index == 2) {
-      await Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => const ExpenseScreen()));
-      return;
-    }
-
-    if (index == 3) {
-      await Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => const IssuesScreen()));
-      return;
-    }
-
-    if (index == 4) {
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const HolidayCalendarScreen()),
-      );
-      return;
-    }
-
-    if (index == 5) {
-      await Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => const VisitsScreen()));
-      return;
-    }
-
-    if (index == 6) {
-      await Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => const MyLettersScreen()));
-      return;
-    }
-
-    if (index == 7) {
-      await Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => const MyEventsScreen()));
-      return;
-    }
-
-    final item = _items[index];
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ProfileSectionPlaceholderScreen(title: item.title),
-      ),
-    );
   }
 
   @override
@@ -432,10 +395,7 @@ class _LogoutTile extends StatelessWidget {
         onTap: () async {
           await AuthSignOut.run();
           if (!context.mounted) return;
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
-            (_) => false,
-          );
+          AppRoutes.pushAndRemoveUntil(context, AppRoutes.login);
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(

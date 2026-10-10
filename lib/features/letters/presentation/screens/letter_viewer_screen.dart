@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_back_button.dart';
@@ -22,10 +23,10 @@ class LetterViewerScreen extends StatelessWidget {
       );
       return Future.value();
     }
-    return Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => LetterViewerScreen(letter: letter),
-      ),
+    return AppRoutes.push(
+      context,
+      AppRoutes.letterViewer,
+      arguments: letter,
     );
   }
 

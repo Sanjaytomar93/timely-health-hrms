@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
-import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
 
 Future<void> showLoginSuccessAndGoHome(
   BuildContext context, {
@@ -104,15 +104,8 @@ class _LoginSuccessDialogState extends State<LoginSuccessDialog>
     _navigated = true;
     _tick?.cancel();
 
-    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-      PageRouteBuilder<void>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const EmployeeHomeShell(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 360),
-      ),
+    Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+      AppRoutes.home,
       (_) => false,
     );
   }

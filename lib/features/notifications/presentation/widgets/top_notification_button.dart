@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:timelay_health/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 
 Future<void> openNotificationsScreen(BuildContext context) {
-  return Navigator.of(
-    context,
-  ).push(MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()));
+  return AppRoutes.push(context, AppRoutes.notifications);
 }
 
 class TopNotificationButton extends StatelessWidget {
