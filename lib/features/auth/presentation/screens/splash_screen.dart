@@ -1,7 +1,6 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:timelay_health/core/theme/app_logos.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_system_ui.dart';
@@ -101,25 +100,40 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Column(
                       children: [
                         const Spacer(flex: 3),
-                        SvgPicture.asset(
-                          AppLogos.mark,
-                          width: 150,
-                          height: 150,
-                          fit: BoxFit.contain,
+                        const SizedBox(
+                          width: 168,
+                          height: 168,
+                          child: CustomPaint(painter: _SplashLogoPainter()),
                         ),
                         const SizedBox(height: 22),
-                        Text(
-                          'TIMELY\nHEALTH',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.montserrat(
-                            fontSize: 34,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 3,
-                            height: 1.05,
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'TIMELY ',
+                                style: GoogleFonts.inter(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: 1.2,
+                                  height: 1.1,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'HEALTH',
+                                style: GoogleFonts.inter(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: PortalColors.green,
+                                  letterSpacing: 1.2,
+                                  height: 1.1,
+                                ),
+                              ),
+                            ],
                           ),
+                          textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Text(
                           'Connecting Communities...',
                           textAlign: TextAlign.center,
@@ -199,4 +213,65 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
+}
+
+class _SplashLogoPainter extends CustomPainter {
+  const _SplashLogoPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxR = size.width * 0.46;
+
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1
+      ..color = Colors.white.withValues(alpha: 0.3);
+
+    for (final t in [0.55, 0.72, 0.9, 1.0]) {
+      canvas.drawCircle(center, maxR * t, ringPaint);
+    }
+
+    final nodePaint = Paint()..color = Colors.white;
+    final nodeAngles = <double>[-1.15, -0.35, 0.55, 1.45, 2.35, 3.4, 4.5, 5.4];
+    for (var i = 0; i < nodeAngles.length; i++) {
+      final ring = i.isEven ? 0.72 : 0.9;
+      final a = nodeAngles[i];
+      final p = Offset(
+        center.dx + maxR * ring * math.cos(a),
+        center.dy + maxR * ring * math.sin(a),
+      );
+      canvas.drawCircle(p, i.isEven ? 2.4 : 3.1, nodePaint);
+    }
+
+    const count = 22;
+    for (var i = 0; i < count; i++) {
+      final t = i / (count - 1);
+      final angle = -2.25 + t * 2.7;
+      final r = maxR * 0.42;
+      final x = center.dx + r * math.cos(angle);
+      final y = center.dy + r * math.sin(angle);
+      final color = Color.lerp(
+        Colors.white,
+        PortalColors.green,
+        t,
+      )!.withValues(alpha: 0.85);
+      canvas.drawCircle(Offset(x, y), 1.6 + t * 2.4, Paint()..color = color);
+    }
+
+    final check = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.2
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final path = Path()
+      ..moveTo(size.width * 0.34, size.height * 0.52)
+      ..lineTo(size.width * 0.46, size.height * 0.64)
+      ..lineTo(size.width * 0.68, size.height * 0.38);
+    canvas.drawPath(path, check);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

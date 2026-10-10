@@ -2,8 +2,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:timelay_health/core/theme/app_logos.dart';
 import 'package:timelay_health/core/theme/portal_system_ui.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/auth/presentation/bloc/login_cubit.dart';
@@ -185,11 +183,20 @@ class _BrandCanvas extends StatelessWidget {
                 if (useCompact) {
                   return Align(
                     alignment: Alignment.centerLeft,
-                    child: SvgPicture.asset(
-                      AppLogos.white,
+                    child: Image.asset(
+                      'assets/images/timely_logo.png',
                       height: constraints.maxHeight < 40 ? 28 : 36,
                       fit: BoxFit.contain,
                       alignment: Alignment.centerLeft,
+                      errorBuilder: (_, error, stackTrace) => Text(
+                        'TIMELY HEALTH',
+                        style: portalText(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
                     ),
                   );
                 }
@@ -197,11 +204,20 @@ class _BrandCanvas extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SvgPicture.asset(
-                      AppLogos.white,
-                      height: 64,
+                    Image.asset(
+                      'assets/images/timely_logo.png',
+                      height: 42,
                       fit: BoxFit.contain,
                       alignment: Alignment.centerLeft,
+                      errorBuilder: (_, error, stackTrace) => Text(
+                        'TIMELY HEALTH',
+                        style: portalText(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
                     ),
                     const Spacer(),
                     Container(

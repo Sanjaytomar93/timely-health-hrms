@@ -75,7 +75,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/icons/logo/
     - assets/icons/stat_cards/
     - assets/icons/quick_actions/
     - assets/icons/top_bar/
