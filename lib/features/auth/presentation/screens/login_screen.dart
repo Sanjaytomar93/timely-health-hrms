@@ -135,12 +135,12 @@ class _BrandCanvas extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF1E1548),
-                Color(0xFF3B2499),
+                Color(0xFF1A1535),
                 Color(0xFF26204A),
-                Color(0xFF4B4285),
+                Color(0xFF2D2060),
+                Color(0xFF1E1A42),
               ],
-              stops: [0, 0.32, 0.68, 1],
+              stops: [0.0, 0.38, 0.72, 1.0],
             ),
           ),
         ),
@@ -150,7 +150,7 @@ class _BrandCanvas extends StatelessWidget {
             right: -40,
             child: _Orb(
               size: 220,
-              color: const Color(0xFFA78BFA).withValues(alpha: 0.4),
+              color: const Color(0xFF7C6FD4).withValues(alpha: 0.35),
             ),
           ),
           Positioned(
@@ -158,7 +158,7 @@ class _BrandCanvas extends StatelessWidget {
             left: -60,
             child: _Orb(
               size: 170,
-              color: const Color(0xFF22D3EE).withValues(alpha: 0.14),
+              color: const Color(0xFF18AC96).withValues(alpha: 0.12),
             ),
           ),
           Positioned(
@@ -217,7 +217,7 @@ class _BrandCanvas extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'EMPLOYEE PORTAL',
+                        'ATTENDANCE PORTAL',
                         style: portalText(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -228,7 +228,7 @@ class _BrandCanvas extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Your workplace,\nbeautifully connected.',
+                      'Every check-in\ntells your story.',
                       style: portalText(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
@@ -239,7 +239,7 @@ class _BrandCanvas extends StatelessWidget {
                     ),
                     const SizedBox(height: 7),
                     Text(
-                      'Attendance · Shifts · Team updates',
+                      'Be present. Be counted. Be ahead.',
                       style: portalText(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w500,

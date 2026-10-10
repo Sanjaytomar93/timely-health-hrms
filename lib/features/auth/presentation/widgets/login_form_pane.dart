@@ -244,7 +244,7 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     Text(
                       'Powered by Timely Health HRMS',
                       textAlign: TextAlign.center,
@@ -252,6 +252,17 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                         fontSize: 10.5,
                         fontWeight: FontWeight.w500,
                         color: PortalColors.muted.withValues(alpha: 0.75),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'v1.0.0  ·  © 2026 Timely Health',
+                      textAlign: TextAlign.center,
+                      style: portalText(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w400,
+                        color: PortalColors.muted.withValues(alpha: 0.45),
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
