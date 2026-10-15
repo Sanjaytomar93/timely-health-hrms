@@ -36,6 +36,7 @@ class EmployeeLetter extends Equatable {
     required this.sentOnDate,
     required this.sentOnTime,
     this.fileUrl,
+    this.details = '',
   });
 
   final String id;
@@ -48,6 +49,7 @@ class EmployeeLetter extends Equatable {
   final String sentOnDate;
   final String sentOnTime;
   final String? fileUrl;
+  final String details;
 
   bool get isSent => status.toLowerCase() == 'sent';
 
@@ -72,6 +74,7 @@ class EmployeeLetter extends Equatable {
     sentOnDate,
     sentOnTime,
     fileUrl,
+    details,
   ];
 }
 
@@ -121,6 +124,7 @@ class LetterUiMapper {
                 '${_months[sentAt.month - 1]} ${sentAt.year}',
       sentOnTime: TimeFormat.clock(sentAt),
       fileUrl: letter.fileUrl.isEmpty ? null : letter.fileUrl,
+      details: letter.details,
     );
   }
 

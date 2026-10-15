@@ -18,6 +18,7 @@ class LetterMapper {
       status: model.status,
       fileUrl: LetterEndpoints.fileUrl(model.letterPdfUrl),
       sentAt: model.sentAt ?? model.createdAt,
+      details: model.details,
     );
   }
 }

@@ -7,6 +7,8 @@ class LetterEndpoints {
   static String adminLetters(String employeeId) =>
       '$_base/employees/admin-letters/${Uri.encodeComponent(employeeId)}';
 
+  static const String submitResignation = '$_base/employees/submit-resignation';
+
   /// Resolves `/uploads/...` paths returned by the API against the host.
   static String fileUrl(String path) {
     final value = path.trim();

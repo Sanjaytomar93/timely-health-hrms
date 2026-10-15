@@ -8,50 +8,64 @@ class GreetingHeader extends StatelessWidget {
 
   final DashboardGreetingUi? data;
 
+  static const double _leadingWidth = 26;
+
   @override
   Widget build(BuildContext context) {
     final greeting = data?.greeting ?? 'Good afternoon';
     final firstName = data?.firstName ?? 'there';
     final dateLabel = data?.dateLabel ?? '';
 
+    final titleStyle = portalText(
+      fontSize: 20,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.2,
+      height: 24 / 20,
+      color: PortalColors.heading,
+    );
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 25, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text.rich(
-            TextSpan(
-              style: portalText(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.2,
-                height: 24 / 20,
-                color: PortalColors.heading,
-              ),
-              children: [
-                TextSpan(text: '👋 $greeting, '),
-                TextSpan(
-                  text: firstName,
-                  style: portalText(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.2,
-                    height: 24 / 20,
-                    color: PortalColors.green,
-                  ),
-                ),
-              ],
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: 13,
-                color: PortalColors.muted,
+              SizedBox(
+                width: _leadingWidth,
+                child: Center(child: Text('👋', style: titleStyle)),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    style: titleStyle,
+                    children: [
+                      TextSpan(text: '$greeting, '),
+                      TextSpan(
+                        text: firstName,
+                        style: titleStyle.copyWith(color: PortalColors.green),
+                      ),
+                    ],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const SizedBox(
+                width: _leadingWidth,
+                child: Center(
+                  child: Icon(
+                    Icons.calendar_today_outlined,
+                    size: 14,
+                    color: PortalColors.muted,
+                  ),
+                ),
               ),
               const SizedBox(width: 6),
               Flexible(

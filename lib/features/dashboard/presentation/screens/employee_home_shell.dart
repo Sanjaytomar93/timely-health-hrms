@@ -13,10 +13,28 @@ import 'package:timelay_health/features/dashboard/presentation/widgets/employee_
 import 'package:timelay_health/features/dashboard/presentation/widgets/monthly_performance_dialog.dart';
 import 'package:timelay_health/features/leaves/presentation/screens/leaves_screen.dart';
 import 'package:timelay_health/features/profile/presentation/screens/profile_hub_screen.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 
 class EmployeeHomeShell extends StatefulWidget {
   const EmployeeHomeShell({super.key});
+
+  static const int dashboardTab = 0;
+
+  static final ValueNotifier<int?> _tabRequest = ValueNotifier<int?>(null);
+
+  /// Closes every route above the home shell and switches it to [tab].
+  static void goToTab(BuildContext context, int tab) {
+    Navigator.of(
+      context,
+      rootNavigator: true,
+    ).popUntil(ModalRoute.withName(AppRoutes.home));
+    _tabRequest.value = null;
+    _tabRequest.value = tab;
+  }
+
+  static void goToDashboard(BuildContext context) =>
+      goToTab(context, dashboardTab);
 
   @override
   State<EmployeeHomeShell> createState() => _EmployeeHomeShellState();
@@ -26,6 +44,24 @@ class _EmployeeHomeShellState extends State<EmployeeHomeShell> {
   int _index = 0;
   final Set<int> _visited = {0};
   bool _performanceShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    EmployeeHomeShell._tabRequest.addListener(_onTabRequest);
+  }
+
+  @override
+  void dispose() {
+    EmployeeHomeShell._tabRequest.removeListener(_onTabRequest);
+    super.dispose();
+  }
+
+  void _onTabRequest() {
+    final tab = EmployeeHomeShell._tabRequest.value;
+    if (tab == null || !mounted) return;
+    _openTab(tab);
+  }
 
   void _showPerformanceIfNeeded(
     BuildContext context,

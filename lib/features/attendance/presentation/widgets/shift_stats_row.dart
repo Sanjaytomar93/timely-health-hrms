@@ -39,19 +39,27 @@ class ShiftStatsRow extends StatelessWidget {
     ];
 
     return Padding(
-      padding: const EdgeInsets.only(top: 18),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(11, 0, 12, 4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (var i = 0; i < cards.length; i++) ...[
-              if (i > 0) const SizedBox(width: 10),
-              _ShiftStatCard(data: cards[i]),
-            ],
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        children: [
+          for (var i = 0; i < cards.length; i += 2) ...[
+            if (i > 0) const SizedBox(height: 10),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: _ShiftStatCard(data: cards[i])),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: i + 1 < cards.length
+                        ? _ShiftStatCard(data: cards[i + 1])
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -79,49 +87,61 @@ class _ShiftStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 118,
-      padding: const EdgeInsets.fromLTRB(13, 13, 10, 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: PortalColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: PortalColors.border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          SvgPicture.asset(data.iconAsset, width: 26, height: 26),
-          const SizedBox(height: 8),
-          Text(
-            data.title.toUpperCase(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: portalText(
-              fontSize: 8.8,
-              fontWeight: FontWeight.w700,
-              color: PortalColors.muted,
-              letterSpacing: 0.4,
-              height: 1.15,
-            ),
-          ),
-          Text(
-            data.value,
-            style: portalText(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: PortalColors.green,
-              height: 1.15,
-            ),
-          ),
-          Text(
-            data.subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: portalText(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w400,
-              color: PortalColors.muted,
-              height: 1.15,
+          SvgPicture.asset(data.iconAsset, width: 44, height: 44),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.title.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: PortalColors.muted,
+                    letterSpacing: 0.4,
+                    height: 12 / 10,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: data.value,
+                        style: portalText(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: PortalColors.green,
+                          height: 24 / 20,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' ${data.subtitle}',
+                        style: portalText(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400,
+                          color: PortalColors.muted,
+                          height: 24 / 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         ],

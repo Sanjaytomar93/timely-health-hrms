@@ -11,7 +11,7 @@ class DashboardAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 4, 18, 8),
+      padding: const EdgeInsets.fromLTRB(28, 2, 18, 6),
       decoration: const BoxDecoration(
         color: PortalColors.brand,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
@@ -23,7 +23,7 @@ class DashboardAppBar extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: SvgPicture.asset(
                 AppLogos.white,
-                height: 40,
+                height: 34,
                 fit: BoxFit.contain,
                 alignment: Alignment.centerLeft,
               ),

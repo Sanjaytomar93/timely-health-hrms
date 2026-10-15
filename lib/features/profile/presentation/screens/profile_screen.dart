@@ -17,7 +17,7 @@ import 'package:timelay_health/features/profile/presentation/widgets/profile_sal
 import 'package:timelay_health/features/profile/presentation/widgets/profile_section_tabs.dart';
 import 'package:timelay_health/features/profile/presentation/widgets/profile_summary_card.dart';
 import 'package:timelay_health/features/profile/presentation/widgets/profile_welcome_banner.dart';
-import 'package:timelay_health/features/profile/presentation/widgets/resignation_dialog.dart';
+import 'package:timelay_health/features/letters/presentation/widgets/resignation_form_sheet.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
 import 'package:timelay_health/core/widgets/portal_back_button.dart';
@@ -261,11 +261,14 @@ class _ResignButton extends StatelessWidget {
   final Employee employee;
 
   Future<void> _open(BuildContext context) async {
-    final draft = await showResignationDialog(context, employee: employee);
-    if (draft == null || !context.mounted) return;
+    final submitted = await showResignationFormSheet(
+      context,
+      employeeId: employee.employeeId,
+    );
+    if (!submitted || !context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Resignation submission isn\'t connected yet.'),
+        content: Text('Resignation submitted successfully.'),
         behavior: SnackBarBehavior.floating,
       ),
     );

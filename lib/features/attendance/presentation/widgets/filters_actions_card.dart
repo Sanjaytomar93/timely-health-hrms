@@ -7,9 +7,18 @@ import 'package:timelay_health/features/attendance/domain/failures/attendance_fa
 import 'package:timelay_health/features/attendance/presentation/bloc/attendance_cubit.dart';
 import 'package:timelay_health/features/attendance/presentation/bloc/attendance_state.dart';
 import 'package:timelay_health/features/attendance/presentation/models/attendance_record_ui_model.dart';
+import 'package:timelay_health/features/attendance/presentation/widgets/ot_available_banner.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/dashboard_card.dart';
 
-class FiltersActionsCard extends StatelessWidget {
+class FiltersActionsCard extends StatefulWidget {
   const FiltersActionsCard({super.key});
+
+  @override
+  State<FiltersActionsCard> createState() => _FiltersActionsCardState();
+}
+
+class _FiltersActionsCardState extends State<FiltersActionsCard> {
+  bool _datesExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -19,288 +28,214 @@ class FiltersActionsCard extends StatelessWidget {
         final showing = state.records.length;
         final total = state.allRecords.length;
         final cubit = context.read<AttendanceCubit>();
+        final dateCount = [
+          filter.exactDate,
+          filter.fromDate,
+          filter.toDate,
+        ].where((d) => d != null).length;
 
-        return Container(
-          margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          padding: const EdgeInsets.fromLTRB(17, 18, 17, 18),
-          decoration: BoxDecoration(
-            color: PortalColors.surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: PortalColors.border),
-          ),
+        return DashboardCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '▽ Filters & Actions',
-                      style: portalText(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        color: PortalColors.heading,
-                        height: 16 / 13.5,
-                      ),
-                    ),
-                  ),
-                  if (filter.hasActiveFilters)
-                    GestureDetector(
-                      onTap: cubit.clearFilters,
-                      child: Text(
-                        'Clear',
-                        style: portalText(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: PortalColors.purple,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Search and filter records by date, status, and location.',
-                style: portalText(
-                  fontSize: 10.5,
-                  color: PortalColors.muted,
-                  height: 13 / 10.5,
-                ),
+              DashboardCardHeader(
+                icon: Icons.tune_rounded,
+                color: PortalColors.brand,
+                title: 'Filters & Actions',
+                subtitle: 'Showing $showing of $total records',
+                trailing: filter.hasActiveFilters
+                    ? _ClearButton(onTap: cubit.clearFilters)
+                    : null,
               ),
               if (filter.otOnly) ...[
-                const SizedBox(height: 10),
-                GestureDetector(
-                  onTap: () => cubit.setOtOnly(false),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: PortalColors.orangeTint,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: PortalColors.orange),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Showing OT records only',
-                          style: portalText(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFFB26A00),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(
-                          Icons.close_rounded,
-                          size: 13,
-                          color: Color(0xFFB26A00),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 12),
+                _OtOnlyPill(onTap: () => cubit.setOtOnly(false)),
               ],
               const SizedBox(height: 14),
-              const _FieldLabel('Date'),
-              const SizedBox(height: 5),
-              _DateField(
-                value: filter.exactDate,
-                hint: 'dd/mm/yyyy',
-                onPick: cubit.setExactDate,
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const _FieldLabel('From Date'),
-                        const SizedBox(height: 5),
-                        _DateField(
-                          value: filter.fromDate,
-                          hint: 'dd/mm/yyyy',
-                          onPick: cubit.setFromDate,
-                        ),
-                      ],
-                    ),
+              const _FieldLabel('Status'),
+              const SizedBox(height: 7),
+              _ChipGroup<AttendanceStatusFilter>(
+                value: filter.status,
+                items: const [
+                  (AttendanceStatusFilter.all, 'All', Icons.apps_rounded),
+                  (
+                    AttendanceStatusFilter.active,
+                    'Active',
+                    Icons.radio_button_checked_rounded,
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const _FieldLabel('To Date'),
-                        const SizedBox(height: 5),
-                        _DateField(
-                          value: filter.toDate,
-                          hint: 'dd/mm/yyyy',
-                          onPick: cubit.setToDate,
-                        ),
-                      ],
-                    ),
+                  (
+                    AttendanceStatusFilter.loggedOut,
+                    'Logged Out',
+                    Icons.logout_rounded,
                   ),
                 ],
+                onChanged: cubit.setStatus,
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const _FieldLabel('Status'),
-                        const SizedBox(height: 5),
-                        _DropdownField<AttendanceStatusFilter>(
-                          value: filter.status,
-                          label: _statusLabel(filter.status),
-                          items: const [
-                            (AttendanceStatusFilter.all, 'All Status'),
-                            (AttendanceStatusFilter.active, 'checked-in'),
-                            (AttendanceStatusFilter.loggedOut, 'checked-out'),
-                          ],
-                          onChanged: cubit.setStatus,
-                        ),
-                      ],
-                    ),
+              const _FieldLabel('Location'),
+              const SizedBox(height: 7),
+              _ChipGroup<AttendanceLocationFilter>(
+                value: filter.location,
+                items: const [
+                  (AttendanceLocationFilter.all, 'All', Icons.public_rounded),
+                  (
+                    AttendanceLocationFilter.onsite,
+                    'Onsite',
+                    Icons.apartment_rounded,
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const _FieldLabel('Location'),
-                        const SizedBox(height: 5),
-                        _DropdownField<AttendanceLocationFilter>(
-                          value: filter.location,
-                          label: _locationLabel(filter.location),
-                          items: const [
-                            (AttendanceLocationFilter.all, 'All Locations'),
-                            (AttendanceLocationFilter.onsite, 'Onsite'),
-                            (AttendanceLocationFilter.wfh, 'WFH'),
-                          ],
-                          onChanged: cubit.setLocation,
-                        ),
-                      ],
-                    ),
-                  ),
+                  (AttendanceLocationFilter.wfh, 'WFH', Icons.home_rounded),
                 ],
+                onChanged: cubit.setLocation,
               ),
-              const SizedBox(height: 18),
-              Center(
-                child: Builder(
-                  builder: (buttonContext) {
-                    return Material(
-                      color: PortalColors.green,
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        onTap: () async {
-                          final count = state.records.length;
-                          if (count == 0) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('No records to export.'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                            return;
-                          }
-                          try {
-                            final result = await cubit.exportCsv();
-                            if (!context.mounted) return;
-
-                            final box =
-                                buttonContext.findRenderObject() as RenderBox?;
-                            final origin = box == null
-                                ? null
-                                : box.localToGlobal(Offset.zero) & box.size;
-
-                            await SharePlus.instance.share(
-                              ShareParams(
-                                files: [
-                                  XFile(
-                                    result.filePath,
-                                    mimeType: 'text/csv',
-                                    name: result.fileName,
-                                  ),
-                                ],
-                                sharePositionOrigin: origin,
-                              ),
-                            );
-
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Exported ${result.fileName}'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          } catch (e) {
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  e is AttendanceFailure
-                                      ? e.message
-                                      : 'Failed to export CSV: $e',
-                                ),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(10),
-                        child: SizedBox(
-                          width: 160,
-                          height: 29,
-                          child: Center(
-                            child: Text(
-                              '⬇ Export CSV',
-                              style: portalText(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
+              const SizedBox(height: 12),
+              _DateToggle(
+                expanded: _datesExpanded || dateCount > 0,
+                activeCount: dateCount,
+                onTap: () => setState(() => _datesExpanded = !_datesExpanded),
+              ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.topCenter,
+                child: (_datesExpanded || dateCount > 0)
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const _FieldLabel('Exact Date'),
+                            const SizedBox(height: 6),
+                            _DateField(
+                              value: filter.exactDate,
+                              hint: 'dd/mm/yyyy',
+                              onPick: cubit.setExactDate,
                             ),
-                          ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const _FieldLabel('From'),
+                                      const SizedBox(height: 6),
+                                      _DateField(
+                                        value: filter.fromDate,
+                                        hint: 'dd/mm/yyyy',
+                                        onPick: cubit.setFromDate,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const _FieldLabel('To'),
+                                      const SizedBox(height: 6),
+                                      _DateField(
+                                        value: filter.toDate,
+                                        hint: 'dd/mm/yyyy',
+                                        onPick: cubit.setToDate,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      )
+                    : const SizedBox(width: double.infinity),
               ),
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  'Showing $showing of $total',
-                  style: portalText(fontSize: 8, color: PortalColors.muted),
-                ),
-              ),
+              const SizedBox(height: 16),
+              _ExportButton(state: state, cubit: cubit),
             ],
           ),
         );
       },
     );
   }
+}
 
-  String _statusLabel(AttendanceStatusFilter status) {
-    return switch (status) {
-      AttendanceStatusFilter.all => 'All Status ⌄',
-      AttendanceStatusFilter.active => 'Active ⌄',
-      AttendanceStatusFilter.loggedOut => 'Logged Out ⌄',
-    };
+class _ClearButton extends StatelessWidget {
+  const _ClearButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: PortalColors.redTint,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.close_rounded,
+                size: 13,
+                color: PortalColors.red,
+              ),
+              const SizedBox(width: 3),
+              Text(
+                'Clear',
+                style: portalText(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: PortalColors.red,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
+}
 
-  String _locationLabel(AttendanceLocationFilter location) {
-    return switch (location) {
-      AttendanceLocationFilter.all => 'All Locations ⌄',
-      AttendanceLocationFilter.onsite => 'Onsite ⌄',
-      AttendanceLocationFilter.wfh => 'WFH ⌄',
-    };
+class _OtOnlyPill extends StatelessWidget {
+  const _OtOnlyPill({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: OtColors.tint,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: OtColors.accent),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.timer_rounded, size: 12, color: OtColors.text),
+            const SizedBox(width: 5),
+            Text(
+              'Showing OT records only',
+              style: portalText(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: OtColors.text,
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.close_rounded, size: 13, color: OtColors.text),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -314,11 +249,294 @@ class _FieldLabel extends StatelessWidget {
     return Text(
       text.toUpperCase(),
       style: portalText(
-        fontSize: 10.5,
+        fontSize: 10,
         fontWeight: FontWeight.w700,
         color: PortalColors.muted,
-        letterSpacing: 0.3,
+        letterSpacing: 0.5,
       ),
+    );
+  }
+}
+
+class _ChipGroup<T> extends StatelessWidget {
+  const _ChipGroup({
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final T value;
+  final List<(T, String, IconData)> items;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) const SizedBox(width: 8),
+          Expanded(
+            child: _FilterChip(
+              label: items[i].$2,
+              icon: items[i].$3,
+              selected: items[i].$1 == value,
+              onTap: () => onChanged(items[i].$1),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = selected ? Colors.white : PortalColors.secondaryText;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 34,
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        decoration: BoxDecoration(
+          color: selected ? PortalColors.brand : PortalColors.background,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? PortalColors.brand : PortalColors.border,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 13, color: fg),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: portalText(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: fg,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DateToggle extends StatelessWidget {
+  const _DateToggle({
+    required this.expanded,
+    required this.activeCount,
+    required this.onTap,
+  });
+
+  final bool expanded;
+  final int activeCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: PortalColors.background,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: activeCount > 0 ? null : onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: PortalColors.border),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.date_range_rounded,
+                size: 16,
+                color: PortalColors.brandLight,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Filter by date',
+                  style: portalText(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: PortalColors.heading,
+                  ),
+                ),
+              ),
+              if (activeCount > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: PortalColors.brand,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '$activeCount active',
+                    style: portalText(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              else
+                AnimatedRotation(
+                  turns: expanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 220),
+                  child: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 20,
+                    color: PortalColors.muted,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ExportButton extends StatelessWidget {
+  const _ExportButton({required this.state, required this.cubit});
+
+  final AttendanceState state;
+  final AttendanceCubit cubit;
+
+  Future<void> _export(BuildContext context, BuildContext buttonContext) async {
+    final count = state.records.length;
+    if (count == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No records to export.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    try {
+      final result = await cubit.exportCsv();
+      if (!context.mounted) return;
+
+      final box = buttonContext.findRenderObject() as RenderBox?;
+      final origin = box == null
+          ? null
+          : box.localToGlobal(Offset.zero) & box.size;
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [
+            XFile(
+              result.filePath,
+              mimeType: 'text/csv',
+              name: result.fileName,
+            ),
+          ],
+          sharePositionOrigin: origin,
+        ),
+      );
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Exported ${result.fileName}'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e is AttendanceFailure ? e.message : 'Failed to export CSV: $e',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (buttonContext) {
+        return Material(
+          color: PortalColors.green,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: () => _export(context, buttonContext),
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              height: 42,
+              width: double.infinity,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.file_download_outlined,
+                    size: 17,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Export CSV',
+                    style: portalText(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.22),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '${state.records.length}',
+                      style: portalText(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -336,6 +554,7 @@ class _DateField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasValue = value != null;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
@@ -348,21 +567,44 @@ class _DateField extends StatelessWidget {
         );
         if (picked != null) onPick(picked);
       },
-      onLongPress: value == null ? null : () => onPick(null),
-      child: _Box(
-        text: value == null ? hint : _format(value!),
-        isHint: value == null,
-        trailing: value == null
-            ? const Icon(
-                Icons.calendar_today_outlined,
-                size: 14,
-                color: PortalColors.muted,
-              )
-            : GestureDetector(
+      onLongPress: hasValue ? () => onPick(null) : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 38,
+        padding: EdgeInsets.only(left: 11, right: hasValue ? 4 : 10),
+        decoration: BoxDecoration(
+          color: hasValue ? PortalColors.brandTint : PortalColors.background,
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(
+            color: hasValue ? PortalColors.brandLight : PortalColors.border,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.calendar_today_rounded,
+              size: 13,
+              color: hasValue ? PortalColors.brand : PortalColors.muted,
+            ),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(
+                hasValue ? _format(value!) : hint,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: portalText(
+                  fontSize: 12,
+                  fontWeight: hasValue ? FontWeight.w600 : FontWeight.w400,
+                  color: hasValue ? PortalColors.heading : PortalColors.muted,
+                ),
+              ),
+            ),
+            if (hasValue)
+              GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => onPick(null),
                 child: const Padding(
-                  padding: EdgeInsets.all(4),
+                  padding: EdgeInsets.all(6),
                   child: Icon(
                     Icons.close_rounded,
                     size: 15,
@@ -370,6 +612,8 @@ class _DateField extends StatelessWidget {
                   ),
                 ),
               ),
+          ],
+        ),
       ),
     );
   }
@@ -378,78 +622,5 @@ class _DateField extends StatelessWidget {
     final d = date.day.toString().padLeft(2, '0');
     final m = date.month.toString().padLeft(2, '0');
     return '$d/$m/${date.year}';
-  }
-}
-
-class _DropdownField<T> extends StatelessWidget {
-  const _DropdownField({
-    required this.value,
-    required this.label,
-    required this.items,
-    required this.onChanged,
-  });
-
-  final T value;
-  final String label;
-  final List<(T, String)> items;
-  final ValueChanged<T> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<T>(
-      onSelected: onChanged,
-      offset: const Offset(0, 40),
-      itemBuilder: (context) => [
-        for (final item in items)
-          PopupMenuItem<T>(
-            value: item.$1,
-            child: Text(
-              item.$2,
-              style: portalText(fontSize: 12, color: PortalColors.heading),
-            ),
-          ),
-      ],
-      child: _Box(text: label, isHint: false),
-    );
-  }
-}
-
-class _Box extends StatelessWidget {
-  const _Box({required this.text, required this.isHint, this.trailing});
-
-  final String text;
-  final bool isHint;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 36,
-      width: double.infinity,
-      padding: EdgeInsets.only(left: 13, right: trailing == null ? 13 : 8),
-      alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        color: PortalColors.background,
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: PortalColors.border),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              text,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: portalText(
-                fontSize: 12,
-                color: isHint ? PortalColors.muted : PortalColors.heading,
-                height: 15 / 12,
-              ),
-            ),
-          ),
-          ?trailing,
-        ],
-      ),
-    );
   }
 }

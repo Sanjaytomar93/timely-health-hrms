@@ -136,7 +136,10 @@ class _DashboardView extends StatelessWidget {
                         ),
                       ),
                       SliverToBoxAdapter(
-                        child: RecentActivityCard(items: ui.recentActivity),
+                        child: RecentActivityCard(
+                          items: ui.recentActivity,
+                          onSeeAll: onOpenAttendance,
+                        ),
                       ),
                       SliverToBoxAdapter(
                         child: UpdatesCelebrationsCard(

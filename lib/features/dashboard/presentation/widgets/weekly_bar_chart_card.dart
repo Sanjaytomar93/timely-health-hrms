@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/dashboard_card.dart';
 
 class WeeklyBarChartCard extends StatelessWidget {
   const WeeklyBarChartCard({
@@ -13,7 +14,7 @@ class WeeklyBarChartCard extends StatelessWidget {
     this.barColors,
     this.monthLabel,
     this.onMonthTap,
-    this.topSpacing = 18,
+    this.topSpacing = kDashboardSectionGap,
   });
 
   static const _gridSteps = 5;
@@ -52,63 +53,19 @@ class WeeklyBarChartCard extends StatelessWidget {
     const barWidth = 34.0;
     final gridHeight = lineGap * (yLabels.length - 1);
 
-    return Container(
-      margin: EdgeInsets.fromLTRB(16, topSpacing, 16, 0),
-      padding: const EdgeInsets.fromLTRB(15, 13, 17, 12),
-      decoration: BoxDecoration(
-        color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: PortalColors.border),
-      ),
+    return DashboardCard(
+      topSpacing: topSpacing,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       child: Column(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: barColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(titleIcon, size: 18, color: barColor),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: portalText(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        height: 18 / 14,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: portalText(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w500,
-                        color: PortalColors.muted,
-                        height: 13 / 10.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              DashboardMonthChip(label: chip, onTap: onMonthTap),
-            ],
+          DashboardCardHeader(
+            icon: titleIcon,
+            color: barColor,
+            title: title,
+            subtitle: subtitle,
+            trailing: DashboardMonthChip(label: chip, onTap: onMonthTap),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SizedBox(
             height: valueSpace + gridHeight + labelHeight,
             child: Row(
@@ -396,38 +353,48 @@ class DashboardMonthChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 22,
-        padding: const EdgeInsets.symmetric(horizontal: 11),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: PortalColors.background,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: PortalColors.border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: portalText(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
-                color: PortalColors.secondaryText,
-                height: 13 / 10.5,
-              ),
-            ),
-            if (onTap != null) ...[
-              const SizedBox(width: 2),
+    final radius = BorderRadius.circular(999);
+    return Material(
+      color: PortalColors.background,
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: const BorderSide(color: PortalColors.border),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: Container(
+          height: 26,
+          padding: EdgeInsets.only(left: 10, right: onTap != null ? 6 : 10),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               const Icon(
-                Icons.keyboard_arrow_down_rounded,
-                size: 14,
-                color: PortalColors.secondaryText,
+                Icons.calendar_month_rounded,
+                size: 12,
+                color: PortalColors.brandLight,
               ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: portalText(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: PortalColors.secondaryText,
+                  height: 13 / 10.5,
+                ),
+              ),
+              if (onTap != null) ...[
+                const SizedBox(width: 2),
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 14,
+                  color: PortalColors.secondaryText,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/shimmer.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
 import 'package:timelay_health/features/notifications/domain/failures/notification_failure.dart';
 import 'package:timelay_health/features/notifications/presentation/bloc/notifications_cubit.dart';
 import 'package:timelay_health/features/notifications/presentation/bloc/notifications_state.dart';
@@ -261,9 +262,9 @@ class _NotificationsViewState extends State<_NotificationsView> {
                                         if (action ==
                                             NotificationDetailAction
                                                 .goToDashboard) {
-                                          Navigator.of(
+                                          EmployeeHomeShell.goToDashboard(
                                             context,
-                                          ).popUntil((route) => route.isFirst);
+                                          );
                                         }
                                       },
                                     );
