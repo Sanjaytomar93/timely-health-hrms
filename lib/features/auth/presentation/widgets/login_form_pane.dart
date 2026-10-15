@@ -97,7 +97,7 @@ class _LoginFormPaneState extends State<LoginFormPane> {
           top: false,
           child: SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: EdgeInsets.fromLTRB(28, keyboardOpen ? 10 : 12, 28, 24),
+            padding: EdgeInsets.fromLTRB(32, keyboardOpen ? 8 : 16, 32, 28),
             child: Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.disabled,
@@ -107,53 +107,53 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                   if (!keyboardOpen) ...[
                     Center(
                       child: Container(
-                        width: 40,
-                        height: 4,
+                        width: 36,
+                        height: 3.5,
                         decoration: BoxDecoration(
-                          color: PortalColors.border,
+                          color: PortalColors.border.withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 22),
                   ],
                   Text(
                     'Sign in',
                     style: portalText(
-                      fontSize: keyboardOpen ? 22 : 24,
+                      fontSize: keyboardOpen ? 24 : 28,
                       fontWeight: FontWeight.w800,
                       color: PortalColors.heading,
-                      letterSpacing: -0.5,
+                      letterSpacing: -0.6,
                     ),
                   ),
                   if (!keyboardOpen) ...[
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 6),
                     Text(
-                      'Enter your work credentials to continue',
+                      'Enter your credentials to access your account',
                       style: portalText(
-                        fontSize: 13,
+                        fontSize: 13.5,
                         color: PortalColors.muted,
-                        height: 1.35,
+                        height: 1.4,
                       ),
                     ),
                   ],
-                  SizedBox(height: keyboardOpen ? 12 : 18),
+                  SizedBox(height: keyboardOpen ? 16 : 24),
                   if (!keyboardOpen) ...[
                     const _FieldLabel('Email address'),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                   ],
-                  _UnderlineField(
+                  _ModernField(
                     controller: _emailController,
                     focusNode: _emailFocus,
-                    keyboardType: TextInputType.text,
+                    keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
-                    hintText: 'name@company.com',
+                    hintText: 'Enter your email',
                     prefix: Icons.mail_outline_rounded,
                     validator: Validators.email,
                     showEmptyError: _submitted,
                     onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
                   ),
-                  SizedBox(height: keyboardOpen ? 10 : 12),
+                  SizedBox(height: keyboardOpen ? 14 : 16),
                   if (!keyboardOpen)
                     Row(
                       children: [
@@ -161,9 +161,9 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                         GestureDetector(
                           onTap: () {},
                           child: Text(
-                            'Forgot?',
+                            'Forgot password?',
                             style: portalText(
-                              fontSize: 12,
+                              fontSize: 12.5,
                               fontWeight: FontWeight.w700,
                               color: PortalColors.purple,
                             ),
@@ -179,23 +179,23 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                         child: Text(
                           'Forgot?',
                           style: portalText(
-                            fontSize: 12,
+                            fontSize: 12.5,
                             fontWeight: FontWeight.w700,
                             color: PortalColors.purple,
                           ),
                         ),
                       ),
                     ),
-                  if (!keyboardOpen) const SizedBox(height: 6),
-                  if (keyboardOpen) const SizedBox(height: 6),
-                  _UnderlineField(
+                  if (!keyboardOpen) const SizedBox(height: 8),
+                  if (keyboardOpen) const SizedBox(height: 8),
+                  _ModernField(
                     controller: _passwordController,
                     focusNode: _passwordFocus,
                     obscureText: _obscurePassword,
                     keyboardType: TextInputType.visiblePassword,
                     inputFormatters: const [_AsciiDigitFormatter()],
                     textInputAction: TextInputAction.done,
-                    hintText: 'Your password',
+                    hintText: 'Enter your password',
                     prefix: Icons.lock_outline_rounded,
                     validator: Validators.password,
                     showEmptyError: _submitted,
@@ -207,51 +207,34 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                       visualDensity: VisualDensity.compact,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
+                        minWidth: 36,
+                        minHeight: 36,
                       ),
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
                         color: PortalColors.muted,
-                        size: 18,
+                        size: 20,
                       ),
                     ),
                   ),
-                  SizedBox(height: keyboardOpen ? 14 : 20),
-                  _SignInButton(
+                  SizedBox(height: keyboardOpen ? 18 : 24),
+                  _ModernSignInButton(
                     isLoading: isLoading,
                     onPressed: isLoading ? null : _onLoginPressed,
                   ),
                   if (!keyboardOpen) ...[
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.verified_user_outlined,
-                          size: 13,
-                          color: PortalColors.muted.withValues(alpha: 0.8),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Secure access for admins & employees',
-                          style: portalText(
-                            fontSize: 11.5,
-                            color: PortalColors.muted,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 24),
+                    _SecurityBadge(),
+                    const SizedBox(height: 14),
                     Text(
                       'Powered by Timely Health HRMS',
                       textAlign: TextAlign.center,
                       style: portalText(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w500,
-                        color: PortalColors.muted.withValues(alpha: 0.75),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: PortalColors.muted.withValues(alpha: 0.7),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -261,8 +244,8 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                       style: portalText(
                         fontSize: 10,
                         fontWeight: FontWeight.w400,
-                        color: PortalColors.muted.withValues(alpha: 0.45),
-                        letterSpacing: 0.5,
+                        color: PortalColors.muted.withValues(alpha: 0.4),
+                        letterSpacing: 0.6,
                       ),
                     ),
                   ],
@@ -286,17 +269,17 @@ class _FieldLabel extends StatelessWidget {
     return Text(
       text,
       style: portalText(
-        fontSize: 12,
+        fontSize: 12.5,
         fontWeight: FontWeight.w700,
         color: PortalColors.secondaryText,
-        letterSpacing: 0.2,
+        letterSpacing: 0.25,
       ),
     );
   }
 }
 
-class _UnderlineField extends StatelessWidget {
-  const _UnderlineField({
+class _ModernField extends StatelessWidget {
+  const _ModernField({
     required this.controller,
     required this.focusNode,
     required this.hintText,
@@ -339,34 +322,55 @@ class _UnderlineField extends StatelessWidget {
             ? const Color(0xFFE11D48)
             : focused
             ? PortalColors.purple
-            : Colors.transparent;
+            : PortalColors.border;
+        final fillColor = focused
+            ? PortalColors.purpleTint.withValues(alpha: 0.7)
+            : const Color(0xFFF6F5FB);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              height: 44,
+              duration: const Duration(milliseconds: 200),
+              height: 52,
               decoration: BoxDecoration(
-                color: focused
-                    ? PortalColors.purpleTint.withValues(alpha: 0.55)
-                    : const Color(0xFFF3F1F8),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: borderColor, width: 1.2),
+                color: fillColor,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: borderColor, width: focused ? 1.5 : 1),
+                boxShadow: focused
+                    ? [
+                        BoxShadow(
+                          color: PortalColors.purple.withValues(alpha: 0.15),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : [],
               ),
               child: Row(
                 children: [
-                  const SizedBox(width: 12),
-                  Icon(
-                    prefix,
-                    size: 17,
-                    color: showRed
-                        ? const Color(0xFFE11D48)
-                        : focused
-                        ? PortalColors.purple
-                        : PortalColors.muted,
+                  const SizedBox(width: 14),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: showRed
+                          ? const Color(0xFFE11D48).withValues(alpha: 0.1)
+                          : focused
+                              ? PortalColors.purple.withValues(alpha: 0.12)
+                              : PortalColors.muted.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      prefix,
+                      size: 18,
+                      color: showRed
+                          ? const Color(0xFFE11D48)
+                          : focused
+                              ? PortalColors.purple
+                              : PortalColors.muted,
+                    ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
                       controller: controller,
@@ -384,19 +388,19 @@ class _UnderlineField extends StatelessWidget {
                       onSubmitted: onFieldSubmitted,
                       scrollPadding: const EdgeInsets.only(bottom: 80),
                       style: portalText(
-                        fontSize: 13.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: PortalColors.heading,
-                        height: 1.1,
+                        height: 1.2,
                       ),
                       decoration: InputDecoration(
                         isDense: true,
                         isCollapsed: true,
                         hintText: hintText,
                         hintStyle: portalText(
-                          fontSize: 13.5,
+                          fontSize: 14,
                           color: PortalColors.muted,
-                          height: 1.1,
+                          height: 1.2,
                         ),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.zero,
@@ -404,22 +408,32 @@ class _UnderlineField extends StatelessWidget {
                     ),
                   ),
                   if (suffix != null)
-                    SizedBox(width: 32, height: 32, child: suffix),
-                  const SizedBox(width: 6),
+                    SizedBox(width: 36, height: 36, child: suffix),
+                  const SizedBox(width: 8),
                 ],
               ),
             ),
             if (showRed)
               Padding(
-                padding: const EdgeInsets.only(left: 4, top: 4),
-                child: Text(
-                  validator?.call(controller.text) ?? 'Required',
-                  style: portalText(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFFE11D48),
-                    height: 1.2,
-                  ),
+                padding: const EdgeInsets.only(left: 6, top: 6),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      size: 12,
+                      color: Color(0xFFE11D48),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      validator?.call(controller.text) ?? 'Required',
+                      style: portalText(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFE11D48),
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
               ),
           ],
@@ -486,17 +500,17 @@ class _AsciiDigitFormatter extends TextInputFormatter {
   }
 }
 
-class _SignInButton extends StatefulWidget {
-  const _SignInButton({required this.onPressed, required this.isLoading});
+class _ModernSignInButton extends StatefulWidget {
+  const _ModernSignInButton({required this.onPressed, required this.isLoading});
 
   final VoidCallback? onPressed;
   final bool isLoading;
 
   @override
-  State<_SignInButton> createState() => _SignInButtonState();
+  State<_ModernSignInButton> createState() => _ModernSignInButtonState();
 }
 
-class _SignInButtonState extends State<_SignInButton> {
+class _ModernSignInButtonState extends State<_ModernSignInButton> {
   bool _pressed = false;
 
   @override
@@ -513,39 +527,45 @@ class _SignInButtonState extends State<_SignInButton> {
           : null,
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedScale(
-        scale: _pressed ? 0.98 : 1,
-        duration: const Duration(milliseconds: 100),
+        scale: _pressed ? 0.97 : 1,
+        duration: const Duration(milliseconds: 120),
         child: AnimatedOpacity(
-          opacity: enabled ? 1 : 0.55,
-          duration: const Duration(milliseconds: 150),
+          opacity: enabled ? 1 : 0.5,
+          duration: const Duration(milliseconds: 160),
           child: Container(
-            height: 50,
+            height: 54,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               gradient: const LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
+                begin: Alignment(-0.8, -0.6),
+                end: Alignment(0.8, 0.6),
                 colors: [
                   Color(0xFF5B2FE0),
+                  Color(0xFF7C6FD4),
                   Color(0xFF26204A),
-                  Color(0xFF4B4285),
                 ],
+                stops: [0.0, 0.5, 1.0],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF26204A).withValues(alpha: 0.4),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
+                  color: const Color(0xFF5B2FE0).withValues(alpha: 0.45),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: const Color(0xFF26204A).withValues(alpha: 0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
             child: Center(
               child: widget.isLoading
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: 22,
+                      height: 22,
                       child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
+                        strokeWidth: 2.5,
                         color: Colors.white,
                       ),
                     )
@@ -553,25 +573,71 @@ class _SignInButtonState extends State<_SignInButton> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Continue',
+                          'Sign In',
                           style: portalText(
-                            fontSize: 15,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
-                            letterSpacing: 0.2,
+                            letterSpacing: 0.3,
                           ),
                         ),
-                        const SizedBox(width: 7),
-                        const Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Colors.white,
-                          size: 18,
+                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ),
                       ],
                     ),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SecurityBadge extends StatelessWidget {
+  const _SecurityBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF18AC96).withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF18AC96).withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.shield_rounded,
+            size: 16,
+            color: const Color(0xFF18AC96),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Secure access for admins & employees',
+            style: portalText(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF18AC96),
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
       ),
     );
   }
