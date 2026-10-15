@@ -56,6 +56,90 @@ class _LoginFormPaneState extends State<LoginFormPane> {
     });
   }
 
+  void _showForgotPassword() {
+    FocusScope.of(context).unfocus();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: PortalColors.border,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: PortalColors.purple.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.lock_reset_rounded,
+                  size: 32,
+                  color: PortalColors.purple,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Forgot your password?',
+                style: portalText(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: PortalColors.heading,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Please contact your HR administrator to reset your '
+                'password. They will share new credentials with you.',
+                textAlign: TextAlign.center,
+                style: portalText(
+                  fontSize: 13.5,
+                  color: PortalColors.muted,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(sheetContext),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: PortalColors.purple,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    'Got it',
+                    style: portalText(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
@@ -97,7 +181,7 @@ class _LoginFormPaneState extends State<LoginFormPane> {
           top: false,
           child: SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: EdgeInsets.fromLTRB(32, keyboardOpen ? 8 : 16, 32, 28),
+            padding: EdgeInsets.fromLTRB(28, keyboardOpen ? 8 : 14, 28, 24),
             child: Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.disabled,
@@ -107,10 +191,10 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                   if (!keyboardOpen) ...[
                     Center(
                       child: Container(
-                        width: 36,
-                        height: 3.5,
+                        width: 40,
+                        height: 4,
                         decoration: BoxDecoration(
-                          color: PortalColors.border.withValues(alpha: 0.6),
+                          color: PortalColors.border.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -129,7 +213,7 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                   if (!keyboardOpen) ...[
                     const SizedBox(height: 6),
                     Text(
-                      'Enter your credentials to access your account',
+                      'Enter your work credentials to continue',
                       style: portalText(
                         fontSize: 13.5,
                         color: PortalColors.muted,
@@ -147,47 +231,17 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                     focusNode: _emailFocus,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
-                    hintText: 'Enter your email',
+                    hintText: 'name@company.com',
                     prefix: Icons.mail_outline_rounded,
                     validator: Validators.email,
                     showEmptyError: _submitted,
                     onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
                   ),
                   SizedBox(height: keyboardOpen ? 14 : 16),
-                  if (!keyboardOpen)
-                    Row(
-                      children: [
-                        const Expanded(child: _FieldLabel('Password')),
-                        GestureDetector(
-                          onTap: () {},
-                          child: Text(
-                            'Forgot password?',
-                            style: portalText(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: PortalColors.purple,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  else
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: () {},
-                        child: Text(
-                          'Forgot?',
-                          style: portalText(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: PortalColors.purple,
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (!keyboardOpen) const SizedBox(height: 8),
-                  if (keyboardOpen) const SizedBox(height: 8),
+                  if (!keyboardOpen) ...[
+                    const _FieldLabel('Password'),
+                    const SizedBox(height: 8),
+                  ],
                   _ModernField(
                     controller: _passwordController,
                     focusNode: _passwordFocus,
@@ -195,7 +249,7 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                     keyboardType: TextInputType.visiblePassword,
                     inputFormatters: const [_AsciiDigitFormatter()],
                     textInputAction: TextInputAction.done,
-                    hintText: 'Enter your password',
+                    hintText: 'Your password',
                     prefix: Icons.lock_outline_rounded,
                     validator: Validators.password,
                     showEmptyError: _submitted,
@@ -219,7 +273,30 @@ class _LoginFormPaneState extends State<LoginFormPane> {
                       ),
                     ),
                   ),
-                  SizedBox(height: keyboardOpen ? 18 : 24),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _showForgotPassword,
+                      style: TextButton.styleFrom(
+                        foregroundColor: PortalColors.purple,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 10,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'Forgot password?',
+                        style: portalText(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: PortalColors.purple,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: keyboardOpen ? 8 : 12),
                   _ModernSignInButton(
                     isLoading: isLoading,
                     onPressed: isLoading ? null : _onLoginPressed,
@@ -573,7 +650,7 @@ class _ModernSignInButtonState extends State<_ModernSignInButton> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Sign In',
+                          'Continue',
                           style: portalText(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -609,36 +686,24 @@ class _SecurityBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF18AC96).withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF18AC96).withValues(alpha: 0.2),
-          width: 1,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(
+          Icons.verified_user_outlined,
+          size: 15,
+          color: PortalColors.muted,
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.shield_rounded,
-            size: 16,
-            color: const Color(0xFF18AC96),
+        const SizedBox(width: 8),
+        Text(
+          'Secure access for admins & employees',
+          style: portalText(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: PortalColors.muted,
           ),
-          const SizedBox(width: 8),
-          Text(
-            'Secure access for admins & employees',
-            style: portalText(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF18AC96),
-              letterSpacing: 0.2,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
