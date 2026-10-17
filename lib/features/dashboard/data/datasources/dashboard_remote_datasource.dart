@@ -84,16 +84,13 @@ class DashboardRemoteDataSource {
       );
     }
 
+    // Web portal uses empdashboard stats for the monthly review popup.
     late final http.Response response;
     try {
       response = await _client
           .get(
             Uri.parse(
-              DashboardEndpoints.employeePerformance(
-                employeeCode: code,
-                month: month,
-                year: year,
-              ),
+              DashboardEndpoints.empDashboard(code, month: month, year: year),
             ),
             headers: const {'Content-Type': 'application/json'},
           )
@@ -130,7 +127,11 @@ class DashboardRemoteDataSource {
     }
 
     try {
-      return EmployeePerformanceModel.fromJson(body);
+      return EmployeePerformanceModel.fromDashboardJson(
+        body,
+        month: month,
+        year: year,
+      );
     } catch (_) {
       throw const DashboardFailure(
         'Unexpected server response. Please try again.',

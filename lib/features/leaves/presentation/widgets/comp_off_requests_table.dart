@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/leaves/domain/entities/comp_off_request.dart';
+import 'package:timelay_health/features/leaves/presentation/widgets/leave_empty_state.dart';
 
 class CompOffRequestsTable extends StatelessWidget {
   const CompOffRequestsTable({super.key, required this.requests});
@@ -43,22 +44,10 @@ class CompOffRequestsTable extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           if (records.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.event_available_outlined,
-                    color: Color(0xFFB79CCF),
-                    size: 28,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'No comp-off requests yet.',
-                    style: portalText(fontSize: 12, color: PortalColors.muted),
-                  ),
-                ],
-              ),
+            const LeaveEmptyState(
+              icon: Icons.swap_horiz_rounded,
+              title: 'No Comp Off requests',
+              subtitle: 'When you raise a comp-off, it will show up here.',
             )
           else
             for (var i = 0; i < records.length; i++) ...[

@@ -52,7 +52,7 @@ class AuthRemoteDataSource {
     throw AuthFailure(
       parsed.message.isNotEmpty
           ? parsed.message
-          : 'Login failed. Please check your credentials.',
+          : 'Email or password doesn’t match. Please try again.',
     );
   }
 
@@ -78,6 +78,102 @@ class AuthRemoteDataSource {
           )
           .timeout(const Duration(seconds: 15));
     } catch (_) {}
+  }
+
+  Future<String> sendForgotPasswordOtp({required String email}) async {
+    return _postAuthAction(
+      url: AuthEndpoints.forgotPasswordSendOtp,
+      body: {'email': email.trim()},
+      fallbackError: 'Unable to send OTP. Please try again.',
+    );
+  }
+
+  Future<String> verifyForgotPasswordOtp({
+    required String email,
+    required String otp,
+  }) async {
+    late final http.Response response;
+    try {
+      response = await _client
+          .post(
+            Uri.parse(AuthEndpoints.forgotPasswordVerifyOtp),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': email.trim(),
+              'otp': otp.trim(),
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
+    } catch (_) {
+      throw const AuthFailure(
+        'Unable to reach server. Check your internet connection.',
+      );
+    }
+
+    final body = _decodeBody(response.body);
+    final success = body['success'] == true;
+    final verified = body['verified'] == true;
+    final message = body['message']?.toString() ?? '';
+
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        success &&
+        verified) {
+      return message.isNotEmpty
+          ? message
+          : 'OTP verified successfully. You can now set a new password.';
+    }
+
+    throw AuthFailure(
+      message.isNotEmpty ? message : 'Invalid OTP. Please try again.',
+    );
+  }
+
+  Future<String> resetForgotPassword({
+    required String email,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    return _postAuthAction(
+      url: AuthEndpoints.forgotPasswordReset,
+      body: {
+        'email': email.trim(),
+        'newPassword': newPassword,
+        'confirmPassword': confirmPassword,
+      },
+      fallbackError: 'Unable to reset password. Please try again.',
+    );
+  }
+
+  Future<String> _postAuthAction({
+    required String url,
+    required Map<String, dynamic> body,
+    required String fallbackError,
+  }) async {
+    late final http.Response response;
+    try {
+      response = await _client
+          .post(
+            Uri.parse(url),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 30));
+    } catch (_) {
+      throw const AuthFailure(
+        'Unable to reach server. Check your internet connection.',
+      );
+    }
+
+    final decoded = _decodeBody(response.body);
+    final success = decoded['success'] == true;
+    final message = decoded['message']?.toString() ?? '';
+
+    if (response.statusCode >= 200 && response.statusCode < 300 && success) {
+      return message;
+    }
+
+    throw AuthFailure(message.isNotEmpty ? message : fallbackError);
   }
 
   Future<EmployeeModel> getEmployee({required String employeeId}) async {

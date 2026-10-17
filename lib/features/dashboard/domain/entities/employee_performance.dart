@@ -10,6 +10,7 @@ class EmployeePerformance {
     required this.expectedWorkingHours,
     required this.actualWorkingHours,
     required this.performancePercentage,
+    this.status,
   });
 
   final String employeeName;
@@ -22,6 +23,7 @@ class EmployeePerformance {
   final double expectedWorkingHours;
   final double actualWorkingHours;
   final double performancePercentage;
+  final String? status;
 
   String get firstName {
     final name = employeeName.trim();

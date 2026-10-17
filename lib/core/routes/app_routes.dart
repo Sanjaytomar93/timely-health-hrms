@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:timelay_health/features/auth/domain/entities/employee.dart';
+import 'package:timelay_health/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:timelay_health/features/auth/presentation/screens/login_screen.dart';
 import 'package:timelay_health/features/auth/presentation/screens/splash_screen.dart';
 import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
@@ -23,6 +24,7 @@ import 'package:timelay_health/features/visits/presentation/screens/visits_scree
 abstract final class AppRoutes {
   static const splash = '/';
   static const login = '/login';
+  static const forgotPassword = '/forgot-password';
   static const home = '/home';
   static const permissions = '/permissions';
   static const notifications = '/notifications';
@@ -47,6 +49,12 @@ abstract final class AppRoutes {
 
       case login:
         return _fadeRoute(const LoginScreen(), settings);
+
+      case forgotPassword:
+        return MaterialPageRoute<void>(
+          builder: (_) => const ForgotPasswordScreen(),
+          settings: settings,
+        );
 
       case home:
         return _fadeRoute(const EmployeeHomeShell(), settings);

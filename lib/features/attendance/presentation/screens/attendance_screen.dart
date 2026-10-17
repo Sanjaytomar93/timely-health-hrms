@@ -111,6 +111,10 @@ class _RecordsTab extends StatelessWidget {
         final loading =
             state is AttendanceLoading || state is AttendanceInitial;
         final error = state is AttendanceFailureState ? state.message : null;
+        if (loading && state.allRecords.isEmpty) {
+          return const AttendanceShimmer();
+        }
+
         final banner = AttendanceUiMapper.toBanner(
           records: state.allRecords,
           shiftLabel: state.shiftLabel,
@@ -127,14 +131,7 @@ class _RecordsTab extends StatelessWidget {
               const SliverToBoxAdapter(child: OtInfoBox()),
               const SliverToBoxAdapter(child: FiltersActionsCard()),
               const SliverToBoxAdapter(child: OtAvailableBanner()),
-              if (loading && state.allRecords.isEmpty)
-                const SliverToBoxAdapter(
-                  child: ShimmerCardList(
-                    itemCount: 4,
-                    padding: EdgeInsets.fromLTRB(16, 22, 16, 24),
-                  ),
-                )
-              else if (error != null && state.allRecords.isEmpty)
+              if (error != null && state.allRecords.isEmpty)
                 SliverToBoxAdapter(
                   child: DashboardCard(
                     topSpacing: 22,
