@@ -17,31 +17,50 @@ class ProfileInfoTiles extends StatelessWidget {
         value: employee.employeeId,
         footer: 'registered code',
         icon: 'assets/icons/profile/ic_employee_id.svg',
+        accent: PortalColors.purple,
+        tint: PortalColors.purpleTint,
       ),
       _Tile(
         label: 'Department',
         value: employee.department.isEmpty ? '—' : employee.department,
         footer: 'current team',
         icon: 'assets/icons/profile/ic_department.svg',
+        accent: const Color(0xFF3B6FE0),
+        tint: const Color(0xFFEAF0FD),
       ),
       _Tile(
         label: 'Role',
         value: employee.role.isEmpty ? '—' : employee.role,
         footer: 'active designation',
         icon: 'assets/icons/profile/ic_role.svg',
+        accent: PortalColors.green,
+        tint: PortalColors.greenTint,
       ),
       _Tile(
         label: 'Joined On',
         value: employee.joinDateShort,
-        footer: employee.email,
+        footer: 'start date',
         icon: 'assets/icons/profile/ic_joined.svg',
+        accent: PortalColors.orange,
+        tint: PortalColors.orangeTint,
       ),
     ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            'Quick facts',
+            style: portalText(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: PortalColors.heading,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(child: _InfoTile(tile: tiles[0])),
@@ -49,7 +68,7 @@ class ProfileInfoTiles extends StatelessWidget {
               Expanded(child: _InfoTile(tile: tiles[1])),
             ],
           ),
-          const SizedBox(height: 9),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(child: _InfoTile(tile: tiles[2])),
@@ -69,12 +88,16 @@ class _Tile {
     required this.value,
     required this.footer,
     required this.icon,
+    required this.accent,
+    required this.tint,
   });
 
   final String label;
   final String value;
   final String footer;
   final String icon;
+  final Color accent;
+  final Color tint;
 }
 
 class _InfoTile extends StatelessWidget {
@@ -85,11 +108,18 @@ class _InfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 11),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: PortalColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,33 +128,40 @@ class _InfoTile extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 22,
-                height: 22,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
-                  color: PortalColors.purpleTint,
-                  borderRadius: BorderRadius.circular(7),
+                  color: tile.tint,
+                  borderRadius: BorderRadius.circular(9),
                 ),
                 alignment: Alignment.center,
-                child: SvgPicture.asset(tile.icon, width: 11, height: 11),
+                child: SvgPicture.asset(tile.icon, width: 13, height: 13),
               ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  tile.label.toUpperCase(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: portalText(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: PortalColors.muted,
-                    letterSpacing: 0.3,
-                    height: 11 / 9,
-                  ),
+              const Spacer(),
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: tile.accent,
+                  shape: BoxShape.circle,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
+          Text(
+            tile.label.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: portalText(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: PortalColors.muted,
+              letterSpacing: 0.4,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 4),
           Text(
             tile.value,
             maxLines: 1,
@@ -133,10 +170,10 @@ class _InfoTile extends StatelessWidget {
               fontSize: 13.5,
               fontWeight: FontWeight.w700,
               color: PortalColors.heading,
-              height: 16 / 13.5,
+              height: 1.2,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
           Text(
             tile.footer,
             maxLines: 1,
@@ -144,7 +181,7 @@ class _InfoTile extends StatelessWidget {
             style: portalText(
               fontSize: 9.5,
               color: PortalColors.muted,
-              height: 11 / 9.5,
+              height: 1.2,
             ),
           ),
         ],

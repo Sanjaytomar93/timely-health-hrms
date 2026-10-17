@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/shimmer.dart';
@@ -16,8 +16,6 @@ import 'package:timelay_health/features/profile/presentation/widgets/profile_sea
 import 'package:timelay_health/features/profile/presentation/widgets/profile_salary_hike.dart';
 import 'package:timelay_health/features/profile/presentation/widgets/profile_section_tabs.dart';
 import 'package:timelay_health/features/profile/presentation/widgets/profile_summary_card.dart';
-import 'package:timelay_health/features/profile/presentation/widgets/profile_welcome_banner.dart';
-import 'package:timelay_health/features/letters/presentation/widgets/resignation_form_sheet.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
 import 'package:timelay_health/core/widgets/portal_back_button.dart';
@@ -132,26 +130,33 @@ class _ProfileViewState extends State<_ProfileView> {
             ),
           ),
           SliverToBoxAdapter(child: ProfileInfoTiles(employee: data)),
-          SliverToBoxAdapter(child: ProfileWelcomeBanner(employee: data)),
           SliverToBoxAdapter(child: ProfileSummaryCard(employee: data)),
           const SliverToBoxAdapter(child: ProfileExperienceStats()),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(top: 14),
+              padding: const EdgeInsets.only(top: 18),
               child: ProfileSectionTabs(
                 selectedIndex: _tabIndex,
-                onChanged: (i) => setState(() => _tabIndex = i),
+                onChanged: _onTabChanged,
               ),
             ),
           ),
           SliverToBoxAdapter(
             child: _TabBody(tabIndex: _tabIndex, employee: data),
           ),
-          SliverToBoxAdapter(child: _ResignButton(employee: data)),
-          const SliverToBoxAdapter(child: SizedBox(height: 28)),
+          const SliverToBoxAdapter(child: SizedBox(height: 32)),
         ],
       ),
     );
+  }
+
+  void _onTabChanged(int index) {
+    // My Letters → Relieving Letters screen
+    if (index == 2) {
+      AppRoutes.push(context, AppRoutes.letters);
+      return;
+    }
+    setState(() => _tabIndex = index);
   }
 }
 
@@ -196,9 +201,16 @@ class _ProfileAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: PortalColors.surface,
-        border: Border(bottom: BorderSide(color: PortalColors.border)),
+        border: const Border(bottom: BorderSide(color: PortalColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       padding: const EdgeInsets.fromLTRB(16, 10, 18, 10),
       child: Row(
@@ -213,7 +225,7 @@ class _ProfileAppBar extends StatelessWidget {
                 Text(
                   'My Profile',
                   style: portalText(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: PortalColors.heading,
                     letterSpacing: 0.1,
@@ -222,7 +234,7 @@ class _ProfileAppBar extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Your employee details',
+                  'Personal workspace',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: portalText(
@@ -248,65 +260,114 @@ class _EmptyExperience extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-      child: _ProfileSvg(asset: 'assets/icons/profile/empty_state.svg'),
-    );
-  }
-}
-
-class _ResignButton extends StatelessWidget {
-  const _ResignButton({required this.employee});
-
-  final Employee employee;
-
-  Future<void> _open(BuildContext context) async {
-    final submitted = await showResignationFormSheet(
-      context,
-      employeeId: employee.employeeId,
-    );
-    if (!submitted || !context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Resignation submitted successfully.'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(31, 16, 31, 0),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _open(context),
-          borderRadius: BorderRadius.circular(11),
-          child: const _ProfileSvg(
-            asset: 'assets/icons/profile/resign_button.svg',
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 26),
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: PortalColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
-        ),
+        ],
       ),
-    );
-  }
-}
-
-class _ProfileSvg extends StatelessWidget {
-  const _ProfileSvg({required this.asset});
-
-  final String asset;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SvgPicture.asset(
-          asset,
-          width: constraints.maxWidth,
-          fit: BoxFit.fitWidth,
-        );
-      },
+      child: Column(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  PortalColors.purpleTint,
+                  PortalColors.brand.withValues(alpha: 0.12),
+                ],
+              ),
+              border: Border.all(
+                color: PortalColors.brand.withValues(alpha: 0.12),
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: PortalColors.surface,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: PortalColors.brand.withValues(alpha: 0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.work_history_outlined,
+                size: 22,
+                color: PortalColors.brand,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No experience records yet',
+            textAlign: TextAlign.center,
+            style: portalText(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: PortalColors.heading,
+              height: 1.25,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Your previous roles and companies will show up here once experience details are added.',
+            textAlign: TextAlign.center,
+            style: portalText(
+              fontSize: 12,
+              color: PortalColors.muted,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: PortalColors.purpleTint,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 14,
+                  color: PortalColors.brand.withValues(alpha: 0.85),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Experience list is empty',
+                  style: portalText(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: PortalColors.brand,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

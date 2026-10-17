@@ -12,25 +12,33 @@ class ProfileExperienceStats extends StatelessWidget {
       label: 'Total Roles',
       subtitle: 'experience records',
       icon: 'assets/icons/profile/ic_stat_roles.svg',
+      tint: PortalColors.purpleTint,
+      accent: PortalColors.brand,
     ),
     _Stat(
       value: '0',
       label: 'Current Roles',
       subtitle: 'active positions',
       icon: 'assets/icons/profile/ic_stat_current.svg',
+      tint: PortalColors.greenTint,
+      accent: PortalColors.green,
     ),
     _Stat(
       value: '0',
       label: 'Companies',
       subtitle: 'unique employers',
       icon: 'assets/icons/profile/ic_stat_building.svg',
+      tint: Color(0xFFEAF0FD),
+      accent: Color(0xFF3B6FE0),
     ),
     _Stat(
       value: 'New',
       label: 'Profile',
       subtitle: 'Experience status',
       icon: 'assets/icons/profile/ic_stat_building.svg',
-      valueWeight: FontWeight.w500,
+      tint: PortalColors.orangeTint,
+      accent: PortalColors.orange,
+      valueWeight: FontWeight.w600,
       valueSize: 15,
     ),
   ];
@@ -39,16 +47,35 @@ class ProfileExperienceStats extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < _items.length; i++) ...[
-              if (i > 0) const SizedBox(width: 8),
-              Expanded(child: _StatCard(item: _items[i])),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Experience snapshot',
+            style: portalText(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: PortalColors.heading,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(child: _StatCard(item: _items[0])),
+              const SizedBox(width: 10),
+              Expanded(child: _StatCard(item: _items[1])),
             ],
-          ],
-        ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(child: _StatCard(item: _items[2])),
+              const SizedBox(width: 10),
+              Expanded(child: _StatCard(item: _items[3])),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -60,14 +87,18 @@ class _Stat {
     required this.label,
     required this.subtitle,
     required this.icon,
+    required this.tint,
+    required this.accent,
     this.valueWeight = FontWeight.w700,
-    this.valueSize = 17,
+    this.valueSize = 20,
   });
 
   final String value;
   final String label;
   final String subtitle;
   final String icon;
+  final Color tint;
+  final Color accent;
   final FontWeight valueWeight;
   final double valueSize;
 }
@@ -80,59 +111,68 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 11, 8, 10),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: PortalColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Column(
+      child: Row(
         children: [
           Container(
-            width: 24,
-            height: 24,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: PortalColors.purpleTint,
-              borderRadius: BorderRadius.circular(8),
+              color: item.tint,
+              borderRadius: BorderRadius.circular(11),
             ),
             alignment: Alignment.center,
-            child: SvgPicture.asset(item.icon, width: 12, height: 12),
+            child: SvgPicture.asset(item.icon, width: 14, height: 14),
           ),
-          const SizedBox(height: 6),
-          Text(
-            item.value,
-            textAlign: TextAlign.center,
-            style: portalText(
-              fontSize: item.valueSize,
-              fontWeight: item.valueWeight,
-              color: PortalColors.green,
-              height: 21 / 17,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            item.label.toUpperCase(),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: portalText(
-              fontSize: 8,
-              fontWeight: FontWeight.w700,
-              color: PortalColors.muted,
-              letterSpacing: 0.3,
-              height: 10 / 8,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            item.subtitle,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: portalText(
-              fontSize: 8.5,
-              color: PortalColors.muted,
-              height: 10 / 8.5,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.value,
+                  style: portalText(
+                    fontSize: item.valueSize,
+                    fontWeight: item.valueWeight,
+                    color: item.accent,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: PortalColors.heading,
+                    height: 1.2,
+                  ),
+                ),
+                Text(
+                  item.subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 9.5,
+                    color: PortalColors.muted,
+                    height: 1.2,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -46,7 +46,7 @@ class _PayslipsView extends StatelessWidget {
                       state is PayslipsLoading && state.payslip == null;
 
                   if (loading) {
-                    return const ShimmerCardList(scrollable: true);
+                    return const PayslipsShimmer();
                   }
 
                   final payslip =
@@ -621,51 +621,25 @@ class _SalaryRecordCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      payslip.monthLabel,
-                      style: portalText(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: PortalColors.heading,
-                        height: 1.2,
-                      ),
-                    ),
-                    Text(
-                      payslip.daysMeta,
-                      style: portalText(
-                        fontSize: 8,
-                        color: PortalColors.muted,
-                        height: 1.25,
-                      ),
-                    ),
-                  ],
+              Text(
+                payslip.monthLabel,
+                style: portalText(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: PortalColors.heading,
+                  height: 1.2,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: payslip.statusBackground,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  payslip.statusLabel,
-                  style: portalText(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: payslip.statusColor,
-                    height: 1.2,
-                  ),
+              Text(
+                payslip.daysMeta,
+                style: portalText(
+                  fontSize: 8,
+                  color: PortalColors.muted,
+                  height: 1.25,
                 ),
               ),
             ],

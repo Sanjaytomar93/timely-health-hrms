@@ -11,31 +11,43 @@ class ProfilePersonalDocuments extends StatelessWidget {
       title: 'Aadhar / National ID',
       id: 'ID: AADHARCARD',
       description: 'Government-issued identity proof',
+      tint: Color(0xFFEAF0FD),
+      accent: Color(0xFF3B6FE0),
     ),
     _DocItem(
       title: 'PAN Card',
       id: 'ID: PANCARD',
       description: 'Tax identification document',
+      tint: PortalColors.orangeTint,
+      accent: PortalColors.orange,
     ),
     _DocItem(
       title: '10th Certificate',
       id: 'ID: TENTHCERTIFICATE',
       description: 'Secondary school certificate',
+      tint: PortalColors.purpleTint,
+      accent: PortalColors.brand,
     ),
     _DocItem(
       title: '12th Certificate',
       id: 'ID: TWELFTHCERTIFICATE',
       description: 'Higher Secondary certificate',
+      tint: PortalColors.greenTint,
+      accent: PortalColors.green,
     ),
     _DocItem(
       title: 'Graduation Degree',
       id: 'ID: GRADUATIONCERTIFICATE',
       description: 'University degree certificate',
+      tint: Color(0xFFEAF0FD),
+      accent: Color(0xFF3B6FE0),
     ),
     _DocItem(
       title: 'Passport Photo',
       id: 'ID: PASSPORTPHOTO',
       description: 'Recent passport photograph',
+      tint: PortalColors.redTint,
+      accent: PortalColors.red,
     ),
   ];
 
@@ -47,23 +59,17 @@ class ProfilePersonalDocuments extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
-            decoration: BoxDecoration(
-              color: PortalColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: PortalColors.border),
-            ),
+          _SectionCard(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const _Header(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 const _SearchField(),
                 const SizedBox(height: 10),
                 const _StatusDropdown(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 for (var i = 0; i < _docs.length; i++) ...[
                   if (i > 0) const SizedBox(height: 10),
                   _DocumentCard(item: _docs[i]),
@@ -86,11 +92,41 @@ class _DocItem {
     required this.title,
     required this.id,
     required this.description,
+    required this.tint,
+    required this.accent,
   });
 
   final String title;
   final String id;
   final String description;
+  final Color tint;
+  final Color accent;
+}
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: PortalColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
 }
 
 class _Header extends StatelessWidget {
@@ -98,54 +134,63 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          children: [
-            const Icon(
-              Icons.folder_outlined,
-              size: 16,
-              color: PortalColors.secondaryText,
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: PortalColors.purpleTint,
+            borderRadius: BorderRadius.circular(11),
+          ),
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.folder_outlined,
+            size: 18,
+            color: PortalColors.brand,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
                 'Personal Documents',
                 style: portalText(
-                  fontSize: 13.5,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: PortalColors.heading,
-                  height: 16 / 13.5,
+                  height: 1.2,
                 ),
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: PortalColors.purpleTint,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                '6 Items',
+              const SizedBox(height: 3),
+              Text(
+                'Identity & education files in one place',
                 style: portalText(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: PortalColors.purple,
-                  height: 12 / 10,
+                  fontSize: 11,
+                  color: PortalColors.muted,
+                  height: 1.3,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        const SizedBox(height: 6),
-        Text(
-          'View and access your uploaded identity and education documents.',
-          style: portalText(
-            fontSize: 10.5,
-            color: PortalColors.muted,
-            height: 14 / 10.5,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          decoration: BoxDecoration(
+            color: PortalColors.purpleTint,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            '6 items',
+            style: portalText(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: PortalColors.brand,
+              height: 1.2,
+            ),
           ),
         ),
       ],
@@ -159,19 +204,19 @@ class _SearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 40,
+      height: 42,
       child: TextField(
         decoration: InputDecoration(
-          hintText: 'Search by name or Description...',
-          hintStyle: portalText(fontSize: 11.5, color: const Color(0xFF757575)),
+          hintText: 'Search documents...',
+          hintStyle: portalText(fontSize: 12, color: PortalColors.muted),
           prefixIcon: const Icon(
-            Icons.search,
-            size: 16,
+            Icons.search_rounded,
+            size: 18,
             color: PortalColors.muted,
           ),
           prefixIconConstraints: const BoxConstraints(
-            minWidth: 36,
-            minHeight: 40,
+            minWidth: 40,
+            minHeight: 42,
           ),
           filled: true,
           fillColor: PortalColors.background,
@@ -182,16 +227,16 @@ class _SearchField extends StatelessWidget {
           ),
           border: _border(),
           enabledBorder: _border(),
-          focusedBorder: _border(PortalColors.purple),
+          focusedBorder: _border(PortalColors.brand),
         ),
-        style: portalText(fontSize: 12, color: PortalColors.heading),
+        style: portalText(fontSize: 12.5, color: PortalColors.heading),
       ),
     );
   }
 
   static OutlineInputBorder _border([Color? color]) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(11),
+      borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(color: color ?? PortalColors.border),
     );
   }
@@ -203,15 +248,21 @@ class _StatusDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 38,
+      height: 40,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: PortalColors.background,
-        borderRadius: BorderRadius.circular(11),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: PortalColors.border),
       ),
       child: Row(
         children: [
+          Icon(
+            Icons.filter_list_rounded,
+            size: 16,
+            color: PortalColors.muted.withValues(alpha: 0.9),
+          ),
+          const SizedBox(width: 8),
           Text(
             'All Statuses',
             style: portalText(
@@ -242,7 +293,7 @@ class _DocumentCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       decoration: BoxDecoration(
-        color: PortalColors.surface,
+        color: PortalColors.background,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PortalColors.border),
       ),
@@ -254,20 +305,20 @@ class _DocumentCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: PortalColors.purpleTint,
-                  borderRadius: BorderRadius.circular(9),
+                  color: item.tint,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
                 child: SvgPicture.asset(
                   'assets/icons/profile/ic_doc_card.svg',
-                  width: 16,
-                  height: 16,
+                  width: 18,
+                  height: 18,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 11),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,29 +327,29 @@ class _DocumentCard extends StatelessWidget {
                     Text(
                       item.title,
                       style: portalText(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: PortalColors.heading,
-                        height: 15 / 12.5,
+                        height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       item.id,
                       style: portalText(
                         fontSize: 10.5,
-                        fontWeight: FontWeight.w500,
-                        color: PortalColors.muted,
-                        height: 13 / 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: item.accent,
+                        height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       item.description,
                       style: portalText(
-                        fontSize: 10.5,
+                        fontSize: 11,
                         color: PortalColors.muted,
-                        height: 13 / 10.5,
+                        height: 1.3,
                       ),
                     ),
                   ],
@@ -306,33 +357,53 @@ class _DocumentCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
                   color: PortalColors.orangeTint,
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text(
-                  'Pending',
-                  style: portalText(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: PortalColors.orange,
-                    height: 12 / 10,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: PortalColors.orange,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Pending',
+                      style: portalText(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: PortalColors.orange,
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const Spacer(),
+              Icon(
+                Icons.lock_outline_rounded,
+                size: 13,
+                color: PortalColors.muted.withValues(alpha: 0.85),
+              ),
+              const SizedBox(width: 4),
               Text(
-                'Access : N/A',
+                'Access: N/A',
                 style: portalText(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w600,
                   color: PortalColors.muted,
-                  height: 13 / 10.5,
+                  height: 1.2,
                 ),
               ),
             ],
@@ -348,30 +419,41 @@ class _BankingVaultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      decoration: BoxDecoration(
-        color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: PortalColors.border),
-      ),
+    return _SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              Text(
-                'Banking Vault',
-                style: portalText(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: PortalColors.heading,
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: PortalColors.greenTint,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.account_balance_outlined,
+                  size: 17,
+                  color: PortalColors.green,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Banking Vault',
+                  style: portalText(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: PortalColors.heading,
+                    height: 1.2,
+                  ),
+                ),
+              ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
                   color: PortalColors.greenTint,
                   borderRadius: BorderRadius.circular(999),
@@ -382,24 +464,30 @@ class _BankingVaultCard extends StatelessWidget {
                     fontSize: 9.5,
                     fontWeight: FontWeight.w700,
                     color: PortalColors.green,
-                    height: 12 / 9.5,
+                    height: 1.2,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           const _FieldBlock(
-            label: 'INSTITUTION NAME',
+            label: 'Institution name',
             value: 'Pending Verification',
+            icon: Icons.business_outlined,
           ),
           const SizedBox(height: 10),
           const _FieldBlock(
-            label: 'ACCOUNT NUMBER',
+            label: 'Account number',
             value: '•••• •••• •••• 4291',
+            icon: Icons.credit_card_outlined,
           ),
           const SizedBox(height: 10),
-          const _FieldBlock(label: 'IFSC CODE', value: 'N/A'),
+          const _FieldBlock(
+            label: 'IFSC code',
+            value: 'N/A',
+            icon: Icons.tag_rounded,
+          ),
         ],
       ),
     );
@@ -411,30 +499,41 @@ class _EmergencyHubCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      decoration: BoxDecoration(
-        color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: PortalColors.border),
-      ),
+    return _SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              Text(
-                'Emergency Hub',
-                style: portalText(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: PortalColors.heading,
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: PortalColors.redTint,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.emergency_outlined,
+                  size: 17,
+                  color: PortalColors.red,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Emergency Hub',
+                  style: portalText(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: PortalColors.heading,
+                    height: 1.2,
+                  ),
+                ),
+              ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
                   color: PortalColors.redTint,
                   borderRadius: BorderRadius.circular(999),
@@ -445,21 +544,30 @@ class _EmergencyHubCard extends StatelessWidget {
                     fontSize: 9.5,
                     fontWeight: FontWeight.w700,
                     color: PortalColors.red,
-                    height: 12 / 9.5,
+                    height: 1.2,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          const _FieldBlock(label: 'CONTACT IDENTITY (NAME)', value: 'RYAN'),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
           const _FieldBlock(
-            label: 'DIRECT SECTOR (PHONE)',
-            value: '+91 98765 43210',
+            label: 'Contact name',
+            value: 'RYAN',
+            icon: Icons.person_outline_rounded,
           ),
           const SizedBox(height: 10),
-          const _FieldBlock(label: 'RELATIONSHIP (NAME)', value: 'N/A'),
+          const _FieldBlock(
+            label: 'Phone number',
+            value: '+91 98765 43210',
+            icon: Icons.phone_outlined,
+          ),
+          const SizedBox(height: 10),
+          const _FieldBlock(
+            label: 'Relationship',
+            value: 'N/A',
+            icon: Icons.favorite_border_rounded,
+          ),
         ],
       ),
     );
@@ -467,10 +575,15 @@ class _EmergencyHubCard extends StatelessWidget {
 }
 
 class _FieldBlock extends StatelessWidget {
-  const _FieldBlock({required this.label, required this.value});
+  const _FieldBlock({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
 
   final String label;
   final String value;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -479,13 +592,13 @@ class _FieldBlock extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          label,
+          label.toUpperCase(),
           style: portalText(
             fontSize: 9.5,
             fontWeight: FontWeight.w700,
             color: PortalColors.muted,
-            letterSpacing: 0.3,
-            height: 12 / 9.5,
+            letterSpacing: 0.4,
+            height: 1.2,
           ),
         ),
         const SizedBox(height: 6),
@@ -493,18 +606,26 @@ class _FieldBlock extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           decoration: BoxDecoration(
-            color: const Color(0xFFF6F5FC),
-            borderRadius: BorderRadius.circular(10),
+            color: PortalColors.background,
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: PortalColors.border),
           ),
-          child: Text(
-            value,
-            style: portalText(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: PortalColors.secondaryText,
-              height: 15 / 12,
-            ),
+          child: Row(
+            children: [
+              Icon(icon, size: 15, color: PortalColors.muted),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  value,
+                  style: portalText(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: PortalColors.secondaryText,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
