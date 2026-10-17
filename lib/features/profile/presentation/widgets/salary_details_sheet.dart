@@ -277,6 +277,22 @@ class _NetPayBanner extends StatelessWidget {
                   height: 1.25,
                 ),
               ),
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: payslip.statusBackground,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  payslip.statusLabel,
+                  style: portalText(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: payslip.statusColor,
+                  ),
+                ),
+              ),
             ],
           ),
         ],
