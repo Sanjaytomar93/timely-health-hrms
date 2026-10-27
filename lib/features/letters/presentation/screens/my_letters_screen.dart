@@ -10,6 +10,7 @@ import 'package:timelay_health/features/letters/presentation/bloc/letters_state.
 import 'package:timelay_health/features/letters/presentation/models/employee_letter.dart';
 import 'package:timelay_health/features/letters/presentation/screens/letter_viewer_screen.dart';
 import 'package:timelay_health/features/letters/presentation/utils/letter_download.dart';
+import 'package:timelay_health/features/letters/presentation/widgets/resignation_form_sheet.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
 import 'package:timelay_health/core/widgets/portal_back_button.dart';
@@ -73,6 +74,40 @@ class _MyLettersViewState extends State<_MyLettersView> {
   Future<void> _refresh() =>
       context.read<LettersCubit>().load(keepExisting: true);
 
+  Future<void> _openResignationForm() async {
+    final employeeId = _employee?.employeeId.trim() ?? '';
+    if (employeeId.isEmpty) return;
+    final hasPending = context.read<LettersCubit>().state.letters.any(
+      (l) =>
+          l.type == LetterType.resignation &&
+          l.status.toLowerCase() == 'pending',
+    );
+    if (hasPending) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'You already have a pending resignation request. '
+            'Please wait for HR/Admin to review it.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    final submitted = await showResignationFormSheet(
+      context,
+      employeeId: employeeId,
+    );
+    if (!submitted || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Resignation request submitted successfully'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    _refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = context.watch<LettersCubit>().state;
@@ -116,6 +151,8 @@ class _MyLettersViewState extends State<_MyLettersView> {
                       error: error,
                       onRetry: _refresh,
                       onTypeChanged: (t) => setState(() => _type = t),
+                      refreshing: state is LettersLoading,
+                      onSubmitResignation: _openResignationForm,
                     ),
                   ],
                 ),
@@ -547,8 +584,12 @@ class _LettersListCard extends StatelessWidget {
     required this.error,
     required this.onRetry,
     required this.onTypeChanged,
+    required this.refreshing,
+    required this.onSubmitResignation,
   });
 
+  final bool refreshing;
+  final VoidCallback onSubmitResignation;
   final LetterType type;
   final List<EmployeeLetter> letters;
   final bool isLoading;
@@ -637,6 +678,37 @@ class _LettersListCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _TypeToggle(selected: type, onChanged: onTypeChanged),
+          if (type == LetterType.resignation) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Spacer(),
+                _RefreshPill(refreshing: refreshing, onTap: onRetry),
+                const SizedBox(width: 16),
+                FilledButton.icon(
+                  onPressed: onSubmitResignation,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: PortalColors.brandLight,
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(Icons.send_rounded, size: 14),
+                  label: Text(
+                    'Submit Resignation',
+                    style: portalText(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 14),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 220),
@@ -785,6 +857,7 @@ class _LetterCard extends StatelessWidget {
     final initial = letter.employeeName.trim().isEmpty
         ? 'E'
         : letter.employeeName.trim()[0].toUpperCase();
+    final isResignation = letter.type == LetterType.resignation;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
@@ -827,7 +900,9 @@ class _LetterCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Sent ${letter.sentOnDate} · ${letter.sentOnTime}',
+                      isResignation
+                          ? 'Submitted on ${letter.sentOnDate}'
+                          : 'Sent ${letter.sentOnDate} · ${letter.sentOnTime}',
                       style: portalText(
                         fontSize: 10,
                         color: PortalColors.muted,
@@ -919,7 +994,9 @@ class _LetterCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Employment period',
+                      isResignation
+                          ? 'Joining → Last day'
+                          : 'Employment period',
                       style: portalText(
                         fontSize: 10,
                         color: PortalColors.muted,
@@ -939,30 +1016,35 @@ class _LetterCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _ActionButton(
-                  label: 'View',
-                  icon: Icons.visibility_outlined,
-                  background: PortalColors.brand,
-                  foreground: Colors.white,
-                  onTap: () => LetterViewerScreen.open(context, letter),
+          if (isResignation) ...[
+            const SizedBox(height: 12),
+            _ResignationDetails(letter: letter),
+          ] else ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _ActionButton(
+                    label: 'View',
+                    icon: Icons.visibility_outlined,
+                    background: PortalColors.brand,
+                    foreground: Colors.white,
+                    onTap: () => LetterViewerScreen.open(context, letter),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _ActionButton(
-                  label: 'Download',
-                  icon: Icons.download_rounded,
-                  background: PortalColors.purpleTint,
-                  foreground: PortalColors.purple,
-                  onTap: () => downloadEmployeeLetter(context, letter),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _ActionButton(
+                    label: 'Download',
+                    icon: Icons.download_rounded,
+                    background: PortalColors.purpleTint,
+                    foreground: PortalColors.purple,
+                    onTap: () => downloadEmployeeLetter(context, letter),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -993,12 +1075,13 @@ class _StatusPillState extends State<_StatusPill>
 
   @override
   Widget build(BuildContext context) {
+    final (color, tint) = _statusColors(widget.status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: PortalColors.greenTint,
+        color: tint,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: PortalColors.green.withValues(alpha: 0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1008,10 +1091,7 @@ class _StatusPillState extends State<_StatusPill>
             child: Container(
               width: 6,
               height: 6,
-              decoration: const BoxDecoration(
-                color: PortalColors.green,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
           ),
           const SizedBox(width: 5),
@@ -1020,8 +1100,332 @@ class _StatusPillState extends State<_StatusPill>
             style: portalText(
               fontSize: 9.5,
               fontWeight: FontWeight.w700,
-              color: PortalColors.green,
+              color: color,
               letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+(Color, Color) _statusColors(String status) => switch (status.toLowerCase()) {
+  'pending' => (PortalColors.orange, PortalColors.orangeTint),
+  'rejected' => (PortalColors.red, PortalColors.redTint),
+  _ => (PortalColors.green, PortalColors.greenTint),
+};
+
+class _RefreshPill extends StatefulWidget {
+  const _RefreshPill({required this.refreshing, required this.onTap});
+
+  final bool refreshing;
+  final VoidCallback onTap;
+
+  @override
+  State<_RefreshPill> createState() => _RefreshPillState();
+}
+
+class _RefreshPillState extends State<_RefreshPill>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _spin = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.refreshing) _spin.repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant _RefreshPill old) {
+    super.didUpdateWidget(old);
+    if (widget.refreshing && !_spin.isAnimating) {
+      _spin.repeat();
+    } else if (!widget.refreshing && _spin.isAnimating) {
+      _spin
+        ..stop()
+        ..reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _spin.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: PortalColors.surface,
+      shape: const StadiumBorder(side: BorderSide(color: PortalColors.border)),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: widget.refreshing ? null : widget.onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RotationTransition(
+                turns: _spin,
+                child: const Icon(
+                  Icons.refresh_rounded,
+                  size: 17,
+                  color: resignationAccent,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Refresh',
+                style: portalText(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: PortalColors.secondaryText,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ResignationDetails extends StatelessWidget {
+  const _ResignationDetails({required this.letter});
+
+  final EmployeeLetter letter;
+
+  @override
+  Widget build(BuildContext context) {
+    final fields = <String, String>{
+      for (final line in letter.details.split('\n'))
+        if (line.contains(': '))
+          line.substring(0, line.indexOf(': ')): line.substring(
+            line.indexOf(': ') + 2,
+          ),
+    };
+    final status = letter.status.toLowerCase();
+    final (color, tint) = _statusColors(status);
+    final (icon, title, subtitle) = switch (status) {
+      'approved' => (
+        Icons.verified_rounded,
+        'Resignation Approved',
+        fields['Approved by'] == null
+            ? 'Your resignation has been accepted.'
+            : 'Approved by ${fields['Approved by']}',
+      ),
+      'rejected' => (
+        Icons.cancel_rounded,
+        'Resignation Rejected',
+        fields['Rejected reason'] ?? 'Your resignation was not accepted.',
+      ),
+      _ => (
+        Icons.hourglass_top_rounded,
+        'Awaiting Approval',
+        'Your request is under review by HR.',
+      ),
+    };
+    final tiles = [
+      if (fields['Category'] != null)
+        (Icons.local_offer_outlined, 'Category', fields['Category']!),
+      if (fields['Notice period'] != null)
+        (Icons.timelapse_rounded, 'Notice', fields['Notice period']!),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [tint, tint.withValues(alpha: 0.35)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.35),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, size: 18, color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: portalText(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: portalText(
+                        fontSize: 10.5,
+                        color: PortalColors.secondaryText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (tiles.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              for (var i = 0; i < tiles.length; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                Expanded(child: _InfoTile(data: tiles[i])),
+              ],
+            ],
+          ),
+        ],
+        if (fields['Reason'] != null) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+            decoration: BoxDecoration(
+              color: PortalColors.background,
+              borderRadius: BorderRadius.circular(12),
+              border: const Border(
+                left: BorderSide(color: PortalColors.purple, width: 3),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.format_quote_rounded,
+                      size: 16,
+                      color: PortalColors.purple,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'REASON',
+                      style: portalText(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        color: PortalColors.purple,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  fields['Reason']!,
+                  style: portalText(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: PortalColors.heading,
+                    height: 1.45,
+                  ),
+                ),
+                if (fields['Comments'] != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    '“${fields['Comments']}”',
+                    style: portalText(
+                      fontSize: 11,
+                      color: PortalColors.muted,
+                      height: 1.4,
+                    ).copyWith(fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+        if (fields['Admin remark'] != null) ...[
+          const SizedBox(height: 10),
+          _InfoTile(
+            data: (
+              Icons.admin_panel_settings_outlined,
+              'Admin remark',
+              fields['Admin remark']!,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  const _InfoTile({required this.data});
+
+  final (IconData, String, String) data;
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, label, value) = data;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: PortalColors.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: PortalColors.purpleTint,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 15, color: PortalColors.purple),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: portalText(fontSize: 9.5, color: PortalColors.muted),
+                ),
+                Text(
+                  value,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: PortalColors.heading,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -277,14 +277,14 @@ class _AddIconButton extends StatelessWidget {
         height: 34,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF4B4285), Color(0xFF7B5CE0)],
+            colors: PortalColors.brandGradient,
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF4B4285).withValues(alpha: 0.35),
+              color: PortalColors.brand.withValues(alpha: 0.25),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -313,19 +313,12 @@ class _SpotlightCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
-          begin: Alignment(-0.95, -0.6),
-          end: Alignment(0.95, 0.8),
-          colors: [Color(0xFF26204A), Color(0xFF4B4285), Color(0xFF7B5CE0)],
+          begin: Alignment(-0.92, -0.4),
+          end: Alignment(0.92, 0.4),
+          colors: PortalColors.brandGradient,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: PortalColors.brand.withValues(alpha: 0.25),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -538,8 +531,8 @@ class _StatsRow extends StatelessWidget {
               label: 'Done',
               value: completed,
               icon: Icons.emoji_events_outlined,
-              color: const Color(0xFF7B5CE0),
-              tint: const Color(0xFFF0ECFD),
+              color: PortalColors.brandLight,
+              tint: PortalColors.brandTint,
               selected: selected == EventStatus.completed,
               onTap: () => onSelect(EventStatus.completed),
             ),
@@ -1259,10 +1252,10 @@ class _AddEventBanner extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF0ECFD),
+          color: PortalColors.brandTint,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: const Color(0xFF7B5CE0).withValues(alpha: 0.35),
+            color: PortalColors.brandLight.withValues(alpha: 0.25),
             width: 1.5,
           ),
         ),
@@ -1274,7 +1267,7 @@ class _AddEventBanner extends StatelessWidget {
               height: 28,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF4B4285), Color(0xFF7B5CE0)],
+                  colors: PortalColors.brandGradient,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -1288,7 +1281,7 @@ class _AddEventBanner extends StatelessWidget {
               style: portalText(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF4B4285),
+                color: PortalColors.brandLight,
               ),
             ),
           ],

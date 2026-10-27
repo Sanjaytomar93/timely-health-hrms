@@ -7,6 +7,7 @@ import 'package:timelay_health/features/attendance/domain/entities/check_in_para
 import 'package:timelay_health/features/attendance/domain/entities/employee_location_assignment.dart';
 import 'package:timelay_health/features/attendance/domain/failures/attendance_failure.dart';
 import 'package:timelay_health/features/attendance/domain/usecases/check_in_usecase.dart';
+import 'package:timelay_health/features/attendance/domain/usecases/get_all_locations_usecase.dart';
 import 'package:timelay_health/features/attendance/domain/usecases/get_my_attendance_usecase.dart';
 import 'package:timelay_health/features/attendance/domain/usecases/get_my_location_usecase.dart';
 import 'package:timelay_health/features/attendance/presentation/bloc/check_in_state.dart';
@@ -23,6 +24,7 @@ class CheckInCubit extends Cubit<CheckInState> {
     GetMyAttendanceUseCase? getMyAttendanceUseCase,
     CheckInUseCase? checkInUseCase,
     CheckOutUseCase? checkOutUseCase,
+    GetAllLocationsUseCase? getAllLocationsUseCase,
   }) : _getEmployee =
            getEmployeeUseCase ?? GetEmployeeUseCase(AuthRepositoryImpl()),
        _getLocation =
@@ -34,6 +36,9 @@ class CheckInCubit extends Cubit<CheckInState> {
        _checkIn = checkInUseCase ?? CheckInUseCase(AttendanceRepositoryImpl()),
        _checkOut =
            checkOutUseCase ?? CheckOutUseCase(AttendanceRepositoryImpl()),
+       _getAllLocations =
+           getAllLocationsUseCase ??
+           GetAllLocationsUseCase(AttendanceRepositoryImpl()),
        super(const CheckInInitial());
 
   final GetEmployeeUseCase _getEmployee;
@@ -41,11 +46,13 @@ class CheckInCubit extends Cubit<CheckInState> {
   final GetMyAttendanceUseCase _getAttendance;
   final CheckInUseCase _checkIn;
   final CheckOutUseCase _checkOut;
+  final GetAllLocationsUseCase _getAllLocations;
 
   static const officeRadiusMeters = 50;
 
   CheckInReadyData? _data;
   Future<void>? _prepareFuture;
+  List<EmployeeLocationAssignment>? _allLocations;
 
   Future<void> prepare() {
     return _prepareFuture ??= _doPrepare();
@@ -227,6 +234,34 @@ class CheckInCubit extends Cubit<CheckInState> {
   }
 
   Future<void> refreshLocation() => captureLocation();
+
+  Future<List<EmployeeLocationAssignment>> loadAllLocations() async {
+    final cached = _allLocations;
+    if (cached != null) return cached;
+    final all = await _getAllLocations();
+    return _allLocations = all.where((l) => l.isActive).toList();
+  }
+
+  void selectOffice(EmployeeLocationAssignment office) {
+    final current = _data;
+    if (current == null || isClosed) return;
+    if (!current.locationCaptured) {
+      _data = current.copyWith(office: office);
+    } else {
+      final distance = Geolocator.distanceBetween(
+        current.latitude,
+        current.longitude,
+        office.latitude,
+        office.longitude,
+      ).round();
+      _data = current.copyWith(
+        office: office,
+        distanceMeters: distance,
+        withinRadius: distance <= officeRadiusMeters,
+      );
+    }
+    emit(CheckInReady(_data!));
+  }
 
   String? _resolveReason(String? reason, {required bool withinRadius}) {
     final selected = reason?.trim() ?? '';

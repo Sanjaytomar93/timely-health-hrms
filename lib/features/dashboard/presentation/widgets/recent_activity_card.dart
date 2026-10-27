@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/dashboard/presentation/models/dashboard_home_ui.dart';
 
 class RecentActivityCard extends StatelessWidget {
-  const RecentActivityCard({super.key, this.items = const []});
+  const RecentActivityCard({super.key, this.items = const [], this.onSeeAll});
 
   final List<DashboardActivityUi> items;
+  final VoidCallback? onSeeAll;
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +29,31 @@ class RecentActivityCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const SizedBox(width: 2),
-                    SvgPicture.asset(
-                      'assets/icons/recent_activity/ic_recent_activity.svg',
-                      width: 18,
-                      height: 18,
+                    Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(9),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: PortalColors.brandGradient,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: PortalColors.brand.withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.history_rounded,
+                        size: 17,
+                        color: Colors.white,
+                      ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 10),
                     Text(
                       'Recent Activity',
                       style: portalText(
@@ -73,26 +91,35 @@ class RecentActivityCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 17),
-          Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'See All',
-                  style: portalText(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: PortalColors.brand,
-                    height: 18 / 15,
-                  ),
+          Semantics(
+            button: true,
+            label: 'See all attendance activity',
+            child: InkWell(
+              onTap: onSeeAll,
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'See All',
+                      style: portalText(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: PortalColors.brand,
+                        height: 18 / 15,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 11,
+                      color: PortalColors.brand,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 11,
-                  color: PortalColors.brand,
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -139,7 +166,7 @@ class _ActivityRow extends StatelessWidget {
               ),
             ),
             Container(
-              height: item.isIn ? 19 : 20,
+              height: 20,
               padding: const EdgeInsets.symmetric(horizontal: 9),
               alignment: Alignment.center,
               decoration: BoxDecoration(
@@ -149,7 +176,7 @@ class _ActivityRow extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
-                item.isIn ? '✓ In' : '✕ Checked-out',
+                item.isIn ? '✓ Checked-in' : '✕ Checked-out',
                 style: portalText(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,

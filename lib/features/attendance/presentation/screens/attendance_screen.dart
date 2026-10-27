@@ -16,6 +16,7 @@ import 'package:timelay_health/features/attendance/presentation/widgets/my_shift
 import 'package:timelay_health/features/attendance/presentation/widgets/ot_available_banner.dart';
 import 'package:timelay_health/features/attendance/presentation/widgets/ot_info_box.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/attendance_banner.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/dashboard_card.dart';
 
 class AttendanceScreen extends StatelessWidget {
   const AttendanceScreen({super.key, this.isActive = true});
@@ -110,6 +111,10 @@ class _RecordsTab extends StatelessWidget {
         final loading =
             state is AttendanceLoading || state is AttendanceInitial;
         final error = state is AttendanceFailureState ? state.message : null;
+        if (loading && state.allRecords.isEmpty) {
+          return const AttendanceShimmer();
+        }
+
         final banner = AttendanceUiMapper.toBanner(
           records: state.allRecords,
           shiftLabel: state.shiftLabel,
@@ -122,45 +127,64 @@ class _RecordsTab extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(child: AttendanceBanner(data: banner)),
-              const SliverToBoxAdapter(child: OtInfoBox()),
               SliverToBoxAdapter(child: AttendanceStatsRow(stats: stats)),
+              const SliverToBoxAdapter(child: OtInfoBox()),
               const SliverToBoxAdapter(child: FiltersActionsCard()),
               const SliverToBoxAdapter(child: OtAvailableBanner()),
-              if (loading && state.allRecords.isEmpty)
-                const SliverToBoxAdapter(child: ShimmerCardList(itemCount: 4))
-              else if (error != null && state.allRecords.isEmpty)
+              if (error != null && state.allRecords.isEmpty)
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),
+                  child: DashboardCard(
+                    topSpacing: 22,
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
                     child: Column(
                       children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: const BoxDecoration(
+                            color: PortalColors.redTint,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.cloud_off_rounded,
+                            size: 26,
+                            color: PortalColors.red,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                         Text(
                           error,
                           textAlign: TextAlign.center,
                           style: portalText(
                             fontSize: 12,
                             color: PortalColors.muted,
+                            height: 16 / 12,
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        TextButton(
+                        const SizedBox(height: 14),
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: PortalColors.brand,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                           onPressed: () =>
                               context.read<AttendanceCubit>().load(),
-                          child: const Text('Retry'),
+                          icon: const Icon(Icons.refresh_rounded, size: 18),
+                          label: const Text('Retry'),
                         ),
                       ],
                     ),
                   ),
                 )
               else
-                SliverToBoxAdapter(
-                  child: AttendanceRecordsSection(
-                    records: records,
-                    selectedOtIds: state.selectedOtIds,
-                    onToggleOt: stats.hasOt
-                        ? context.read<AttendanceCubit>().toggleOtSelection
-                        : null,
-                  ),
+                AttendanceRecordsSection(
+                  records: records,
+                  selectedOtIds: state.selectedOtIds,
+                  onToggleOt: stats.hasOt
+                      ? context.read<AttendanceCubit>().toggleOtSelection
+                      : null,
                 ),
             ],
           ),

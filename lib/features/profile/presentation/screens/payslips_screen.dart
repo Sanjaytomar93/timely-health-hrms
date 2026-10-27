@@ -46,7 +46,7 @@ class _PayslipsView extends StatelessWidget {
                       state is PayslipsLoading && state.payslip == null;
 
                   if (loading) {
-                    return const ShimmerCardList(scrollable: true);
+                    return const PayslipsShimmer();
                   }
 
                   final payslip =

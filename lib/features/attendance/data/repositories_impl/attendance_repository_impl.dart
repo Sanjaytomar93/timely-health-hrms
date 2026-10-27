@@ -39,6 +39,12 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
+  Future<List<EmployeeLocationAssignment>> getAllLocations() async {
+    final models = await _remote.getAllLocations();
+    return models.map(EmployeeLocationMapper.toEntity).toList();
+  }
+
+  @override
   Future<CheckInResult> checkIn(CheckInParams params) {
     return _remote.checkIn(params);
   }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
+import 'package:timelay_health/features/auth/data/auth_session.dart';
 import 'package:timelay_health/features/auth/domain/entities/employee.dart';
+import 'package:timelay_health/features/letters/data/datasources/letter_remote_datasource.dart';
+import 'package:timelay_health/features/letters/data/models/resignation_model.dart';
 
 class ResignationDraft {
   const ResignationDraft({required this.lastWorkingDay, required this.letter});
@@ -39,15 +42,45 @@ class _ResignationDialogState extends State<ResignationDialog> {
   bool _settingTemplate = false;
   String? _dateError;
   String? _letterError;
+  bool _loading = true;
+  ResignationModel? _existing;
+  String? _loadError;
 
   @override
   void initState() {
     super.initState();
+    _loadExisting();
     _letter = TextEditingController(text: _template());
     _letter.addListener(() {
       if (_settingTemplate) return;
       _letterEdited = true;
       if (_letterError != null) setState(() => _letterError = null);
+    });
+  }
+
+  Future<void> _loadExisting() async {
+    ResignationModel? result;
+    try {
+      final sessionId =
+          AuthSession.currentEmployee?.employeeId ??
+          (await AuthSession.load())?.employeeId ??
+          '';
+      final employeeId = sessionId.trim().isNotEmpty
+          ? sessionId.trim()
+          : widget.employee.employeeId.trim();
+      debugPrint('Resignation employeeId: "$employeeId"');
+      if (employeeId.isNotEmpty) {
+        result = await LetterRemoteDataSource().getResignation(employeeId);
+      }
+      debugPrint('Resignation found: ${result?.status}');
+    } catch (e) {
+      debugPrint('Resignation load failed: $e');
+      _loadError = 'Could not load resignation: $e';
+    }
+    if (!mounted) return;
+    setState(() {
+      _existing = result;
+      _loading = false;
     });
   }
 
@@ -60,9 +93,7 @@ class _ResignationDialogState extends State<ResignationDialog> {
   String _template() {
     final e = widget.employee;
     final role = e.role.trim();
-    final position = [
-      if (role.isNotEmpty) role,
-    ].join(' ');
+    final position = [if (role.isNotEmpty) role].join(' ');
 
     return 'Dear Manager,\n\n'
         'I am writing to formally resign from my position as $position '
@@ -133,80 +164,192 @@ class _ResignationDialogState extends State<ResignationDialog> {
           borderRadius: BorderRadius.circular(22),
         ),
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _header(context),
-              const SizedBox(height: 20),
-              _label('Last Working Day'),
-              const SizedBox(height: 7),
-              _dateField(),
-              if (_dateError != null) _error(_dateError!),
-              if (_lastDay != null && _dateError == null) _noticeChip(),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(child: _label('Resignation Letter')),
-                  if (_letterEdited)
-                    GestureDetector(
-                      onTap: () {
-                        _settingTemplate = true;
-                        _letter.text = _template();
-                        _settingTemplate = false;
-                        setState(() => _letterEdited = false);
-                      },
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.refresh_rounded,
-                            size: 13,
-                            color: PortalColors.purple,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            'Reset',
-                            style: portalText(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: PortalColors.purple,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 7),
-              _letterField(),
-              if (_letterError != null) _error(_letterError!),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: _Button(
-                      label: 'Cancel',
-                      onTap: () => Navigator.of(context).pop(),
+          child: _loading
+              ? const SizedBox(
+                  height: 160,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: PortalColors.purple,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _Button(
-                      label: 'Submit Resignation',
-                      gradient: _redGradient,
-                      onTap: _submit,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                )
+              : _existing != null
+              ? _existingView(context, _existing!)
+              : _formView(context),
         ),
       ),
     );
   }
 
-  Widget _header(BuildContext context) {
+  Widget _existingView(BuildContext context, ResignationModel r) {
+    final (statusColor, statusTint) = switch (r.status) {
+      'approved' => (PortalColors.green, PortalColors.greenTint),
+      'rejected' => (PortalColors.red, PortalColors.redTint),
+      _ => (PortalColors.orange, PortalColors.orangeTint),
+    };
+    final status = r.status.isEmpty
+        ? 'Pending'
+        : '${r.status[0].toUpperCase()}${r.status.substring(1)}';
+    final remark = r.status == 'rejected' && r.rejectedReason.isNotEmpty
+        ? r.rejectedReason
+        : r.adminRemark;
+    final letter = [
+      if (r.reasonCategory.isNotEmpty) 'Reason: ${r.reasonCategory}',
+      if (r.reason.isNotEmpty) r.reason,
+      if (r.comments.isNotEmpty) 'Comments: ${r.comments}',
+    ].join('\n\n');
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _header(
+          context,
+          title: 'Resignation',
+          subtitle: r.resignationDate == null
+              ? 'Your resignation request'
+              : 'Submitted on ${_formatLong(r.resignationDate!)}',
+        ),
+        const SizedBox(height: 16),
+        _chip(
+          r.status == 'approved' && r.approvedBy.isNotEmpty
+              ? '$status by ${r.approvedBy}'
+              : status,
+          statusColor,
+          statusTint,
+          Icons.info_outline_rounded,
+        ),
+        const SizedBox(height: 16),
+        _label('Last Working Day', required: false),
+        const SizedBox(height: 7),
+        _dateField(date: r.lastWorkingDate),
+        if (r.noticePeriodDays > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: _chip(
+              r.isShortNotice
+                  ? 'Short notice: ${r.shortNoticeDays} days'
+                  : 'Notice period: ${r.noticePeriodDays} days',
+              PortalColors.purple,
+              PortalColors.purpleTint,
+              Icons.hourglass_bottom_rounded,
+            ),
+          ),
+        if (letter.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _label('Resignation Details', required: false),
+          const SizedBox(height: 7),
+          _readOnlyBox(letter),
+        ],
+        if (remark.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _label('Admin Remark', required: false),
+          const SizedBox(height: 7),
+          _readOnlyBox(remark),
+        ],
+        const SizedBox(height: 20),
+        _Button(label: 'Close', onTap: () => Navigator.of(context).pop()),
+      ],
+    );
+  }
+
+  Widget _readOnlyBox(String text) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: PortalColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: PortalColors.border),
+      ),
+      child: Text(
+        text,
+        style: portalText(
+          fontSize: 13,
+          color: PortalColors.heading,
+          height: 1.55,
+        ),
+      ),
+    );
+  }
+
+  Widget _formView(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _header(context),
+        if (_loadError != null) _error(_loadError!),
+        const SizedBox(height: 20),
+        _label('Last Working Day'),
+        const SizedBox(height: 7),
+        _dateField(date: _lastDay, onTap: _pickDate),
+        if (_dateError != null) _error(_dateError!),
+        if (_lastDay != null && _dateError == null) _noticeChip(),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(child: _label('Resignation Letter')),
+            if (_letterEdited)
+              GestureDetector(
+                onTap: () {
+                  _settingTemplate = true;
+                  _letter.text = _template();
+                  _settingTemplate = false;
+                  setState(() => _letterEdited = false);
+                },
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.refresh_rounded,
+                      size: 13,
+                      color: PortalColors.purple,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      'Reset',
+                      style: portalText(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: PortalColors.purple,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 7),
+        _letterField(),
+        if (_letterError != null) _error(_letterError!),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(
+              child: _Button(
+                label: 'Cancel',
+                onTap: () => Navigator.of(context).pop(),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _Button(
+                label: 'Submit Resignation',
+                gradient: _redGradient,
+                onTap: _submit,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _header(
+    BuildContext context, {
+    String title = 'Submit Resignation',
+    String subtitle = 'Your request will be sent to HR for review.',
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -229,7 +372,7 @@ class _ResignationDialogState extends State<ResignationDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Submit Resignation',
+                title,
                 style: portalText(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
@@ -238,7 +381,7 @@ class _ResignationDialogState extends State<ResignationDialog> {
               ),
               const SizedBox(height: 2),
               Text(
-                'Your request will be sent to HR for review.',
+                subtitle,
                 style: portalText(fontSize: 11, color: PortalColors.muted),
               ),
             ],
@@ -254,7 +397,7 @@ class _ResignationDialogState extends State<ResignationDialog> {
     );
   }
 
-  Widget _label(String text) {
+  Widget _label(String text, {bool required = true}) {
     return Text.rich(
       TextSpan(
         text: text,
@@ -264,26 +407,27 @@ class _ResignationDialogState extends State<ResignationDialog> {
           color: PortalColors.secondaryText,
         ),
         children: [
-          TextSpan(
-            text: ' *',
-            style: portalText(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-              color: PortalColors.red,
+          if (required)
+            TextSpan(
+              text: ' *',
+              style: portalText(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: PortalColors.red,
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _dateField() {
-    final hasValue = _lastDay != null;
+  Widget _dateField({DateTime? date, VoidCallback? onTap}) {
+    final hasValue = date != null;
     return Material(
       color: PortalColors.background,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        onTap: _pickDate,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
           height: 46,
@@ -314,7 +458,7 @@ class _ResignationDialogState extends State<ResignationDialog> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  hasValue ? _formatLong(_lastDay!) : 'dd/mm/yyyy',
+                  hasValue ? _formatLong(date) : 'dd/mm/yyyy',
                   style: portalText(
                     fontSize: 13,
                     fontWeight: hasValue ? FontWeight.w600 : FontWeight.w400,
@@ -322,10 +466,11 @@ class _ResignationDialogState extends State<ResignationDialog> {
                   ),
                 ),
               ),
-              const Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: PortalColors.muted,
-              ),
+              if (onTap != null)
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: PortalColors.muted,
+                ),
             ],
           ),
         ),
@@ -338,33 +483,38 @@ class _ResignationDialogState extends State<ResignationDialog> {
     final days = _lastDay!.difference(today).inDays;
     return Padding(
       padding: const EdgeInsets.only(top: 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: PortalColors.purpleTint,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.hourglass_bottom_rounded,
-              size: 12,
-              color: PortalColors.purple,
+      child: _chip(
+        days == 0
+            ? 'Last working day is today'
+            : '$days day${days == 1 ? '' : 's'} from today',
+        PortalColors.purple,
+        PortalColors.purpleTint,
+        Icons.hourglass_bottom_rounded,
+      ),
+    );
+  }
+
+  Widget _chip(String text, Color color, Color tint, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: tint,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 5),
+          Text(
+            text,
+            style: portalText(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              color: color,
             ),
-            const SizedBox(width: 5),
-            Text(
-              days == 0
-                  ? 'Last working day is today'
-                  : '$days day${days == 1 ? '' : 's'} from today',
-              style: portalText(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
-                color: PortalColors.purple,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

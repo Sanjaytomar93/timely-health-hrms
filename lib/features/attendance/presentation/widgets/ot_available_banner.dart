@@ -44,11 +44,22 @@ class OtAvailableBanner extends StatelessWidget {
 
         return Container(
           margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          padding: const EdgeInsets.fromLTRB(15, 14, 15, 14),
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
           decoration: BoxDecoration(
-            color: PortalColors.surface,
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFFFF6E6), PortalColors.surface],
+            ),
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: PortalColors.border),
+            border: Border.all(color: OtColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: OtColors.accent.withValues(alpha: 0.10),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,16 +67,20 @@ class OtAvailableBanner extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    width: 26,
-                    height: 26,
+                    width: 34,
+                    height: 34,
                     decoration: BoxDecoration(
-                      color: OtColors.tint,
-                      borderRadius: BorderRadius.circular(8),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: OtColors.gradient,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
-                      Icons.timer_outlined,
-                      size: 14,
-                      color: OtColors.accent,
+                      Icons.timer_rounded,
+                      size: 18,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -116,7 +131,7 @@ class OtAvailableBanner extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Container(height: 1, color: PortalColors.border),
+              Container(height: 1, color: OtColors.border),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -258,7 +273,7 @@ class _ClaimButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: Ink(
-          height: 29,
+          height: 32,
           decoration: BoxDecoration(
             gradient: const LinearGradient(colors: OtColors.gradient),
             borderRadius: BorderRadius.circular(10),

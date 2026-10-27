@@ -1,12 +1,18 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:timelay_health/core/theme/portal_colors.dart';
+import 'package:timelay_health/core/theme/app_logos.dart';
 import 'package:timelay_health/core/theme/portal_system_ui.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/features/auth/data/auth_session.dart';
-import 'package:timelay_health/features/auth/presentation/screens/login_screen.dart';
-import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
+
+const _bgTop = Color(0xFF2D2060);
+const _bgBottom = Color(0xFF14102B);
+const _teal = Color(0xFF18AC96);
+const _violet = Color(0xFF7C6FD4);
+
+const _splashDuration = Duration(milliseconds: 3200);
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,67 +23,36 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late final AnimationController _intro;
-  late final AnimationController _progress;
-  late final Animation<double> _fade;
-  late final Animation<double> _scale;
-  late final Animation<double> _load;
+  late final AnimationController _intro = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  )..forward();
+
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2400),
+  )..repeat();
 
   @override
   void initState() {
     super.initState();
-    _intro = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _progress = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-    _fade = CurvedAnimation(
-      parent: _intro,
-      curve: const Interval(0, 0.7, curve: Curves.easeOut),
-    );
-    _scale = Tween<double>(begin: 0.92, end: 1).animate(
-      CurvedAnimation(
-        parent: _intro,
-        curve: const Interval(0, 0.85, curve: Curves.easeOutCubic),
-      ),
-    );
-    _load = CurvedAnimation(parent: _progress, curve: Curves.easeInOutCubic);
-    _intro.forward();
-    _progress.forward();
     _boot();
   }
 
   Future<void> _boot() async {
-    final sessionFuture = AuthSession.load();
-    await Future.wait([
-      sessionFuture,
-      Future<void>.delayed(const Duration(milliseconds: 900)),
-      _progress.forward(),
+    final results = await Future.wait<dynamic>([
+      AuthSession.load(),
+      Future<void>.delayed(_splashDuration),
     ]);
     if (!mounted) return;
-    final employee = await sessionFuture;
-    if (!mounted) return;
-    final next = employee != null
-        ? const EmployeeHomeShell()
-        : const LoginScreen();
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder<void>(
-        pageBuilder: (context, animation, secondaryAnimation) => next,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 280),
-      ),
-    );
+    final nextRoute = results.first != null ? AppRoutes.home : AppRoutes.login;
+    AppRoutes.pushReplacement(context, nextRoute);
   }
 
   @override
   void dispose() {
     _intro.dispose();
-    _progress.dispose();
+    _pulse.dispose();
     super.dispose();
   }
 
@@ -86,192 +61,235 @@ class _SplashScreenState extends State<SplashScreen>
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: PortalSystemUi.darkStatusBar,
       child: Scaffold(
-        backgroundColor: PortalColors.brand,
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            SafeArea(
-              child: FadeTransition(
-                opacity: _fade,
-                child: ScaleTransition(
-                  scale: _scale,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 36),
-                    child: Column(
-                      children: [
-                        const Spacer(flex: 3),
-                        const SizedBox(
-                          width: 168,
-                          height: 168,
-                          child: CustomPaint(painter: _SplashLogoPainter()),
-                        ),
-                        const SizedBox(height: 22),
-                        Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'TIMELY ',
-                                style: GoogleFonts.inter(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  letterSpacing: 1.2,
-                                  height: 1.1,
-                                ),
-                              ),
-                              TextSpan(
-                                text: 'HEALTH',
-                                style: GoogleFonts.inter(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
-                                  color: PortalColors.green,
-                                  letterSpacing: 1.2,
-                                  height: 1.1,
-                                ),
-                              ),
-                            ],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Connecting Communities...',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.caveat(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            height: 1.1,
-                          ),
-                        ),
-                        const Spacer(flex: 2),
-                        Text(
-                          'Empowering People',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white.withValues(alpha: 0.95),
-                            height: 1.35,
-                          ),
-                        ),
-                        Text(
-                          'Enabling Communities',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white.withValues(alpha: 0.95),
-                            height: 1.35,
-                          ),
-                        ),
-                        const Spacer(flex: 3),
-                        AnimatedBuilder(
-                          animation: _load,
-                          builder: (context, child) {
-                            return Column(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(999),
-                                  child: SizedBox(
-                                    width: 168,
-                                    height: 4,
-                                    child: LinearProgressIndicator(
-                                      value: _load.value.clamp(0.08, 1),
-                                      backgroundColor: Colors.white.withValues(
-                                        alpha: 0.28,
-                                      ),
-                                      valueColor:
-                                          const AlwaysStoppedAnimation<Color>(
-                                            Colors.white,
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Loading...',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white.withValues(alpha: 0.92),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 42),
-                      ],
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment(0, -0.3),
+              radius: 1.2,
+              colors: [_bgTop, _bgBottom],
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                const Spacer(flex: 5),
+                _Reveal(
+                  animation: _intro,
+                  interval: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
+                  scale: true,
+                  child: _PulsingLogo(pulse: _pulse),
+                ),
+                const SizedBox(height: 40),
+                _Reveal(
+                  animation: _intro,
+                  interval: const Interval(0.3, 0.8, curve: Curves.easeOutCubic),
+                  child: const _Title(),
+                ),
+                const SizedBox(height: 16),
+                _Reveal(
+                  animation: _intro,
+                  interval: const Interval(0.5, 1.0, curve: Curves.easeOutCubic),
+                  child: Text(
+                    'Empowering People · Enabling Communities',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.55),
+                      letterSpacing: 0.3,
                     ),
                   ),
                 ),
-              ),
+                const Spacer(flex: 4),
+                _Reveal(
+                  animation: _intro,
+                  interval: const Interval(0.6, 1.0),
+                  child: const _ProgressBar(),
+                ),
+                const SizedBox(height: 48),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _SplashLogoPainter extends CustomPainter {
-  const _SplashLogoPainter();
+/// Fades and slides [child] up (optionally scaling it) during [interval].
+class _Reveal extends StatelessWidget {
+  const _Reveal({
+    required this.animation,
+    required this.interval,
+    required this.child,
+    this.scale = false,
+  });
+
+  final Animation<double> animation;
+  final Interval interval;
+  final Widget child;
+  final bool scale;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final maxR = size.width * 0.46;
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      child: child,
+      builder: (_, child) {
+        final t = interval.transform(animation.value);
+        return Opacity(
+          opacity: t.clamp(0.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(0, 24 * (1 - t)),
+            child: Transform.scale(
+              scale: scale ? 0.6 + 0.4 * t : 1,
+              child: child,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
 
-    final ringPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.1
-      ..color = Colors.white.withValues(alpha: 0.3);
+class _PulsingLogo extends StatelessWidget {
+  const _PulsingLogo({required this.pulse});
 
-    for (final t in [0.55, 0.72, 0.9, 1.0]) {
-      canvas.drawCircle(center, maxR * t, ringPaint);
-    }
+  final Animation<double> pulse;
 
-    final nodePaint = Paint()..color = Colors.white;
-    final nodeAngles = <double>[-1.15, -0.35, 0.55, 1.45, 2.35, 3.4, 4.5, 5.4];
-    for (var i = 0; i < nodeAngles.length; i++) {
-      final ring = i.isEven ? 0.72 : 0.9;
-      final a = nodeAngles[i];
-      final p = Offset(
-        center.dx + maxR * ring * math.cos(a),
-        center.dy + maxR * ring * math.sin(a),
-      );
-      canvas.drawCircle(p, i.isEven ? 2.4 : 3.1, nodePaint);
-    }
+  static const _logoSize = 120.0;
+  static const _ringCount = 3;
 
-    const count = 22;
-    for (var i = 0; i < count; i++) {
-      final t = i / (count - 1);
-      final angle = -2.25 + t * 2.7;
-      final r = maxR * 0.42;
-      final x = center.dx + r * math.cos(angle);
-      final y = center.dy + r * math.sin(angle);
-      final color = Color.lerp(
-        Colors.white,
-        PortalColors.green,
-        t,
-      )!.withValues(alpha: 0.85);
-      canvas.drawCircle(Offset(x, y), 1.6 + t * 2.4, Paint()..color = color);
-    }
-
-    final check = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final path = Path()
-      ..moveTo(size.width * 0.34, size.height * 0.52)
-      ..lineTo(size.width * 0.46, size.height * 0.64)
-      ..lineTo(size.width * 0.68, size.height * 0.38);
-    canvas.drawPath(path, check);
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: _logoSize * 2.2,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          AnimatedBuilder(
+            animation: pulse,
+            builder: (_, _) => Stack(
+              alignment: Alignment.center,
+              children: [
+                for (var i = 0; i < _ringCount; i++)
+                  _ring((pulse.value + i / _ringCount) % 1),
+              ],
+            ),
+          ),
+          Container(
+            width: _logoSize,
+            height: _logoSize,
+            padding: const EdgeInsets.all(26),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [_violet, _teal],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: _violet.withValues(alpha: 0.6),
+                  blurRadius: 40,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: SvgPicture.asset(
+              AppLogos.mark,
+              fit: BoxFit.contain,
+              colorFilter:
+                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
+  Widget _ring(double t) {
+    final size = _logoSize + _logoSize * 1.2 * t;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: _teal.withValues(alpha: 0.5 * (1 - t)),
+          width: 1.5,
+        ),
+      ),
+    );
+  }
+}
+
+class _Title extends StatelessWidget {
+  const _Title();
+
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [Colors.white, Color(0xFFCFC8FF)],
+          ).createShader(bounds),
+          child: Text(
+            'TIMELY HEALTH',
+            style: GoogleFonts.montserrat(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: 4,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'HRMS PORTAL',
+          style: GoogleFonts.montserrat(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: _teal,
+            letterSpacing: 6,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProgressBar extends StatelessWidget {
+  const _ProgressBar();
+
+  static const _width = 160.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: _splashDuration,
+      curve: Curves.easeInOut,
+      builder: (_, value, _) => Container(
+        width: _width,
+        height: 4,
+        alignment: Alignment.centerLeft,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Container(
+          width: _width * value,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(99),
+            gradient: const LinearGradient(colors: [_teal, _violet]),
+            boxShadow: [
+              BoxShadow(color: _teal.withValues(alpha: 0.6), blurRadius: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

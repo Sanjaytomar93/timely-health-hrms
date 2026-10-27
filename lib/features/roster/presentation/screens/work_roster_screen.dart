@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_back_button.dart';
@@ -40,9 +41,7 @@ class WorkRosterScreen extends StatelessWidget {
   const WorkRosterScreen({super.key});
 
   static Future<void> open(BuildContext context) {
-    return Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const WorkRosterScreen()));
+    return AppRoutes.push(context, AppRoutes.workRoster);
   }
 
   @override

@@ -59,7 +59,7 @@ class _LeavesViewState extends State<_LeavesView> {
                 final loading = state is LeavesLoading && state.leaves.isEmpty;
 
                 if (loading) {
-                  return const ShimmerCardList(scrollable: true);
+                  return const LeavesShimmer();
                 }
 
                 return RefreshIndicator(
@@ -116,8 +116,6 @@ class _LeavesViewState extends State<_LeavesView> {
                       SliverToBoxAdapter(
                         child: _LeaveSectionSwitcher(
                           showCompOff: _showCompOff,
-                          compOffCount: state.compOffRequests.records.length,
-                          historyCount: state.leaves.length,
                           onChanged: (value) {
                             setState(() => _showCompOff = value);
                           },
@@ -149,203 +147,106 @@ class _LeavesViewState extends State<_LeavesView> {
 class _LeaveSectionSwitcher extends StatelessWidget {
   const _LeaveSectionSwitcher({
     required this.showCompOff,
-    required this.compOffCount,
-    required this.historyCount,
     required this.onChanged,
   });
 
   final bool showCompOff;
-  final int compOffCount;
-  final int historyCount;
   final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: _SectionTab(
-              label: 'Comp-Off',
-              subtitle:
-                  '$compOffCount ${compOffCount == 1 ? 'request' : 'requests'}',
-              icon: Icons.swap_horiz_rounded,
-              accent: const Color(0xFF0F9D8A),
-              selected: showCompOff,
-              onTap: () => onChanged(true),
+      child: Container(
+        height: 46,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: PortalColors.border),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0D1E1640),
+              blurRadius: 10,
+              offset: Offset(0, 3),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _SectionTab(
-              label: 'Leave History',
-              subtitle:
-                  '$historyCount ${historyCount == 1 ? 'leave' : 'leaves'}',
-              icon: Icons.history_rounded,
-              accent: const Color(0xFF6A5AC2),
-              selected: !showCompOff,
-              onTap: () => onChanged(false),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _SegmentChip(
+                label: 'Comp Off',
+                selected: showCompOff,
+                onTap: () => onChanged(true),
+                colors: const [Color(0xFF0F9D8A), Color(0xFF18AC96)],
+              ),
             ),
-          ),
-        ],
+            Expanded(
+              child: _SegmentChip(
+                label: 'Leave History',
+                selected: !showCompOff,
+                onTap: () => onChanged(false),
+                colors: PortalColors.brandGradient,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _SectionTab extends StatefulWidget {
-  const _SectionTab({
+class _SegmentChip extends StatelessWidget {
+  const _SegmentChip({
     required this.label,
-    required this.subtitle,
-    required this.icon,
-    required this.accent,
     required this.selected,
     required this.onTap,
+    required this.colors,
   });
 
   final String label;
-  final String subtitle;
-  final IconData icon;
-  final Color accent;
   final bool selected;
   final VoidCallback onTap;
-
-  @override
-  State<_SectionTab> createState() => _SectionTabState();
-}
-
-class _SectionTabState extends State<_SectionTab> {
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed != value) setState(() => _pressed = value);
-  }
+  final List<Color> colors;
 
   @override
   Widget build(BuildContext context) {
-    final selected = widget.selected;
-    final accent = widget.accent;
-
+    final accent = colors.first;
     return GestureDetector(
-      onTapDown: (_) => _setPressed(true),
-      onTapCancel: () => _setPressed(false),
-      onTapUp: (_) => _setPressed(false),
-      onTap: widget.onTap,
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1,
-        duration: const Duration(milliseconds: 120),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 240),
-          curve: Curves.easeOutCubic,
-          height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-          decoration: BoxDecoration(
-            color: selected ? accent.withValues(alpha: 0.08) : Colors.white,
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(
-              color: selected ? accent : const Color(0xFFE9E6F2),
-              width: selected ? 1.6 : 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: selected
-                    ? accent.withValues(alpha: 0.22)
-                    : const Color(0x0D1E1640),
-                blurRadius: selected ? 10 : 5,
-                offset: Offset(0, selected ? 4 : 2),
-              ),
-            ],
-          ),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Row(
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 240),
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(9),
-                      gradient: selected
-                          ? LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                accent,
-                                Color.lerp(accent, Colors.black, 0.25)!,
-                              ],
-                            )
-                          : null,
-                      color: selected ? null : accent.withValues(alpha: 0.10),
-                    ),
-                    child: Icon(
-                      widget.icon,
-                      size: 16,
-                      color: selected ? Colors.white : accent,
-                    ),
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          gradient: selected
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: colors,
+                )
+              : null,
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.28),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: portalText(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: selected
-                                ? Color.lerp(accent, Colors.black, 0.35)!
-                                : const Color(0xFF31275C),
-                          ),
-                        ),
-                        const SizedBox(height: 1),
-                        Text(
-                          widget.subtitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: portalText(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: selected
-                                ? accent
-                                : PortalColors.secondaryText,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Positioned(
-                top: -4,
-                right: -4,
-                child: AnimatedScale(
-                  scale: selected ? 1 : 0,
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutBack,
-                  child: Container(
-                    width: 15,
-                    height: 15,
-                    decoration: BoxDecoration(
-                      color: accent,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
-                    ),
-                    child: const Icon(
-                      Icons.check_rounded,
-                      size: 9,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: portalText(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: selected ? Colors.white : PortalColors.heading,
           ),
         ),
       ),

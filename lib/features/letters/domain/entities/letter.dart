@@ -11,6 +11,7 @@ class Letter {
     required this.status,
     required this.fileUrl,
     this.sentAt,
+    this.details = '',
   });
 
   final String id;
@@ -24,4 +25,5 @@ class Letter {
   final String status;
   final String fileUrl;
   final DateTime? sentAt;
+  final String details;
 }

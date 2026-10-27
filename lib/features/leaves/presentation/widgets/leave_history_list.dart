@@ -4,6 +4,7 @@ import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/leaves/presentation/models/leave_ui_model.dart';
 import 'package:timelay_health/features/leaves/presentation/widgets/comp_off_details_sheet.dart';
+import 'package:timelay_health/features/leaves/presentation/widgets/leave_empty_state.dart';
 
 class LeaveHistoryList extends StatelessWidget {
   const LeaveHistoryList({super.key, this.items = const []});
@@ -41,12 +42,10 @@ class LeaveHistoryList extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           if (items.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              child: Text(
-                'No leave records found.',
-                style: portalText(fontSize: 12, color: PortalColors.muted),
-              ),
+            const LeaveEmptyState(
+              icon: Icons.history_rounded,
+              title: 'No Leave records',
+              subtitle: 'Your leave applications will appear here.',
             )
           else
             for (var i = 0; i < items.length; i++) ...[

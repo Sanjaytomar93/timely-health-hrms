@@ -183,8 +183,8 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: width,
-      height: 110,
-      padding: const EdgeInsets.fromLTRB(13, 13, 10, 0),
+      constraints: const BoxConstraints(minHeight: 110),
+      padding: const EdgeInsets.fromLTRB(13, 13, 10, 12),
       decoration: BoxDecoration(
         color: PortalColors.surface,
         borderRadius: BorderRadius.circular(16),

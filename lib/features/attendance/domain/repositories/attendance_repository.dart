@@ -14,6 +14,8 @@ abstract class AttendanceRepository {
     required String employeeId,
   });
 
+  Future<List<EmployeeLocationAssignment>> getAllLocations();
+
   Future<CheckInResult> checkIn(CheckInParams params);
 
   Future<CheckOutResult> checkOut(CheckOutParams params);

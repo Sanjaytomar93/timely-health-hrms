@@ -37,6 +37,10 @@ class _MyShiftView extends StatelessWidget {
             ? ShiftUiMapper.headerDateLabel(DateTime.now())
             : state.headerDate;
 
+        if (loading && shift == null) {
+          return const AttendanceSubTabShimmer();
+        }
+
         return RefreshIndicator(
           color: PortalColors.purple,
           onRefresh: () => context.read<ShiftCubit>().load(keepExisting: true),
@@ -45,9 +49,7 @@ class _MyShiftView extends StatelessWidget {
             slivers: [
               SliverToBoxAdapter(child: _ShiftHeader(dateLabel: headerDate)),
               SliverToBoxAdapter(child: ShiftStatsRow(stats: stats)),
-              if (loading && shift == null)
-                const SliverToBoxAdapter(child: ShimmerCardList(itemCount: 3))
-              else if (error != null && shift == null)
+              if (error != null && shift == null)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),

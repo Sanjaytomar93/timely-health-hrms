@@ -58,6 +58,27 @@ class MyLocationResponseModel {
   }
 }
 
+class AllLocationsResponseModel {
+  const AllLocationsResponseModel({required this.locations});
+
+  final List<EmployeeLocationAssignmentModel> locations;
+
+  factory AllLocationsResponseModel.fromJson(Map<String, dynamic> json) {
+    final raw = json['locations'];
+    return AllLocationsResponseModel(
+      locations: raw is List
+          ? [
+              for (final item in raw)
+                if (item is Map)
+                  EmployeeLocationAssignmentModel.fromJson(
+                    Map<String, dynamic>.from(item),
+                  ),
+            ]
+          : const [],
+    );
+  }
+}
+
 double _asDouble(dynamic value) {
   if (value is num) return value.toDouble();
   if (value is String) return double.tryParse(value) ?? 0;

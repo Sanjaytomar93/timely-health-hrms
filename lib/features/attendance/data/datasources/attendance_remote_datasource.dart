@@ -124,6 +124,29 @@ class AttendanceRemoteDataSource {
     return parsed.location!;
   }
 
+  Future<List<EmployeeLocationAssignmentModel>> getAllLocations() async {
+    late final http.Response response;
+    try {
+      response = await _client
+          .get(
+            Uri.parse(AttendanceEndpoints.allLocations),
+            headers: const {'Content-Type': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 30));
+    } catch (_) {
+      throw const AttendanceFailure(
+        'Unable to reach server. Check your internet connection.',
+      );
+    }
+
+    final body = _decodeBody(response.body);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw AttendanceFailure(_message(body, 'Failed to load locations.'));
+    }
+
+    return AllLocationsResponseModel.fromJson(body).locations;
+  }
+
   Future<CheckInResult> checkIn(CheckInParams params) async {
     final id = params.employeeId.trim();
     final email = params.employeeEmail.trim();

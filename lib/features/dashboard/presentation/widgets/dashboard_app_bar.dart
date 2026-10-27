@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:timelay_health/core/theme/app_logos.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
@@ -9,17 +11,21 @@ class DashboardAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: PortalColors.surface,
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+      padding: const EdgeInsets.fromLTRB(28, 2, 18, 6),
+      decoration: const BoxDecoration(
+        color: PortalColors.brand,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+      ),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Image(
-                image: AssetImage('assets/images/timely_health_logo.png'),
-                height: 32,
+              child: SvgPicture.asset(
+                AppLogos.white,
+                height: 34,
                 fit: BoxFit.contain,
+                alignment: Alignment.centerLeft,
               ),
             ),
           ),

@@ -11,13 +11,14 @@ class DashboardEndpoints {
       '$_base/employees/empdashboard/${Uri.encodeComponent(employeeId)}'
       '?month=$month&year=$year';
 
-  static String employeePerformance({
-    required String employeeCode,
-    required int month,
-    required int year,
-  }) {
-    return Uri.parse(
-      '$_base/dashboard/employee-performance/${Uri.encodeComponent(employeeCode)}',
-    ).replace(queryParameters: {'month': '$month', 'year': '$year'}).toString();
-  }
+  // Unused — performance popup now uses empdashboard stats (same as web).
+  // static String employeePerformance({
+  //   required String employeeCode,
+  //   required int month,
+  //   required int year,
+  // }) {
+  //   return Uri.parse(
+  //     '$_base/dashboard/employee-performance/${Uri.encodeComponent(employeeCode)}',
+  //   ).replace(queryParameters: {'month': '$month', 'year': '$year'}).toString();
+  // }
 }

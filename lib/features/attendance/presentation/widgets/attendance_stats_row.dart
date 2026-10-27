@@ -1,69 +1,179 @@
 import 'package:flutter/material.dart';
+import 'package:timelay_health/core/theme/portal_colors.dart';
+import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/attendance/presentation/models/attendance_record_ui_model.dart';
-import 'package:timelay_health/features/dashboard/presentation/widgets/stat_cards_row.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/dashboard_card.dart';
 
 class AttendanceStatsRow extends StatelessWidget {
   const AttendanceStatsRow({super.key, required this.stats});
 
   final AttendanceStatsUiModel stats;
 
+  static const _blue = Color(0xFF3B6FE0);
+  static const _violet = Color(0xFF8E5CD9);
+
   @override
   Widget build(BuildContext context) {
-    final cards = <StatCardData>[
-      StatCardData(
-        title: 'Total Records',
+    final tiles = <_StatTileData>[
+      _StatTileData(
+        icon: Icons.event_note_rounded,
+        label: 'Total',
         value: '${stats.totalRecords}',
-        subtitle: 'all time',
-        iconAsset: 'assets/icons/attendance/stats/ic_att_total_records.svg',
+        caption: 'records',
+        color: PortalColors.brandLight,
       ),
-      StatCardData(
-        title: 'Onsite Days',
+      _StatTileData(
+        icon: Icons.apartment_rounded,
+        label: 'Onsite',
         value: '${stats.onsiteDays}',
-        subtitle: 'office check-ins',
-        iconAsset: 'assets/icons/attendance/stats/ic_att_onsite_days.svg',
+        caption: 'days',
+        color: PortalColors.green,
       ),
-      StatCardData(
-        title: 'Checked In',
+      _StatTileData(
+        icon: Icons.login_rounded,
+        label: 'Checked In',
         value: '${stats.checkedIn}',
-        subtitle: 'open sessions',
-        iconAsset: 'assets/icons/attendance/stats/ic_att_checked_in.svg',
+        caption: 'open',
+        color: _blue,
       ),
-      StatCardData(
-        title: 'Full Days',
+      _StatTileData(
+        icon: Icons.verified_rounded,
+        label: 'Full Days',
         value: '${stats.fullDays}',
-        subtitle: '8h+ days',
-        iconAsset: 'assets/icons/attendance/stats/ic_att_full_days.svg',
+        caption: '8h+',
+        color: PortalColors.red,
       ),
-      StatCardData(
-        title: 'OT Hours',
+      _StatTileData(
+        icon: Icons.timer_rounded,
+        label: 'OT Hours',
         value: stats.otHoursLabel,
-        subtitle: 'accumulated',
-        iconAsset: 'assets/icons/attendance/stats/ic_att_ot_hours.svg',
+        caption: 'total',
+        color: PortalColors.orange,
       ),
-      StatCardData(
-        title: 'Claimed OT',
+      _StatTileData(
+        icon: Icons.task_alt_rounded,
+        label: 'Claimed OT',
         value: '${stats.claimedOt}',
-        subtitle: 'records claimed',
-        iconAsset: 'assets/icons/attendance/stats/ic_att_claimed_ot.svg',
+        caption: 'records',
+        color: _violet,
       ),
     ];
 
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final cardWidth = ((screenWidth - 23 - 20) / 3.2).clamp(110.0, 130.0);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-        child: Row(
-          children: [
-            for (var i = 0; i < cards.length; i++) ...[
-              if (i > 0) const SizedBox(width: 10),
-              StatCard(data: cards[i], width: cardWidth),
-            ],
+    return DashboardCard(
+      child: Column(
+        children: [
+          const DashboardCardHeader(
+            icon: Icons.insights_rounded,
+            color: PortalColors.brand,
+            title: 'Attendance Overview',
+            subtitle: 'Your all-time attendance summary',
+          ),
+          const SizedBox(height: 14),
+          for (var row = 0; row < tiles.length; row += 3) ...[
+            if (row > 0) const SizedBox(height: 10),
+            Row(
+              children: [
+                for (var i = row; i < row + 3; i++) ...[
+                  if (i > row) const SizedBox(width: 10),
+                  Expanded(
+                    child: i < tiles.length
+                        ? _StatTile(data: tiles[i])
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ],
+            ),
           ],
-        ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatTileData {
+  const _StatTileData({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.caption,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final String caption;
+  final Color color;
+}
+
+class _StatTile extends StatelessWidget {
+  const _StatTile({required this.data});
+
+  final _StatTileData data;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: data.color.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: data.color.withValues(alpha: 0.14)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: data.color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(data.icon, size: 15, color: data.color),
+          ),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: data.value,
+                    style: portalText(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: PortalColors.heading,
+                      height: 22 / 18,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' ${data.caption}',
+                    style: portalText(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w500,
+                      color: PortalColors.muted,
+                    ),
+                  ),
+                ],
+              ),
+              maxLines: 1,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            data.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: portalText(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: data.color,
+              height: 12 / 10,
+            ),
+          ),
+        ],
       ),
     );
   }

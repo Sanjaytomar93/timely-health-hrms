@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:timelay_health/core/location/location_helper.dart';
+import 'package:timelay_health/core/location/location_permission_gate.dart';
 import 'package:timelay_health/features/attendance/presentation/bloc/attendance_cubit.dart';
 import 'package:timelay_health/features/attendance/presentation/bloc/check_in_cubit.dart';
 import 'package:timelay_health/features/attendance/presentation/bloc/check_in_state.dart';
@@ -13,6 +14,7 @@ import 'package:timelay_health/features/attendance/presentation/widgets/check_in
 import 'package:timelay_health/features/attendance/presentation/widgets/mark_attendance_flow_body.dart';
 import 'package:timelay_health/features/attendance/presentation/widgets/mark_attendance_welcome_dialog.dart';
 import 'package:timelay_health/features/attendance/presentation/widgets/outside_range_dialog.dart';
+import 'package:timelay_health/features/attendance/presentation/widgets/select_location_sheet.dart';
 import 'package:timelay_health/features/dashboard/presentation/bloc/dashboard_cubit.dart';
 
 class CheckInColors {
@@ -163,9 +165,9 @@ class CheckInSheet extends StatelessWidget {
                               capturing: capturing,
                               submitting: submitting,
                               onClose: () => Navigator.of(context).pop(),
-                              onGetLocation: () => context
-                                  .read<CheckInCubit>()
-                                  .captureLocation(),
+                              onGetLocation: () => _getLocation(context),
+                              onChangeLocation: () =>
+                                  _changeLocation(context, data),
                               onCheckIn: (reason) => _submit(
                                 context,
                                 requirePhoto: data.requirePhoto,
@@ -178,6 +180,27 @@ class CheckInSheet extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _getLocation(BuildContext context) async {
+    final cubit = context.read<CheckInCubit>();
+    final allowed = await ensureLocationAccess(context);
+    if (!allowed || cubit.isClosed) return;
+    await cubit.captureLocation();
+  }
+
+  Future<void> _changeLocation(
+    BuildContext context,
+    CheckInReadyData data,
+  ) async {
+    final cubit = context.read<CheckInCubit>();
+    final selected = await showSelectLocationSheet(
+      context,
+      loadLocations: cubit.loadAllLocations,
+      selectedId: data.office?.id,
+    );
+    if (selected == null || cubit.isClosed) return;
+    cubit.selectOffice(selected);
   }
 
   Future<void> _submit(

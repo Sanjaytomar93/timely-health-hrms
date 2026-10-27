@@ -36,6 +36,10 @@ class _MyLocationView extends StatelessWidget {
             ? LocationUiMapper.headerDateLabel()
             : state.headerDate;
 
+        if (loading && location == null) {
+          return const AttendanceSubTabShimmer();
+        }
+
         return RefreshIndicator(
           color: PortalColors.purple,
           onRefresh: () =>
@@ -44,9 +48,7 @@ class _MyLocationView extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(child: _LocationHeader(dateLabel: headerDate)),
-              if (loading && location == null)
-                const SliverToBoxAdapter(child: ShimmerCardList(itemCount: 3))
-              else if (error != null && location == null)
+              if (error != null && location == null)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),

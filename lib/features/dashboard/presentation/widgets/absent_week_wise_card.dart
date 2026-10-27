@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/dashboard/presentation/models/dashboard_home_ui.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/dashboard_card.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/weekly_bar_chart_card.dart';
 
 class AbsentWeekWiseCard extends StatelessWidget {
@@ -39,18 +40,18 @@ class AbsentWeekWiseCard extends StatelessWidget {
         : weeks.length * _rowHeight + (weeks.length - 1) * _rowGap;
     final bodyHeight = math.max(_minBodyHeight, rowsHeight);
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 18, 16, 0),
-      padding: const EdgeInsets.fromLTRB(19, 17, 17, 14),
-      decoration: BoxDecoration(
-        color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: PortalColors.border),
-      ),
+    return DashboardCard(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       child: Column(
         children: [
-          _header(),
-          const SizedBox(height: 14),
+          DashboardCardHeader(
+            icon: Icons.person_remove_outlined,
+            color: PortalColors.red,
+            title: 'Absent Days',
+            subtitle: data.periodLabel,
+            trailing: DashboardMonthChip(label: monthLabel, onTap: onMonthTap),
+          ),
+          const SizedBox(height: 16),
           SizedBox(
             height: bodyHeight,
             child: Row(
@@ -64,13 +65,10 @@ class AbsentWeekWiseCard extends StatelessWidget {
                 Expanded(
                   flex: 13,
                   child: weeks.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No data',
-                            style: portalText(
-                              fontSize: 11,
-                              color: PortalColors.muted,
-                            ),
+                      ? const Center(
+                          child: DashboardEmptyState(
+                            icon: Icons.event_available_rounded,
+                            message: 'No absences recorded',
                           ),
                         )
                       : Column(
@@ -92,64 +90,6 @@ class AbsentWeekWiseCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _header() {
-    return Row(
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: PortalColors.redTint,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Icon(
-            Icons.person_remove_outlined,
-            size: 18,
-            color: PortalColors.red,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Absent Days (Week Wise)',
-                  maxLines: 1,
-                  style: portalText(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    height: 18 / 14,
-                  ),
-                ),
-              ),
-              if (data.periodLabel.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  data.periodLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: portalText(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w500,
-                    color: PortalColors.muted,
-                    height: 13 / 10.5,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        DashboardMonthChip(label: monthLabel, onTap: onMonthTap),
-      ],
     );
   }
 

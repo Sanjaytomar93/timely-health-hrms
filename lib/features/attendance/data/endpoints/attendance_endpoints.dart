@@ -12,6 +12,8 @@ class AttendanceEndpoints {
   static String myLocation(String employeeId) =>
       '$_base/employees/mylocation/${Uri.encodeComponent(employeeId)}';
 
+  static const String allLocations = '$_base/location/alllocation';
+
   static const String checkIn = '$_base/attendance/checkin';
   static const String checkOut = '$_base/attendance/checkout';
   static const String claimOt = '$_base/employees/claimot';

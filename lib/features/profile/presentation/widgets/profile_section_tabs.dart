@@ -13,11 +13,11 @@ class ProfileSectionTabs extends StatefulWidget {
   final ValueChanged<int> onChanged;
 
   static const tabs = [
-    '💼 Jobs / Experience',
-    '📁 Personal Documents',
-    '✉️ My Letters',
-    '📄 Medical Certificate',
-    '📈 Salary Hike',
+    (Icons.work_outline_rounded, 'Jobs / Experience'),
+    (Icons.folder_outlined, 'Personal Documents'),
+    (Icons.mail_outline_rounded, 'My Letters'),
+    (Icons.medical_services_outlined, 'Medical Certificate'),
+    (Icons.trending_up_rounded, 'Salary Hike'),
   ];
 
   @override
@@ -54,28 +54,50 @@ class _ProfileSectionTabsState extends State<ProfileSectionTabs> {
 
   @override
   Widget build(BuildContext context) {
-    return MediaQuery.withClampedTextScaling(
-      maxScaleFactor: 1.2,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-        child: Row(
-          children: [
-            for (var index = 0; index < ProfileSectionTabs.tabs.length; index++)
-              Padding(
-                padding: EdgeInsets.only(
-                  right: index == ProfileSectionTabs.tabs.length - 1 ? 0 : 3,
-                ),
-                child: _TabChip(
-                  key: _itemKeys[index],
-                  label: ProfileSectionTabs.tabs[index],
-                  selected: index == widget.selectedIndex,
-                  onTap: () => widget.onChanged(index),
-                ),
-              ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Text(
+            'Records & documents',
+            style: portalText(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: PortalColors.heading,
+              height: 1.2,
+            ),
+          ),
         ),
-      ),
+        MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.2,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+            child: Row(
+              children: [
+                for (var index = 0;
+                    index < ProfileSectionTabs.tabs.length;
+                    index++)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: index == ProfileSectionTabs.tabs.length - 1
+                          ? 0
+                          : 8,
+                    ),
+                    child: _TabChip(
+                      key: _itemKeys[index],
+                      icon: ProfileSectionTabs.tabs[index].$1,
+                      label: ProfileSectionTabs.tabs[index].$2,
+                      selected: index == widget.selectedIndex,
+                      onTap: () => widget.onChanged(index),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -83,11 +105,13 @@ class _ProfileSectionTabsState extends State<ProfileSectionTabs> {
 class _TabChip extends StatelessWidget {
   const _TabChip({
     super.key,
+    required this.icon,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
+  final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -95,28 +119,41 @@ class _TabChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? PortalColors.purple : PortalColors.surface,
-      borderRadius: BorderRadius.circular(11),
+      color: selected ? PortalColors.brand : PortalColors.surface,
+      borderRadius: BorderRadius.circular(999),
+      elevation: selected ? 2 : 0,
+      shadowColor: PortalColors.brand.withValues(alpha: 0.35),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(11),
+        borderRadius: BorderRadius.circular(999),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(11),
+            borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: selected ? PortalColors.purple : PortalColors.border,
+              color: selected ? PortalColors.brand : PortalColors.border,
             ),
           ),
-          child: Text(
-            label,
-            maxLines: 1,
-            style: portalText(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              color: selected ? Colors.white : PortalColors.secondaryText,
-              height: 14 / 11.5,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 14,
+                color: selected ? Colors.white : PortalColors.muted,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                maxLines: 1,
+                style: portalText(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: selected ? Colors.white : PortalColors.secondaryText,
+                  height: 1.2,
+                ),
+              ),
+            ],
           ),
         ),
       ),

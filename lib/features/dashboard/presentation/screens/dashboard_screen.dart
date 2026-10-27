@@ -18,7 +18,7 @@ import 'package:timelay_health/features/dashboard/presentation/widgets/stat_card
 import 'package:timelay_health/features/dashboard/presentation/widgets/update_detail_dialog.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/updates_celebrations_card.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/weekly_bar_chart_card.dart';
-import 'package:timelay_health/features/permissions/presentation/screens/permissions_screen.dart';
+import 'package:timelay_health/core/routes/app_routes.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key, this.onOpenAttendance, this.onOpenLeaves});
@@ -102,11 +102,8 @@ class _DashboardView extends StatelessWidget {
                         child: QuickActionsSection(
                           onHistory: onOpenAttendance,
                           onLeaves: onOpenLeaves,
-                          onPermission: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => const PermissionsScreen(),
-                            ),
-                          ),
+                          onPermission: () =>
+                              AppRoutes.push(context, AppRoutes.permissions),
                         ),
                       ),
                       SliverToBoxAdapter(
@@ -139,7 +136,10 @@ class _DashboardView extends StatelessWidget {
                         ),
                       ),
                       SliverToBoxAdapter(
-                        child: RecentActivityCard(items: ui.recentActivity),
+                        child: RecentActivityCard(
+                          items: ui.recentActivity,
+                          onSeeAll: onOpenAttendance,
+                        ),
                       ),
                       SliverToBoxAdapter(
                         child: UpdatesCelebrationsCard(
