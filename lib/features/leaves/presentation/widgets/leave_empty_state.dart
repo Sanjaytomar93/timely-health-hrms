@@ -5,12 +5,10 @@ import 'package:timelay_health/core/theme/portal_text.dart';
 class LeaveEmptyState extends StatelessWidget {
   const LeaveEmptyState({
     super.key,
-    required this.icon,
     required this.title,
     required this.subtitle,
   });
 
-  final IconData icon;
   final String title;
   final String subtitle;
 
@@ -19,43 +17,63 @@ class LeaveEmptyState extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 26),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: PortalColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: PortalColors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A1E1640),
-            blurRadius: 14,
-            offset: Offset(0, 6),
-          ),
-        ],
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            PortalColors.brandTint.withValues(alpha: 0.35),
+            PortalColors.surface,
+          ],
+        ),
       ),
       child: Column(
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  PortalColors.brand.withValues(alpha: 0.12),
-                  PortalColors.brandLight.withValues(alpha: 0.18),
-                ],
+              color: PortalColors.surface,
+              border: Border.all(color: PortalColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: PortalColors.brand.withValues(alpha: 0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: PortalColors.brandGradient,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.inbox_outlined,
+                  size: 18,
+                  color: Colors.white,
+                ),
               ),
             ),
-            child: Icon(icon, size: 26, color: PortalColors.brand),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Text(
             title,
             textAlign: TextAlign.center,
             style: portalText(
-              fontSize: 15,
+              fontSize: 14.5,
               fontWeight: FontWeight.w800,
               color: PortalColors.heading,
             ),
@@ -65,10 +83,10 @@ class LeaveEmptyState extends StatelessWidget {
             subtitle,
             textAlign: TextAlign.center,
             style: portalText(
-              fontSize: 12.5,
+              fontSize: 12,
               fontWeight: FontWeight.w500,
               color: PortalColors.muted,
-              height: 1.4,
+              height: 1.45,
             ),
           ),
         ],

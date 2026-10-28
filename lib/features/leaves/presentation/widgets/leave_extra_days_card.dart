@@ -17,11 +17,11 @@ class LeaveExtraDaysCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final extra = stats.extraDays;
     return Container(
-      margin: const EdgeInsets.fromLTRB(18, 16, 18, 0),
-      padding: const EdgeInsets.fromLTRB(17, 17, 17, 17),
+      margin: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+      padding: const EdgeInsets.fromLTRB(13, 12, 13, 12),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PortalColors.border),
       ),
       child: Column(
@@ -31,25 +31,25 @@ class LeaveExtraDaysCard extends StatelessWidget {
               Text(
                 '⇄  Extra Days Details',
                 style: portalText(
-                  fontSize: 13.5,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w700,
                   color: PortalColors.heading,
                 ),
               ),
               const Spacer(),
               Container(
-                height: 22,
-                padding: const EdgeInsets.symmetric(horizontal: 9),
+                height: 20,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   color: PortalColors.background,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(7),
                   border: Border.all(color: PortalColors.border),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   _currentMonthYear(month),
                   style: portalText(
-                    fontSize: 10.5,
+                    fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: PortalColors.secondaryText,
                   ),
@@ -57,16 +57,16 @@ class LeaveExtraDaysCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
             _currentMonthKey(month),
             style: portalText(
-              fontSize: 11,
+              fontSize: 10.5,
               fontWeight: FontWeight.w700,
               color: PortalColors.muted,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
@@ -77,7 +77,7 @@ class LeaveExtraDaysCard extends StatelessWidget {
                   valueColor: PortalColors.purple,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: _DayTile(
                   value: '${stats.presentDays}',
@@ -88,13 +88,13 @@ class LeaveExtraDaysCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Container(
             width: double.infinity,
-            height: 32,
+            height: 28,
             decoration: BoxDecoration(
               color: PortalColors.background,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(9),
               border: Border.all(color: PortalColors.border),
             ),
             alignment: Alignment.center,
@@ -103,7 +103,7 @@ class LeaveExtraDaysCard extends StatelessWidget {
                   ? 'No Extra Days'
                   : '$extra Extra ${extra == 1 ? 'Day' : 'Days'} Worked',
               style: portalText(
-                fontSize: 11.5,
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: extra == 0 ? PortalColors.muted : PortalColors.green,
               ),
@@ -131,10 +131,10 @@ class _DayTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 72,
+      height: 56,
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -142,16 +142,16 @@ class _DayTile extends StatelessWidget {
           Text(
             value,
             style: portalText(
-              fontSize: 22,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
               color: valueColor,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           Text(
             label,
             style: portalText(
-              fontSize: 10.5,
+              fontSize: 10,
               fontWeight: FontWeight.w700,
               color: PortalColors.muted,
             ),

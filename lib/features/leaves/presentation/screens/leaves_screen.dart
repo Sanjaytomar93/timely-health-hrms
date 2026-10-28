@@ -158,17 +158,17 @@ class _LeaveSectionSwitcher extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
       child: Container(
-        height: 46,
+        height: 48,
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: PortalColors.border),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Color(0x0D1E1640),
-              blurRadius: 10,
-              offset: Offset(0, 3),
+              color: PortalColors.brand.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -221,7 +221,7 @@ class _SegmentChip extends StatelessWidget {
         curve: Curves.easeOutCubic,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(12),
           gradient: selected
               ? LinearGradient(
                   begin: Alignment.topLeft,
@@ -243,9 +243,10 @@ class _SegmentChip extends StatelessWidget {
           label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
           style: portalText(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w800,
             color: selected ? Colors.white : PortalColors.heading,
           ),
         ),
@@ -339,19 +340,35 @@ class _LeavesAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: PortalColors.surface,
-        border: Border(bottom: BorderSide(color: PortalColors.border)),
+        border: const Border(bottom: BorderSide(color: PortalColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
       child: Row(
         children: [
-          SvgPicture.asset(
-            'assets/icons/top_bar/ic_top_menu.svg',
-            width: 26,
-            height: 26,
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: PortalColors.brandTint,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: SvgPicture.asset(
+              'assets/icons/top_bar/ic_top_menu.svg',
+              width: 18,
+              height: 18,
+            ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -360,8 +377,8 @@ class _LeavesAppBar extends StatelessWidget {
                 Text(
                   'My Leaves',
                   style: portalText(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
                     color: PortalColors.heading,
                     letterSpacing: 0.1,
                     height: 1.2,
@@ -369,11 +386,11 @@ class _LeavesAppBar extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Manage your leave applications and requests',
-                  maxLines: 2,
+                  'Track balances, requests & history',
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: portalText(
-                    fontSize: 11,
+                    fontSize: 11.5,
                     color: PortalColors.muted,
                     height: 1.3,
                   ),
@@ -383,7 +400,7 @@ class _LeavesAppBar extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           const TopNotificationButton(),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           const TopCalendarButton(),
         ],
       ),

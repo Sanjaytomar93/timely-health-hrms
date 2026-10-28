@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
+import 'package:timelay_health/core/theme/portal_system_ui.dart';
 import 'package:timelay_health/features/auth/data/auth_session.dart';
 import 'package:timelay_health/features/attendance/presentation/screens/attendance_screen.dart';
 import 'package:timelay_health/features/dashboard/presentation/bloc/dashboard_cubit.dart';
@@ -93,9 +94,11 @@ class _EmployeeHomeShellState extends State<EmployeeHomeShell> {
       child: BlocListener<MonthlyPerformanceCubit, MonthlyPerformanceState>(
         listener: _showPerformanceIfNeeded,
         child: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle.dark.copyWith(
-            statusBarColor: Colors.transparent,
-          ),
+          value: _index == 0
+              ? PortalSystemUi.darkStatusBar
+              : SystemUiOverlayStyle.dark.copyWith(
+                  statusBarColor: Colors.transparent,
+                ),
           child: PopScope(
             canPop: _index == 0,
             onPopInvokedWithResult: (didPop, _) {
@@ -105,6 +108,9 @@ class _EmployeeHomeShellState extends State<EmployeeHomeShell> {
               backgroundColor: PortalColors.background,
               body: PortalSafeArea(
                 bottom: false,
+                statusBarColor: _index == 0
+                    ? PortalColors.brand
+                    : PortalColors.surface,
                 child: IndexedStack(
                   index: _index,
                   children: [
