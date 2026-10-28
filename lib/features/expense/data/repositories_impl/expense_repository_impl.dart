@@ -2,6 +2,7 @@ import 'package:timelay_health/features/expense/data/datasources/expense_remote_
 import 'package:timelay_health/features/expense/data/mappers/expense_mapper.dart';
 import 'package:timelay_health/features/expense/domain/entities/add_expense_params.dart';
 import 'package:timelay_health/features/expense/domain/entities/expense_claim.dart';
+import 'package:timelay_health/features/expense/domain/entities/update_expense_params.dart';
 import 'package:timelay_health/features/expense/domain/repositories/expense_repository.dart';
 
 class ExpenseRepositoryImpl implements ExpenseRepository {
@@ -28,5 +29,16 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   Future<ExpenseClaim> addExpense(AddExpenseParams params) async {
     final model = await _remote.addExpense(params);
     return ExpenseMapper.toEntity(model);
+  }
+
+  @override
+  Future<ExpenseClaim> updateExpense(UpdateExpenseParams params) async {
+    final model = await _remote.updateExpense(params);
+    return ExpenseMapper.toEntity(model);
+  }
+
+  @override
+  Future<void> deleteExpense({required String id}) {
+    return _remote.deleteExpense(id: id);
   }
 }

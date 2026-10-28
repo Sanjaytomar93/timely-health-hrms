@@ -118,7 +118,7 @@ class _VisitsViewState extends State<_VisitsView> {
                       state is VisitsLoading && state.visits.isNotEmpty;
 
                   if (loading) {
-                    return const ShimmerCardList(scrollable: true);
+                    return const VisitsShimmer();
                   }
 
                   return ListView(
@@ -208,45 +208,60 @@ class _VisitsFigmaHeader extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            height: 58,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  const PortalBackButton(),
-                  const SizedBox(width: 10),
-                  Text(
-                    'My Visits',
-                    style: portalText(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: PortalColors.heading,
-                      height: 21 / 13,
-                      letterSpacing: 0.2,
-                    ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+            child: Row(
+              children: [
+                const PortalBackButton(),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'My Visits',
+                        style: portalText(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: PortalColors.heading,
+                          letterSpacing: 0.1,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Field visits and location logs',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: portalText(
+                          fontSize: 11.5,
+                          color: PortalColors.muted,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
                   ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => openNotificationsScreen(context),
-                    child: SvgPicture.asset(
-                      'assets/icons/visits/ic_notification.svg',
-                      width: 34,
-                      height: 34,
-                    ),
+                ),
+                GestureDetector(
+                  onTap: () => openNotificationsScreen(context),
+                  child: SvgPicture.asset(
+                    'assets/icons/visits/ic_notification.svg',
+                    width: 34,
+                    height: 34,
                   ),
-                  const SizedBox(width: 14),
-                  _MonthMenu(
-                    options: monthOptions,
-                    onSelected: onMonthSelected,
-                    child: SvgPicture.asset(
-                      'assets/icons/visits/ic_notification_cal.svg',
-                      width: 34,
-                      height: 34,
-                    ),
+                ),
+                const SizedBox(width: 14),
+                _MonthMenu(
+                  options: monthOptions,
+                  onSelected: onMonthSelected,
+                  child: SvgPicture.asset(
+                    'assets/icons/visits/ic_notification_cal.svg',
+                    width: 34,
+                    height: 34,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           SizedBox(
@@ -899,6 +914,25 @@ class _VisitRecordsSection extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: PortalColors.brandTint,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                alignment: Alignment.center,
+                child: SvgPicture.asset(
+                  'assets/icons/visits/ic_stat_visits.svg',
+                  width: 15,
+                  height: 15,
+                  colorFilter: const ColorFilter.mode(
+                    PortalColors.brand,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               Text(
                 'Visit Records',
                 style: portalText(
@@ -1516,57 +1550,113 @@ class _VisitsFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (shown == 0) return const SizedBox.shrink();
-    final monthLabel = month == 'All Months' ? 'all months' : month;
+    final monthLabel = month == 'All Months' ? 'All Months' : month;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
         decoration: BoxDecoration(
           color: PortalColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: PortalColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: PortalColors.brand.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: PortalColors.brandGradient,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.insights_rounded,
+                      size: 15,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Showing $shown records',
+                          style: portalText(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'for $monthLabel',
+                          style: portalText(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(alpha: 0.85),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'Showing $shown records for $monthLabel',
-                    style: portalText(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: PortalColors.heading,
-                    ),
+                  child: _SummaryPill(
+                    label: 'Leads',
+                    count: stats.leads,
+                    color: const Color(0xFF319DF0),
+                    bgColor: const Color(0xFFEAF1FD),
+                    align: Alignment.centerLeft,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                _SummaryPill(
-                  label: 'Leads',
-                  count: stats.leads,
-                  color: const Color(0xFF319DF0),
-                  bgColor: const Color(0x20319DF0),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _SummaryPill(
+                    label: 'Pending',
+                    count: stats.pending,
+                    color: PortalColors.orange,
+                    bgColor: PortalColors.orangeTint,
+                    align: Alignment.center,
+                  ),
                 ),
-                _SummaryPill(
-                  label: 'Pending',
-                  count: stats.pending,
-                  color: PortalColors.orange,
-                  bgColor: PortalColors.orangeTint,
-                ),
-                _SummaryPill(
-                  label: 'Rejected',
-                  count: stats.rejected,
-                  color: PortalColors.red,
-                  bgColor: PortalColors.redTint,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _SummaryPill(
+                    label: 'Rejected',
+                    count: stats.rejected,
+                    color: PortalColors.red,
+                    bgColor: PortalColors.redTint,
+                    align: Alignment.centerRight,
+                  ),
                 ),
               ],
             ),
@@ -1583,39 +1673,52 @@ class _SummaryPill extends StatelessWidget {
     required this.count,
     required this.color,
     required this.bgColor,
+    this.align = Alignment.center,
   });
 
   final String label;
   final int count;
   final Color color;
   final Color bgColor;
+  final Alignment align;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 5,
-            height: 5,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            '$label: $count',
-            style: portalText(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w600,
-              color: color,
+    return Align(
+      alignment: align,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: color.withValues(alpha: 0.18)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$count',
+              style: portalText(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: color,
+                height: 1.1,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: portalText(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

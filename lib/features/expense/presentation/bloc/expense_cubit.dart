@@ -2,18 +2,26 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timelay_health/features/auth/data/auth_session.dart';
 import 'package:timelay_health/features/expense/data/repositories_impl/expense_repository_impl.dart';
 import 'package:timelay_health/features/expense/domain/failures/expense_failure.dart';
+import 'package:timelay_health/features/expense/domain/usecases/delete_expense_usecase.dart';
 import 'package:timelay_health/features/expense/domain/usecases/get_my_expenses_usecase.dart';
 import 'package:timelay_health/features/expense/presentation/bloc/expense_state.dart';
 import 'package:timelay_health/features/expense/presentation/mappers/expense_ui_mapper.dart';
 import 'package:timelay_health/features/expense/presentation/models/expense_claim_ui_model.dart';
 
 class ExpenseCubit extends Cubit<ExpenseState> {
-  ExpenseCubit({GetMyExpensesUseCase? getMyExpensesUseCase})
-    : _getMyExpenses =
-          getMyExpensesUseCase ?? GetMyExpensesUseCase(ExpenseRepositoryImpl()),
-      super(const ExpenseInitial());
+  ExpenseCubit({
+    GetMyExpensesUseCase? getMyExpensesUseCase,
+    DeleteExpenseUseCase? deleteExpenseUseCase,
+  }) : _getMyExpenses =
+           getMyExpensesUseCase ??
+           GetMyExpensesUseCase(ExpenseRepositoryImpl()),
+       _deleteExpense =
+           deleteExpenseUseCase ??
+           DeleteExpenseUseCase(ExpenseRepositoryImpl()),
+       super(const ExpenseInitial());
 
   final GetMyExpensesUseCase _getMyExpenses;
+  final DeleteExpenseUseCase _deleteExpense;
 
   Future<void> load({bool keepExisting = false}) async {
     final existingExpenses = switch (state) {
@@ -76,5 +84,11 @@ class ExpenseCubit extends Cubit<ExpenseState> {
         ),
       );
     }
+  }
+
+  Future<void> deleteExpense(String id) async {
+    await _deleteExpense(id);
+    if (isClosed) return;
+    await load(keepExisting: true);
   }
 }

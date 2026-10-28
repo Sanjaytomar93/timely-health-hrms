@@ -983,3 +983,57 @@ class _PayslipRecordBone extends StatelessWidget {
     );
   }
 }
+
+class VisitsShimmer extends StatelessWidget {
+  const VisitsShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SingleChildScrollView(
+      physics: NeverScrollableScrollPhysics(),
+      child: Shimmer(
+        baseColor: Color(0xFFE4E1EF),
+        highlightColor: Color(0xFFF8F7FC),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 14, 16, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: ShimmerBox(height: 88, radius: 14)),
+                  SizedBox(width: 8),
+                  Expanded(child: ShimmerBox(height: 88, radius: 14)),
+                  SizedBox(width: 8),
+                  Expanded(child: ShimmerBox(height: 88, radius: 14)),
+                ],
+              ),
+              SizedBox(height: 14),
+              ShimmerBox(width: double.infinity, height: 210, radius: 18),
+              SizedBox(height: 18),
+              Row(
+                children: [
+                  ShimmerBox(width: 30, height: 30, radius: 9),
+                  SizedBox(width: 8),
+                  ShimmerBox(width: 110, height: 14, radius: 6),
+                  SizedBox(width: 8),
+                  ShimmerBox(width: 28, height: 18, radius: 999),
+                ],
+              ),
+              SizedBox(height: 6),
+              ShimmerBox(width: 200, height: 10, radius: 4),
+              SizedBox(height: 14),
+              ShimmerBox(width: double.infinity, height: 150, radius: 16),
+              SizedBox(height: 10),
+              ShimmerBox(width: double.infinity, height: 150, radius: 16),
+              SizedBox(height: 10),
+              ShimmerBox(width: double.infinity, height: 150, radius: 16),
+              SizedBox(height: 16),
+              ShimmerBox(width: double.infinity, height: 120, radius: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -18,7 +18,7 @@ class LeaveBalanceGrid extends StatelessWidget {
         showNational: true,
       ),
       _Balance(
-        title: 'Sick Leave',
+        title: 'Sick Leaves',
         used: stats.sick,
         total: 10,
         showNational: true,

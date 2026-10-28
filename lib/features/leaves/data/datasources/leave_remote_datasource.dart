@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:timelay_health/features/leaves/data/endpoints/leave_endpoints.dart';
 import 'package:timelay_health/features/leaves/data/mappers/leave_mapper.dart';
 import 'package:timelay_health/features/leaves/data/models/leave_record_model.dart';
+import 'package:timelay_health/features/leaves/domain/entities/comp_off_request.dart';
 import 'package:timelay_health/features/leaves/domain/entities/leave_record.dart';
 import 'package:timelay_health/features/leaves/domain/failures/leave_failure.dart';
 
@@ -85,6 +86,76 @@ class LeaveRemoteDataSource {
     return parsed;
   }
 
+  Future<ExtraWorkedDaysResponseModel> getExtraWorkedDays({
+    required String employeeId,
+  }) async {
+    final id = employeeId.trim();
+    if (id.isEmpty) {
+      throw const LeaveFailure('Employee ID missing. Please login again.');
+    }
+
+    late final http.Response response;
+    try {
+      response = await _client
+          .get(
+            Uri.parse(LeaveEndpoints.extraWorkedDays(id)),
+            headers: const {'Content-Type': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 30));
+    } catch (_) {
+      throw const LeaveFailure(
+        'Unable to reach server. Check your internet connection.',
+      );
+    }
+
+    final body = _decode(response.body);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw LeaveFailure(_message(body, 'Failed to load extra worked days.'));
+    }
+
+    final parsed = ExtraWorkedDaysResponseModel.fromJson(body);
+    if (!parsed.success) {
+      throw const LeaveFailure('Failed to load extra worked days.');
+    }
+    return parsed;
+  }
+
+  Future<void> addCompOff(AddCompOffParams params) async {
+    if (params.employeeId.trim().isEmpty) {
+      throw const LeaveFailure('Employee ID missing. Please login again.');
+    }
+    if (params.reason.trim().isEmpty) {
+      throw const LeaveFailure('Please enter reason.');
+    }
+    if (params.days <= 0) {
+      throw const LeaveFailure('Please enter valid total days.');
+    }
+
+    late final http.Response response;
+    try {
+      response = await _client
+          .post(
+            Uri.parse(LeaveEndpoints.addCompOff),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode(LeaveMapper.toAddCompOffRequest(params).toJson()),
+          )
+          .timeout(const Duration(seconds: 30));
+    } catch (_) {
+      throw const LeaveFailure(
+        'Unable to reach server. Check your internet connection.',
+      );
+    }
+
+    final body = _decode(response.body);
+    final ok =
+        response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        body['success'] != false;
+    if (!ok) {
+      throw LeaveFailure(_message(body, 'Failed to submit comp-off.'));
+    }
+  }
+
   Future<LeaveRecordModel> addLeave(AddLeaveParams params) async {
     if (params.employeeId.trim().isEmpty) {
       throw const LeaveFailure('Employee ID missing. Please login again.');
@@ -135,7 +206,10 @@ class LeaveRemoteDataSource {
   }
 
   String _message(Map<String, dynamic> body, String fallback) {
-    final message = body['message']?.toString();
-    return message?.isNotEmpty == true ? message! : fallback;
+    for (final key in ['message', 'error', 'msg']) {
+      final value = body[key]?.toString().trim();
+      if (value != null && value.isNotEmpty) return value;
+    }
+    return fallback;
   }
 }

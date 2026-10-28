@@ -51,6 +51,8 @@ class ExpenseUiMapper {
       stopsCountLabel: '${entity.stops.length} stops',
       remark: entity.remark,
       stops: entity.stops.map(_stopToUi).toList(),
+      date: entity.date,
+      rateApplied: entity.rateApplied > 0 ? entity.rateApplied : 4,
     );
   }
 
@@ -64,6 +66,9 @@ class ExpenseUiMapper {
       locationName: stop.locationName.isEmpty ? 'Stop' : stop.locationName,
       outcome: stop.outcome,
       kmLabel: '${km.toStringAsFixed(km % 1 == 0 ? 0 : 1)} km',
+      km: stop.km,
+      orderValue: stop.orderValue,
+      upsellValue: stop.upsellValue,
     );
   }
 

@@ -33,11 +33,17 @@ class ExpenseStopUiModel {
     required this.locationName,
     required this.outcome,
     required this.kmLabel,
+    this.km = 0,
+    this.orderValue = 0,
+    this.upsellValue = 0,
   });
 
   final String locationName;
   final String outcome;
   final String kmLabel;
+  final double km;
+  final double orderValue;
+  final double upsellValue;
 }
 
 class ExpenseClaimUiModel {
@@ -51,6 +57,8 @@ class ExpenseClaimUiModel {
     required this.stopsCountLabel,
     required this.remark,
     required this.stops,
+    this.date,
+    this.rateApplied = 4,
   });
 
   final String id;
@@ -62,4 +70,6 @@ class ExpenseClaimUiModel {
   final String stopsCountLabel;
   final String remark;
   final List<ExpenseStopUiModel> stops;
+  final DateTime? date;
+  final double rateApplied;
 }

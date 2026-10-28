@@ -19,7 +19,7 @@ class ExpenseStopModel {
 
   factory ExpenseStopModel.fromJson(Map<String, dynamic> json) {
     return ExpenseStopModel(
-      id: (json['_id'] ?? json['id'])?.toString() ?? '',
+      id: _asId(json['_id'] ?? json['id']),
       locationName: json['locationName'] as String? ?? '',
       outcome: json['outcome'] as String? ?? '',
       orderValue: _asDouble(json['orderValue']),
@@ -28,6 +28,16 @@ class ExpenseStopModel {
       amount: _asDouble(json['amount']),
     );
   }
+}
+
+String _asId(dynamic value) {
+  if (value == null) return '';
+  if (value is String) return value.trim();
+  if (value is Map) {
+    final oid = value[r'$oid'] ?? value['_id'] ?? value['id'] ?? value['oid'];
+    return oid?.toString().trim() ?? '';
+  }
+  return value.toString().trim();
 }
 
 double _asDouble(dynamic value) {
@@ -70,12 +80,10 @@ class ExpenseClaimModel {
   factory ExpenseClaimModel.fromJson(Map<String, dynamic> json) {
     final stopsRaw = json['stops'] as List<dynamic>? ?? const [];
     return ExpenseClaimModel(
-      id: (json['_id'] ?? json['id'])?.toString() ?? '',
+      id: _asId(json['_id'] ?? json['id']),
       employeeId: json['employeeId'] as String? ?? '',
       purpose: json['purpose'] as String? ?? '',
-      date: json['date'] != null
-          ? DateTime.tryParse(json['date'] as String)
-          : null,
+      date: _asDate(json['date']),
       km: _asDouble(json['km']),
       rateApplied: _asDouble(json['rateApplied']),
       totalAmount: _asDouble(json['totalAmount']),
@@ -86,14 +94,27 @@ class ExpenseClaimModel {
           .whereType<Map<String, dynamic>>()
           .map(ExpenseStopModel.fromJson)
           .toList(),
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'] as String)
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'] as String)
-          : null,
+      createdAt: _asDate(json['createdAt']),
+      updatedAt: _asDate(json['updatedAt']),
     );
   }
+}
+
+DateTime? _asDate(dynamic value) {
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  if (value is String) return DateTime.tryParse(value);
+  if (value is Map) {
+    final raw = value[r'$date'] ?? value['date'];
+    if (raw is String) return DateTime.tryParse(raw);
+    if (raw is num) {
+      return DateTime.fromMillisecondsSinceEpoch(raw.toInt());
+    }
+  }
+  if (value is num) {
+    return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+  }
+  return null;
 }
 
 class MyExpensesResponseModel {

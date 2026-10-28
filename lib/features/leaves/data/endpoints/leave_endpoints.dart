@@ -15,4 +15,9 @@ class LeaveEndpoints {
 
   static String compOffRequests(String employeeId) =>
       '$_base/leaves/comp-off-requests/employee/${Uri.encodeComponent(employeeId)}';
+
+  static String extraWorkedDays(String employeeId) =>
+      '$_base/leaves/extra-worked-days/${Uri.encodeComponent(employeeId)}';
+
+  static const String addCompOff = '$_base/leaves/comp-off-requests';
 }
