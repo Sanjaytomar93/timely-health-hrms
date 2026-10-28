@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
@@ -165,6 +166,7 @@ class _VisitsViewState extends State<_VisitsView> {
                         onEdit: (visit) =>
                             showAddVisitSheet(context, visit: visit),
                         onDelete: (visit) => _confirmDelete(context, visit),
+                        onAddVisit: () => showAddVisitSheet(context),
                       ),
                       _VisitsFooter(
                         shown: state.visits.length,
@@ -875,62 +877,159 @@ class _VisitRecordsSection extends StatelessWidget {
     required this.month,
     required this.onEdit,
     required this.onDelete,
+    required this.onAddVisit,
   });
 
   final List<VisitUiModel> visits;
   final String month;
   final ValueChanged<VisitUiModel> onEdit;
   final ValueChanged<VisitUiModel> onDelete;
+  final VoidCallback onAddVisit;
 
   @override
   Widget build(BuildContext context) {
     final monthLabel = month == 'All Months' ? 'all months' : month;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 22, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            'Visit Records',
-            style: portalText(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w700,
-              color: PortalColors.heading,
-              height: 16 / 13.5,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Visit Records',
+                style: portalText(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w700,
+                  color: PortalColors.heading,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: PortalColors.brand.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${visits.length}',
+                  style: portalText(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: PortalColors.brand,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 4),
           Text(
-            'All your visit and call records for $monthLabel.',
+            'All your visit and client interactions for $monthLabel.',
             style: portalText(
-              fontSize: 10.5,
+              fontSize: 11,
               fontWeight: FontWeight.w400,
               color: PortalColors.muted,
-              height: 13 / 10.5,
             ),
           ),
           const SizedBox(height: 14),
           if (visits.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: Text(
-                  'No visit records found.',
-                  style: portalText(fontSize: 12, color: PortalColors.muted),
-                ),
-              ),
-            )
+            _EmptyVisitsCard(onAddVisit: onAddVisit)
           else
             for (var i = 0; i < visits.length; i++) ...[
-              if (i > 0) const SizedBox(height: 10),
+              if (i > 0) const SizedBox(height: 12),
               _VisitRecordCard(
                 record: visits[i],
                 onEdit: () => onEdit(visits[i]),
                 onDelete: () => onDelete(visits[i]),
               ),
             ],
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyVisitsCard extends StatelessWidget {
+  const _EmptyVisitsCard({required this.onAddVisit});
+
+  final VoidCallback onAddVisit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PortalColors.border),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: const BoxDecoration(
+              color: PortalColors.brandTint,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.location_city_outlined,
+              size: 26,
+              color: PortalColors.brand,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'No Visit Records Found',
+            style: portalText(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: PortalColors.heading,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'There are no visit records recorded for the selected filter.',
+            textAlign: TextAlign.center,
+            style: portalText(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w400,
+              color: PortalColors.muted,
+            ),
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: onAddVisit,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              decoration: BoxDecoration(
+                color: PortalColors.brand,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Add Visit',
+                    style: portalText(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -948,176 +1047,454 @@ class _VisitRecordCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
+  void _copyToClipboard(BuildContext context, String text, String label) {
+    if (text.trim().isEmpty || text == '—') return;
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$label copied to clipboard'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasRemark = record.remark != '--' && record.remark.trim().isNotEmpty;
+    final hasValidPhone = record.phone.trim().isNotEmpty && record.phone != '—';
+    final hasValidAddress =
+        record.address.trim().isNotEmpty && record.address != '—';
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 17, 14, 14),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: PortalColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x061C1B29),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                record.index,
-                style: portalText(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w400,
-                  color: PortalColors.muted,
-                  height: 13 / 10.5,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: record.statusBg,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  record.status,
-                  style: portalText(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: record.statusColor,
-                    height: 1.491,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 7),
-          Text(
-            record.center,
-            style: portalText(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w700,
-              color: PortalColors.heading,
-              height: 16 / 13.5,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            record.date,
-            style: portalText(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w400,
-              color: PortalColors.muted,
-              height: 13 / 10.5,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Flexible(
-                child: Text(
-                  record.contact,
-                  style: portalText(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: PortalColors.heading,
-                    height: 13 / 11,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Icon(Icons.call, size: 16, color: Color(0xFF747474)),
-              const SizedBox(width: 3),
-              Text(
-                record.phone,
-                style: portalText(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w400,
-                  color: PortalColors.muted,
-                  height: 13 / 10.5,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text.rich(
-            TextSpan(
-              style: portalText(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
-                color: PortalColors.muted,
-                height: 13 / 10.5,
-              ),
+          // Top Header: Index & Date on left, Status chip on right
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const TextSpan(text: '📍 '),
-                TextSpan(text: record.address),
-                const TextSpan(text: ' 🔗'),
-                if (record.locationExtra != null)
-                  TextSpan(text: ' ${record.locationExtra}'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 7),
-          Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: 'Remark : ',
-                  style: portalText(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w400,
-                    color: PortalColors.muted,
-                    height: 13 / 10.5,
+                // Index Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: PortalColors.background,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: PortalColors.border.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  child: Text(
+                    record.index,
+                    style: portalText(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: PortalColors.brand,
+                    ),
                   ),
                 ),
-                TextSpan(
-                  text: record.remark,
-                  style: portalText(
-                    fontSize: 10.5,
-                    fontWeight: record.remark == '--'
-                        ? FontWeight.w400
-                        : FontWeight.w700,
-                    color: record.remark == '--'
-                        ? PortalColors.muted
-                        : PortalColors.heading,
-                    height: 13 / 10.5,
+                const SizedBox(width: 8),
+                // Date
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 13,
+                      color: PortalColors.muted,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      record.date,
+                      style: portalText(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: PortalColors.muted,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                // Status Pill with dot
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: record.statusBg,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: record.statusColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        record.status,
+                        style: portalText(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: record.statusColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 14),
+
           const Divider(height: 1, thickness: 1, color: PortalColors.border),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              GestureDetector(
-                onTap: onEdit,
-                behavior: HitTestBehavior.opaque,
-                child: SvgPicture.asset(
-                  'assets/icons/visits/ic_edit.svg',
-                  width: 17,
-                  height: 17,
+
+          // Main Card Content
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Center / Clinic Title
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: PortalColors.brand.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.local_hospital_outlined,
+                        size: 17,
+                        color: PortalColors.brand,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            record.center,
+                            style: portalText(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w700,
+                              color: PortalColors.heading,
+                              height: 1.25,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.person_outline_rounded,
+                                size: 14,
+                                color: PortalColors.muted,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  record.contact,
+                                  style: portalText(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: PortalColors.secondaryText,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 22),
-              GestureDetector(
-                onTap: onDelete,
-                behavior: HitTestBehavior.opaque,
-                child: SvgPicture.asset(
-                  'assets/icons/visits/ic_delete.svg',
-                  width: 18,
-                  height: 17,
+
+                // Phone Row (if available)
+                if (hasValidPhone) ...[
+                  const SizedBox(height: 10),
+                  InkWell(
+                    onTap: () => _copyToClipboard(
+                      context,
+                      record.phone,
+                      'Phone number',
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: PortalColors.background,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: PortalColors.border.withValues(alpha: 0.6),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.phone_outlined,
+                            size: 13,
+                            color: PortalColors.green,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            record.phone,
+                            style: portalText(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: PortalColors.heading,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.copy_rounded,
+                            size: 11,
+                            color: PortalColors.muted,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
+                // Location / Address Row
+                if (hasValidAddress) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(
+                          Icons.location_on_outlined,
+                          size: 15,
+                          color: PortalColors.brandLight,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          record.address,
+                          style: portalText(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w400,
+                            color: PortalColors.secondaryText,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                      if (record.locationExtra != null) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEAF1FD),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.my_location_rounded,
+                                size: 10,
+                                color: Color(0xFF319DF0),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                'GPS',
+                                style: portalText(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF319DF0),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+
+                // Remarks Box (if present)
+                if (hasRemark) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: PortalColors.background,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: PortalColors.border.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 1),
+                          child: Icon(
+                            Icons.sticky_note_2_outlined,
+                            size: 13,
+                            color: PortalColors.muted,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Remark: ',
+                                  style: portalText(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: PortalColors.secondaryText,
+                                    height: 1.3,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: record.remark,
+                                  style: portalText(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w400,
+                                    color: PortalColors.heading,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Bottom Actions
+                const SizedBox(height: 12),
+                const Divider(height: 1, thickness: 1, color: PortalColors.border),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    InkWell(
+                      onTap: onEdit,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: PortalColors.brand.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/icons/visits/ic_edit.svg',
+                              width: 13,
+                              height: 13,
+                              colorFilter: const ColorFilter.mode(
+                                PortalColors.brand,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Edit',
+                              style: portalText(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: PortalColors.brand,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    InkWell(
+                      onTap: onDelete,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: PortalColors.redTint,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/icons/visits/ic_delete.svg',
+                              width: 13,
+                              height: 13,
+                              colorFilter: const ColorFilter.mode(
+                                PortalColors.red,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Delete',
+                              style: portalText(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: PortalColors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -1138,62 +1515,105 @@ class _VisitsFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (shown == 0) return const SizedBox.shrink();
     final monthLabel = month == 'All Months' ? 'all months' : month;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Column(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: PortalColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: PortalColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Showing $shown records for $monthLabel',
+                    style: portalText(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: PortalColors.heading,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                _SummaryPill(
+                  label: 'Leads',
+                  count: stats.leads,
+                  color: const Color(0xFF319DF0),
+                  bgColor: const Color(0x20319DF0),
+                ),
+                _SummaryPill(
+                  label: 'Pending',
+                  count: stats.pending,
+                  color: PortalColors.orange,
+                  bgColor: PortalColors.orangeTint,
+                ),
+                _SummaryPill(
+                  label: 'Rejected',
+                  count: stats.rejected,
+                  color: PortalColors.red,
+                  bgColor: PortalColors.redTint,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SummaryPill extends StatelessWidget {
+  const _SummaryPill({
+    required this.label,
+    required this.count,
+    required this.color,
+    required this.bgColor,
+  });
+
+  final String label;
+  final int count;
+  final Color color;
+  final Color bgColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0x1426204A),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                'View all $shown records',
-                style: portalText(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF26204A),
-                  height: 13 / 10.5,
-                ),
-              ),
-            ),
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Showing $shown for $monthLabel',
-                  style: portalText(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w400,
-                    color: const Color(0xFF000000),
-                    height: 13 / 10.5,
-                  ),
-                ),
-              ),
-              Text.rich(
-                TextSpan(
-                  style: portalText(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w400,
-                    height: 13 / 10.5,
-                  ),
-                  children: [
-                    TextSpan(
-                      text:
-                          'Leads: ${stats.leads} · Pending: ${stats.pending} · Rejected: ${stats.rejected}',
-                      style: const TextStyle(color: Color(0xFF000000)),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          const SizedBox(width: 5),
+          Text(
+            '$label: $count',
+            style: portalText(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
         ],
       ),
