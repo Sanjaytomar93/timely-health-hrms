@@ -14,6 +14,10 @@ class LeaveStatsRow extends StatelessWidget {
   final LeaveStatsUiModel stats;
   final int? compOffCount;
 
+  static const double _sidePad = 18;
+  static const double _gap = 8;
+  static const int _visibleCount = 3;
+
   @override
   Widget build(BuildContext context) {
     final items = [
@@ -36,14 +40,14 @@ class LeaveStatsRow extends StatelessWidget {
         value: '${stats.pending}',
         subtitle: 'awaiting approval',
         icon: 'assets/icons/leaves/ic_leave_pending.svg',
-        valueColor: PortalColors.green,
+        valueColor: PortalColors.orange,
       ),
       _Stat(
         label: 'Rejected',
         value: '${stats.rejected}',
         subtitle: 'rejected leaves',
         icon: 'assets/icons/leaves/ic_leave_rejected.svg',
-        valueColor: PortalColors.green,
+        valueColor: PortalColors.red,
       ),
       _Stat(
         label: 'Comp-off',
@@ -54,16 +58,25 @@ class LeaveStatsRow extends StatelessWidget {
       ),
     ];
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardWidth =
+        (screenWidth - (_sidePad * 2) - (_gap * (_visibleCount - 1))) /
+        _visibleCount;
+
     return Padding(
-      padding: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.only(top: 12),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(18, 0, 18, 4),
+        padding: const EdgeInsets.fromLTRB(_sidePad, 0, _sidePad, 2),
+        physics: const BouncingScrollPhysics(),
         child: Row(
           children: [
             for (var i = 0; i < items.length; i++) ...[
-              if (i > 0) const SizedBox(width: 10),
-              _StatCard(item: items[i]),
+              if (i > 0) const SizedBox(width: _gap),
+              SizedBox(
+                width: cardWidth,
+                child: _StatCard(item: items[i]),
+              ),
             ],
           ],
         ),
@@ -96,34 +109,42 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 128,
-      padding: const EdgeInsets.fromLTRB(13, 13, 10, 12),
+      padding: const EdgeInsets.fromLTRB(11, 10, 9, 9),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PortalColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          SvgPicture.asset(item.icon, width: 26, height: 26),
-          const SizedBox(height: 10),
+          SvgPicture.asset(item.icon, width: 22, height: 22),
+          const SizedBox(height: 8),
           Text(
             item.label.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 9,
+              fontSize: 8.5,
               fontWeight: FontWeight.w700,
               color: PortalColors.muted,
-              letterSpacing: 0.4,
+              letterSpacing: 0.35,
               height: 1.2,
             ),
           ),
           Text(
             item.value,
             style: portalText(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
               color: item.valueColor,
               height: 1.2,
             ),
@@ -133,7 +154,7 @@ class _StatCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 9.5,
+              fontSize: 9,
               color: PortalColors.muted,
               height: 1.2,
             ),

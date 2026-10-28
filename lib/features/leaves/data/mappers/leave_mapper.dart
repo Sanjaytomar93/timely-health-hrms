@@ -61,6 +61,38 @@ class LeaveMapper {
     );
   }
 
+  static List<ExtraWorkedDay> extraWorkedDaysToEntity(
+    ExtraWorkedDaysResponseModel model,
+  ) {
+    return model.extraDays
+        .where((d) => d.date != null)
+        .map(
+          (d) => ExtraWorkedDay(
+            date: d.date!,
+            dayLabel: d.dayLabel,
+            workType: d.workType,
+            totalHours: d.totalHours,
+            requestStatus: d.requestStatus,
+            isExpired: d.isExpired,
+            validTillFormatted: d.validTillFormatted,
+          ),
+        )
+        .toList();
+  }
+
+  static AddCompOffRequestModel toAddCompOffRequest(AddCompOffParams params) {
+    return AddCompOffRequestModel(
+      employeeId: params.employeeId,
+      employeeName: params.employeeName,
+      workDate: _apiDate(params.workDate),
+      leaveDate: _apiDate(params.leaveDate),
+      count: params.days,
+      reason: params.reason,
+      workType: params.workType,
+      totalHours: params.totalHours,
+    );
+  }
+
   static CompOffRequests compOffRequestsToEntity(
     CompOffRequestsResponseModel model,
   ) {

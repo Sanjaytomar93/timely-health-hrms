@@ -20,127 +20,142 @@ class AttendanceBanner extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 173),
-        width: double.infinity,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: const LinearGradient(
-            begin: Alignment(-0.45, -0.9),
-            end: Alignment(0.9, 0.75),
-            colors: PortalColors.brandGradient,
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            Positioned(
-              right: -30,
-              top: -40,
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  shape: BoxShape.circle,
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── Main card ───────────────────────────────────────────────────
+          Container(
+            constraints: const BoxConstraints(minHeight: 148),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: const LinearGradient(
+                begin: Alignment(-0.45, -0.9),
+                end: Alignment(0.9, 0.75),
+                colors: PortalColors.brandGradient,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "TODAY'S ATTENDANCE",
-                    style: portalText(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white.withValues(alpha: 0.85),
-                      letterSpacing: 1,
-                      height: 13 / 11,
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              children: [
+                // Decorative circle
+                Positioned(
+                  right: -30,
+                  top: -40,
+                  child: Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      _BlinkingDot(color: statusColor),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          statusLabel,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: portalText(
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            height: 19 / 15.5,
+                      Text(
+                        "TODAY'S ATTENDANCE",
+                        style: portalText(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white.withValues(alpha: 0.85),
+                          letterSpacing: 1,
+                          height: 13 / 11,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          _BlinkingDot(color: statusColor),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              statusLabel,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: portalText(
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                height: 19 / 15.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: _Metric(label: 'Check In', value: checkIn),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: _Metric(
+                              label: 'Check Out',
+                              value: checkOut,
+                            ),
+                          ),
+                          Expanded(
+                            flex: 3,
+                            child: _Metric(label: 'Shift', value: shift),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 36,
+                        child: Material(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            onTap: () => showCheckInSheet(context),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.access_time,
+                                  size: 14,
+                                  color: PortalColors.brand,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Mark Attendance',
+                                  style: portalText(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: PortalColors.brand,
+                                    height: 16 / 13.5,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: _Metric(label: 'Check In', value: checkIn),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: _Metric(label: 'Check Out', value: checkOut),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: _Metric(label: 'Shift', value: shift),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 39,
-                    child: Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        onTap: () => showCheckInSheet(context),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.access_time,
-                              size: 14,
-                              color: PortalColors.brand,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Mark Attendance',
-                              style: portalText(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w700,
-                                color: PortalColors.brand,
-                                height: 16 / 13.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          // ── Dart indicator below card ───────────────────────────────────
+          const SizedBox(height: 8),
+          const _DartIndicator(),
+        ],
       ),
     );
   }
 }
+
+// ── Blinking dot ─────────────────────────────────────────────────────────────
 
 class _BlinkingDot extends StatefulWidget {
   const _BlinkingDot({required this.color});
@@ -195,6 +210,8 @@ class _BlinkingDotState extends State<_BlinkingDot>
   }
 }
 
+// ── Metric tile ──────────────────────────────────────────────────────────────
+
 class _Metric extends StatelessWidget {
   const _Metric({required this.label, required this.value});
 
@@ -234,4 +251,89 @@ class _Metric extends StatelessWidget {
       ],
     );
   }
+}
+
+// ── Dart / chevron indicator ──────────────────────────────────────────────────
+
+class _DartIndicator extends StatelessWidget {
+  const _DartIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 40,
+          height: 3,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                PortalColors.brand.withValues(alpha: 0.0),
+                PortalColors.brandLight.withValues(alpha: 0.55),
+              ],
+            ),
+            borderRadius: const BorderRadius.horizontal(
+              left: Radius.circular(3),
+            ),
+          ),
+        ),
+        CustomPaint(
+          size: const Size(16, 10),
+          painter: _DartPainter(
+            fill: PortalColors.brandLight.withValues(alpha: 0.85),
+            glow: PortalColors.brandLight.withValues(alpha: 0.22),
+          ),
+        ),
+        Container(
+          width: 40,
+          height: 3,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                PortalColors.brandLight.withValues(alpha: 0.55),
+                PortalColors.brand.withValues(alpha: 0.0),
+              ],
+            ),
+            borderRadius: const BorderRadius.horizontal(
+              right: Radius.circular(3),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DartPainter extends CustomPainter {
+  const _DartPainter({required this.fill, required this.glow});
+
+  final Color fill;
+  final Color glow;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = glow
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = fill
+        ..style = PaintingStyle.fill,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_DartPainter old) =>
+      old.fill != fill || old.glow != glow;
 }

@@ -4,9 +4,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/shimmer.dart';
+import 'package:timelay_health/features/expense/domain/failures/expense_failure.dart';
 import 'package:timelay_health/features/expense/presentation/bloc/expense_cubit.dart';
 import 'package:timelay_health/features/expense/presentation/bloc/expense_state.dart';
 import 'package:timelay_health/features/expense/presentation/models/expense_claim_ui_model.dart';
+import 'package:timelay_health/features/expense/presentation/widgets/edit_expense_sheet.dart';
 import 'package:timelay_health/features/expense/presentation/widgets/expense_details_dialog.dart';
 import 'package:timelay_health/features/expense/presentation/widgets/record_expense_sheet.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
@@ -124,22 +126,49 @@ class _ExpenseAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: PortalColors.surface,
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        border: const Border(bottom: BorderSide(color: PortalColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
       child: Row(
         children: [
           const PortalBackButton(),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              'Expense Management',
-              style: portalText(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: PortalColors.heading,
-                letterSpacing: 0.2,
-                height: 21 / 13,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Expense',
+                  style: portalText(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: PortalColors.heading,
+                    letterSpacing: 0.1,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Claims & reimbursements',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 11.5,
+                    color: PortalColors.muted,
+                    height: 1.3,
+                  ),
+                ),
+              ],
             ),
           ),
           const TopNotificationButton(
@@ -163,84 +192,37 @@ class _ExpenseHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 16, 12, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
+      padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+          decoration: BoxDecoration(
+            color: PortalColors.surface,
+            borderRadius: BorderRadius.circular(11),
+            border: Border.all(color: PortalColors.border),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Expense ',
-                        style: portalText(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: PortalColors.heading,
-                          height: 19 / 16,
-                        ),
-                      ),
-                      TextSpan(
-                        text: 'Management',
-                        style: portalText(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: PortalColors.purple,
-                          height: 19 / 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              SvgPicture.asset(
+                'assets/icons/expense/ic_calendar_chip.svg',
+                width: 13,
+                height: 13,
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 13,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: PortalColors.surface,
-                  borderRadius: BorderRadius.circular(11),
-                  border: Border.all(color: PortalColors.border),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/expense/ic_calendar_chip.svg',
-                      width: 13,
-                      height: 13,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      dateLabel.isEmpty ? '—' : dateLabel,
-                      style: portalText(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: PortalColors.heading,
-                        height: 14 / 11.5,
-                      ),
-                    ),
-                  ],
+              const SizedBox(width: 6),
+              Text(
+                dateLabel.isEmpty ? '—' : dateLabel,
+                style: portalText(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: PortalColors.heading,
+                  height: 14 / 11.5,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            'Track your travel claims, reimbursement amount, and meeting outcomes in one place.',
-            style: portalText(
-              fontSize: 10,
-              fontWeight: FontWeight.w400,
-              color: PortalColors.heading,
-              letterSpacing: 0.2,
-              height: 16 / 10,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -250,6 +232,10 @@ class _StatCardsRow extends StatelessWidget {
   const _StatCardsRow({required this.summary});
 
   final ExpenseSummaryUi summary;
+
+  static const double _sidePad = 18;
+  static const double _gap = 8;
+  static const int _visibleCount = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -282,21 +268,29 @@ class _StatCardsRow extends StatelessWidget {
       ),
     ];
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardWidth =
+        (screenWidth - (_sidePad * 2) - (_gap * (_visibleCount - 1))) /
+        _visibleCount;
+
     return Padding(
-      padding: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.only(top: 8),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(17, 0, 18, 0),
+        padding: const EdgeInsets.fromLTRB(_sidePad, 0, _sidePad, 2),
+        physics: const BouncingScrollPhysics(),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (var i = 0; i < cards.length; i++) ...[
-              if (i > 0) const SizedBox(width: 6),
-              _LiveStatCard(
-                label: cards[i].$1,
-                value: cards[i].$2,
-                subtitle: cards[i].$3,
-                icon: cards[i].$4,
+              if (i > 0) const SizedBox(width: _gap),
+              SizedBox(
+                width: cardWidth,
+                child: _LiveStatCard(
+                  label: cards[i].$1,
+                  value: cards[i].$2,
+                  subtitle: cards[i].$3,
+                  icon: cards[i].$4,
+                ),
               ),
             ],
           ],
@@ -322,51 +316,56 @@ class _LiveStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 133,
-      height: 126,
-      padding: const EdgeInsets.all(13),
+      padding: const EdgeInsets.fromLTRB(11, 10, 9, 9),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PortalColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          SvgPicture.asset(icon, width: 28, height: 28),
-          const SizedBox(height: 10),
+          SvgPicture.asset(icon, width: 22, height: 22),
+          const SizedBox(height: 8),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 9.5,
+              fontSize: 8.5,
               fontWeight: FontWeight.w700,
               color: PortalColors.muted,
-              letterSpacing: 0.4,
-              height: 11 / 9.5,
+              letterSpacing: 0.35,
+              height: 1.2,
             ),
           ),
-          const SizedBox(height: 2),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
               color: PortalColors.green,
-              height: 24 / 20,
+              height: 1.2,
             ),
           ),
-          const SizedBox(height: 2),
           Text(
             subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 9.5,
+              fontSize: 9,
               color: PortalColors.muted,
-              height: 11 / 9.5,
+              height: 1.2,
             ),
           ),
         ],
@@ -766,6 +765,65 @@ class _ExpenseRecordCard extends StatelessWidget {
 
   final ExpenseClaimUiModel claim;
 
+  Future<void> _onEdit(BuildContext context) async {
+    final saved = await showEditExpenseSheet(context, claim: claim);
+    if (saved == true && context.mounted) {
+      await context.read<ExpenseCubit>().load(keepExisting: true);
+    }
+  }
+
+  Future<void> _onDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          'Delete expense?',
+          style: portalText(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: PortalColors.heading,
+          ),
+        ),
+        content: Text(
+          'This will remove “${claim.purpose}” from your records.',
+          style: portalText(fontSize: 13, color: PortalColors.muted),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: PortalColors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      await context.read<ExpenseCubit>().deleteExpense(claim.id);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Expense deleted successfully'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e is ExpenseFailure ? e.message : 'Failed to delete expense.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final outcomes = claim.stops
@@ -779,10 +837,18 @@ class _ExpenseRecordCard extends StatelessWidget {
         : null;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 18, 12, 12),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: PortalColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -799,109 +865,202 @@ class _ExpenseRecordCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: portalText(
-                        fontSize: 13,
+                        fontSize: 13.5,
                         fontWeight: FontWeight.w700,
                         color: PortalColors.heading,
-                        height: 16 / 13,
+                        height: 16 / 13.5,
                       ),
                     ),
-                    const SizedBox(height: 1),
-                    Text(
-                      claim.dateLabel,
-                      style: portalText(
-                        fontSize: 10.5,
-                        color: PortalColors.muted,
-                        height: 13 / 10.5,
-                      ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 11,
+                          color: PortalColors.muted,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          claim.dateLabel,
+                          style: portalText(
+                            fontSize: 10.5,
+                            color: PortalColors.muted,
+                            height: 13 / 10.5,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Text(
-                claim.amountLabel,
-                style: portalText(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: PortalColors.green,
-                  height: 18 / 15,
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: PortalColors.greenTint,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  claim.amountLabel,
+                  style: portalText(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: PortalColors.green,
+                    height: 17 / 14,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: [
-                _Pill(
-                  text: '📏 ${claim.kmLabel}',
-                  background: const Color(0xFFEAF1FD),
-                  foreground: const Color(0xFF3B6FE0),
-                ),
-                _Pill(
-                  text: '⇄ ${claim.stopsCountLabel}',
-                  background: PortalColors.purpleTint,
-                  foreground: PortalColors.purple,
-                ),
-              ],
-            ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _Pill(
+                text: '📏 ${claim.kmLabel}',
+                background: const Color(0xFFEAF1FD),
+                foreground: const Color(0xFF3B6FE0),
+              ),
+              _Pill(
+                text: '⇄ ${claim.stopsCountLabel}',
+                background: PortalColors.purpleTint,
+                foreground: PortalColors.purple,
+              ),
+            ],
           ),
           if (note != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              note,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: portalText(
-                fontSize: 11,
-                color: PortalColors.muted,
-                height: 13 / 11,
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: PortalColors.background,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                note,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: portalText(
+                  fontSize: 11,
+                  color: PortalColors.muted,
+                  height: 14 / 11,
+                ),
               ),
             ),
           ],
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.only(top: 12),
+            padding: const EdgeInsets.only(top: 10),
             decoration: const BoxDecoration(
               border: Border(top: BorderSide(color: PortalColors.border)),
             ),
-            alignment: Alignment.centerRight,
-            child: Material(
-              color: PortalColors.purpleTint,
-              borderRadius: BorderRadius.circular(8),
-              child: InkWell(
-                onTap: () => showExpenseDetailsDialog(context, claim: claim),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/expense/ic_view.svg',
-                        width: 13,
-                        height: 13,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Material(
+                  color: PortalColors.purpleTint,
+                  borderRadius: BorderRadius.circular(8),
+                  child: InkWell(
+                    onTap: () =>
+                        showExpenseDetailsDialog(context, claim: claim),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'View',
-                        style: portalText(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: PortalColors.purple,
-                          height: 13 / 10.5,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icons/expense/ic_view.svg',
+                            width: 13,
+                            height: 13,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'View',
+                            style: portalText(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: PortalColors.purple,
+                              height: 13 / 10.5,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Material(
+                  color: PortalColors.greenTint,
+                  borderRadius: BorderRadius.circular(8),
+                  child: InkWell(
+                    onTap: () => _onEdit(context),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icons/visits/ic_edit.svg',
+                            width: 13,
+                            height: 13,
+                            colorFilter: const ColorFilter.mode(
+                              PortalColors.green,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Edit',
+                            style: portalText(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: PortalColors.green,
+                              height: 13 / 10.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Material(
+                  color: PortalColors.redTint,
+                  borderRadius: BorderRadius.circular(8),
+                  child: InkWell(
+                    onTap: () => _onDelete(context),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 6,
+                      ),
+                      child: SvgPicture.asset(
+                        'assets/icons/visits/ic_delete.svg',
+                        width: 13,
+                        height: 13,
+                        colorFilter: const ColorFilter.mode(
+                          PortalColors.red,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

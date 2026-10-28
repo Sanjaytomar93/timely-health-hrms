@@ -11,5 +11,9 @@ abstract class LeaveRepository {
 
   Future<CompOffRequests> getCompOffRequests({required String employeeId});
 
+  Future<List<ExtraWorkedDay>> getExtraWorkedDays({required String employeeId});
+
   Future<LeaveRecord> addLeave(AddLeaveParams params);
+
+  Future<void> addCompOff(AddCompOffParams params);
 }
