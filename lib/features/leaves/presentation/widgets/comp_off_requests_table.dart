@@ -13,40 +13,12 @@ class CompOffRequestsTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final records = requests.records;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 20, 18, 0),
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
       child: Column(
         children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.swap_horiz_rounded,
-                color: Color(0xFF9239E6),
-                size: 21,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'My Comp-Off Requests',
-                  overflow: TextOverflow.ellipsis,
-                  style: portalText(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: PortalColors.heading,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Showing ${records.length} of ${records.length} records',
-                style: portalText(fontSize: 11, color: PortalColors.muted),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
           if (records.isEmpty)
             const LeaveEmptyState(
-              icon: Icons.swap_horiz_rounded,
-              title: 'No Comp Off requests',
+              title: 'No Comp Off requests yet',
               subtitle: 'When you raise a comp-off, it will show up here.',
             )
           else
@@ -54,6 +26,12 @@ class CompOffRequestsTable extends StatelessWidget {
               if (i > 0) const SizedBox(height: 10),
               _CompOffCard(item: records[i]),
             ],
+          const SizedBox(height: 12),
+          Text(
+            'Showing ${records.length} of ${records.length} records',
+            textAlign: TextAlign.center,
+            style: portalText(fontSize: 11, color: PortalColors.muted),
+          ),
         ],
       ),
     );

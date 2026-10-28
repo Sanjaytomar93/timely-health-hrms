@@ -13,10 +13,18 @@ class TimelayHealthApp extends StatelessWidget {
       title: 'Timely Health',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
-        value: PortalSystemUi.lightStatusBar,
-        child: child!,
-      ),
+      builder: (context, child) {
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(
+            textScaler: const TextScaler.linear(0.85),
+          ),
+          child: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: PortalSystemUi.lightStatusBar,
+            child: child ?? const SizedBox.shrink(),
+          ),
+        );
+      },
       initialRoute: AppRoutes.splash,
       onGenerateRoute: AppRoutes.onGenerateRoute,
     );

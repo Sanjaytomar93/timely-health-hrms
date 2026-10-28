@@ -14,37 +14,12 @@ class LeaveHistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 20, 18, 0),
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
       child: Column(
         children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.format_list_bulleted_rounded,
-                color: Color(0xFF3274E8),
-                size: 21,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Leave History',
-                style: portalText(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: PortalColors.heading,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                'Showing ${items.length} of ${items.length} records',
-                style: portalText(fontSize: 11, color: PortalColors.muted),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
           if (items.isEmpty)
             const LeaveEmptyState(
-              icon: Icons.history_rounded,
-              title: 'No Leave records',
+              title: 'No leave records yet',
               subtitle: 'Your leave applications will appear here.',
             )
           else
@@ -52,6 +27,12 @@ class LeaveHistoryList extends StatelessWidget {
               if (i > 0) const SizedBox(height: 10),
               _LeaveCard(item: items[i]),
             ],
+          const SizedBox(height: 12),
+          Text(
+            'Showing ${items.length} of ${items.length} records',
+            textAlign: TextAlign.center,
+            style: portalText(fontSize: 11, color: PortalColors.muted),
+          ),
         ],
       ),
     );

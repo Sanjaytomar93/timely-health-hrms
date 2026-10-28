@@ -11,21 +11,35 @@ class AttendanceAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: PortalColors.surface,
-        border: Border(
-          bottom: BorderSide(color: PortalColors.border, width: 1),
-        ),
+        border: const Border(bottom: BorderSide(color: PortalColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
       child: Row(
         children: [
-          SvgPicture.asset(
-            'assets/icons/top_bar/ic_top_menu.svg',
-            width: 26,
-            height: 26,
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: PortalColors.brandTint,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: SvgPicture.asset(
+              'assets/icons/top_bar/ic_top_menu.svg',
+              width: 18,
+              height: 18,
+            ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,8 +48,8 @@ class AttendanceAppBar extends StatelessWidget {
                 Text(
                   'My Attendance',
                   style: portalText(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
                     color: PortalColors.heading,
                     letterSpacing: 0.1,
                     height: 1.2,
@@ -43,12 +57,11 @@ class AttendanceAppBar extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'View your attendance history, break time, and OT claims.',
-                  maxLines: 2,
+                  'History, breaks & OT claims',
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: portalText(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w400,
+                    fontSize: 11.5,
                     color: PortalColors.muted,
                     height: 1.3,
                   ),
@@ -58,7 +71,7 @@ class AttendanceAppBar extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           const TopNotificationButton(),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           const TopCalendarButton(),
         ],
       ),
