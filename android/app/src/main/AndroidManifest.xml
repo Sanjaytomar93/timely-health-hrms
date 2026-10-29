@@ -10,7 +10,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
     <application
-        android:label="Timely Health"
+        android:label="Timely Health HRMS"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"

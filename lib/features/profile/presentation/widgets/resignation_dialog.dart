@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timelay_health/core/logging/app_log.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/auth/data/auth_session.dart';
@@ -68,13 +69,13 @@ class _ResignationDialogState extends State<ResignationDialog> {
       final employeeId = sessionId.trim().isNotEmpty
           ? sessionId.trim()
           : widget.employee.employeeId.trim();
-      debugPrint('Resignation employeeId: "$employeeId"');
+      AppLog.d('Resignation employeeId: "$employeeId"');
       if (employeeId.isNotEmpty) {
         result = await LetterRemoteDataSource().getResignation(employeeId);
       }
-      debugPrint('Resignation found: ${result?.status}');
+      AppLog.d('Resignation found: ${result?.status}');
     } catch (e) {
-      debugPrint('Resignation load failed: $e');
+      AppLog.d('Resignation load failed: $e');
       _loadError = 'Could not load resignation: $e';
     }
     if (!mounted) return;

@@ -54,8 +54,6 @@ class LetterRemoteDataSource {
       );
     }
   }
-
-  /// Returns `null` when the employee has not submitted a resignation.
   Future<ResignationModel?> getResignation(String employeeId) async {
     final response = await _client
         .get(

@@ -112,11 +112,6 @@ class CheckInCubit extends Cubit<CheckInState> {
         employeeAddress: employee.address?.trim() ?? '',
         locationCaptured: false,
       );
-      // ignore: avoid_print
-      print(
-        '[attendance] isAllowedImageCapturedAttendance='
-        '${employee.isAllowedImageCapturedAttendance}',
-      );
       emit(CheckInReady(_data!));
     } on AttendanceFailure catch (e) {
       if (isClosed) return;

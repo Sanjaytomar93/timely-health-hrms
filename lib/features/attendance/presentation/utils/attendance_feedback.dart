@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:timelay_health/core/logging/app_log.dart';
 
 class AttendanceFeedback {
   AttendanceFeedback._();
@@ -28,7 +28,7 @@ class AttendanceFeedback {
       await _selectFemaleVoice();
       _ttsReady = true;
     } catch (e) {
-      debugPrint('[AttendanceFeedback] TTS init failed: $e');
+      AppLog.d('[AttendanceFeedback] TTS init failed: $e');
     }
   }
 
@@ -90,7 +90,7 @@ class AttendanceFeedback {
         }
       }
     } catch (e) {
-      debugPrint('[AttendanceFeedback] voice select failed: $e');
+      AppLog.d('[AttendanceFeedback] voice select failed: $e');
     }
   }
 
@@ -105,7 +105,7 @@ class AttendanceFeedback {
       await _sfx.stop();
       await _sfx.play(BytesSource(wav, mimeType: 'audio/wav'));
     } catch (e) {
-      debugPrint('[AttendanceFeedback] shutter failed: $e');
+      AppLog.d('[AttendanceFeedback] shutter failed: $e');
     }
   }
 
@@ -124,7 +124,7 @@ class AttendanceFeedback {
       if (session != _session) return;
       await _sfx.play(BytesSource(wav, mimeType: 'audio/wav'));
     } catch (e) {
-      debugPrint('[AttendanceFeedback] success sfx failed: $e');
+      AppLog.d('[AttendanceFeedback] success sfx failed: $e');
     }
   }
 
@@ -170,7 +170,7 @@ class AttendanceFeedback {
           if (result == 1 || result == true) return;
         } catch (e) {
           if (session != _session) return;
-          debugPrint('[AttendanceFeedback] speak retry $i: $e');
+          AppLog.d('[AttendanceFeedback] speak retry $i: $e');
         }
       }
     } finally {
