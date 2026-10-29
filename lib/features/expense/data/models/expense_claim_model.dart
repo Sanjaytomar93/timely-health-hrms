@@ -59,6 +59,7 @@ class ExpenseClaimModel {
     required this.upsellValue,
     required this.remark,
     required this.stops,
+    this.status = 'Pending',
     this.createdAt,
     this.updatedAt,
   });
@@ -74,6 +75,7 @@ class ExpenseClaimModel {
   final double upsellValue;
   final String remark;
   final List<ExpenseStopModel> stops;
+  final String status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -94,10 +96,21 @@ class ExpenseClaimModel {
           .whereType<Map<String, dynamic>>()
           .map(ExpenseStopModel.fromJson)
           .toList(),
+      status: _asStatus(json['status']),
       createdAt: _asDate(json['createdAt']),
       updatedAt: _asDate(json['updatedAt']),
     );
   }
+}
+
+String _asStatus(dynamic value) {
+  final raw = value?.toString().trim() ?? '';
+  if (raw.isEmpty) return 'Pending';
+  final lower = raw.toLowerCase();
+  if (lower == 'approved') return 'Approved';
+  if (lower == 'rejected') return 'Rejected';
+  if (lower == 'pending') return 'Pending';
+  return raw[0].toUpperCase() + raw.substring(1);
 }
 
 DateTime? _asDate(dynamic value) {

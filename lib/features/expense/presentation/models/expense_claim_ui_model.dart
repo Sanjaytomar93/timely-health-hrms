@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class ExpenseSummaryUi {
   const ExpenseSummaryUi({
     required this.totalClaims,
@@ -57,6 +59,9 @@ class ExpenseClaimUiModel {
     required this.stopsCountLabel,
     required this.remark,
     required this.stops,
+    required this.status,
+    required this.statusBg,
+    required this.statusColor,
     this.date,
     this.rateApplied = 4,
   });
@@ -70,6 +75,9 @@ class ExpenseClaimUiModel {
   final String stopsCountLabel;
   final String remark;
   final List<ExpenseStopUiModel> stops;
+  final String status;
+  final Color statusBg;
+  final Color statusColor;
   final DateTime? date;
   final double rateApplied;
 }

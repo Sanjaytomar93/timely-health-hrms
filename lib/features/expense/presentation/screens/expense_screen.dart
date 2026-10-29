@@ -15,6 +15,7 @@ import 'package:timelay_health/features/holidays/presentation/widgets/top_calend
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
 import 'package:timelay_health/core/widgets/portal_back_button.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/features/auth/data/auth_session.dart';
 
 class ExpenseScreen extends StatelessWidget {
   const ExpenseScreen({super.key});
@@ -103,9 +104,15 @@ class _ExpenseView extends StatelessWidget {
                             onRetry: () => context.read<ExpenseCubit>().load(),
                           )
                         else
-                          _ExpenseRecordsList(
+                          _ExpenseRecordsArea(
                             expenses: expenses,
                             totalAmountLabel: summary.totalAmountLabel,
+                            isRefreshing: refreshing,
+                            onRefresh: () {
+                              context.read<ExpenseCubit>().load(
+                                keepExisting: true,
+                              );
+                            },
                           ),
                       ],
                     ),
@@ -191,38 +198,72 @@ class _ExpenseHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final employeeId =
+        AuthSession.currentEmployee?.performanceCode.trim() ?? '';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
-          decoration: BoxDecoration(
-            color: PortalColors.surface,
-            borderRadius: BorderRadius.circular(11),
-            border: Border.all(color: PortalColors.border),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SvgPicture.asset(
-                'assets/icons/expense/ic_calendar_chip.svg',
-                width: 13,
-                height: 13,
+      child: Row(
+        children: [
+          if (employeeId.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+              decoration: BoxDecoration(
+                color: PortalColors.surface,
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(color: PortalColors.border),
               ),
-              const SizedBox(width: 6),
-              Text(
-                dateLabel.isEmpty ? '—' : dateLabel,
-                style: portalText(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  color: PortalColors.heading,
-                  height: 14 / 11.5,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.person_rounded,
+                    size: 13,
+                    color: Color(0xFF3B6FE0),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    employeeId,
+                    style: portalText(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: PortalColors.heading,
+                      height: 14 / 11.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+            decoration: BoxDecoration(
+              color: PortalColors.surface,
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(color: PortalColors.border),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SvgPicture.asset(
+                  'assets/icons/expense/ic_calendar_chip.svg',
+                  width: 13,
+                  height: 13,
                 ),
-              ),
-            ],
+                const SizedBox(width: 6),
+                Text(
+                  dateLabel.isEmpty ? '—' : dateLabel,
+                  style: portalText(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: PortalColors.heading,
+                    height: 14 / 11.5,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -585,28 +626,45 @@ class _ExpenseError extends StatelessWidget {
   }
 }
 
-class _ExpenseRecordsList extends StatefulWidget {
-  const _ExpenseRecordsList({
+class _ExpenseRecordsArea extends StatefulWidget {
+  const _ExpenseRecordsArea({
     required this.expenses,
     required this.totalAmountLabel,
+    required this.isRefreshing,
+    required this.onRefresh,
   });
 
   final List<ExpenseClaimUiModel> expenses;
   final String totalAmountLabel;
+  final bool isRefreshing;
+  final VoidCallback onRefresh;
 
   @override
-  State<_ExpenseRecordsList> createState() => _ExpenseRecordsListState();
+  State<_ExpenseRecordsArea> createState() => _ExpenseRecordsAreaState();
 }
 
-class _ExpenseRecordsListState extends State<_ExpenseRecordsList> {
+class _ExpenseRecordsAreaState extends State<_ExpenseRecordsArea> {
+  static const _statusOptions = [
+    'All Statuses',
+    'Pending',
+    'Approved',
+    'Rejected',
+  ];
+
   String _query = '';
+  String _status = 'All Statuses';
 
   List<ExpenseClaimUiModel> get _filtered {
     final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return widget.expenses;
     return widget.expenses.where((c) {
+      if (_status != 'All Statuses' &&
+          c.status.toLowerCase() != _status.toLowerCase()) {
+        return false;
+      }
+      if (q.isEmpty) return true;
       if (c.purpose.toLowerCase().contains(q)) return true;
       if (c.remark.toLowerCase().contains(q)) return true;
+      if (c.status.toLowerCase().contains(q)) return true;
       return c.stops.any((s) => s.outcome.toLowerCase().contains(q));
     }).toList();
   }
@@ -614,107 +672,205 @@ class _ExpenseRecordsListState extends State<_ExpenseRecordsList> {
   @override
   Widget build(BuildContext context) {
     final records = _filtered;
+    final hasFilters =
+        _query.trim().isNotEmpty || _status != 'All Statuses';
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 18, 0),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: PortalColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _ExpenseFiltersCard(
+          query: _query,
+          status: _status,
+          statusOptions: _statusOptions,
+          shown: records.length,
+          total: widget.expenses.length,
+          isRefreshing: widget.isRefreshing,
+          onQuery: (v) => setState(() => _query = v),
+          onStatus: (v) => setState(() => _status = v),
+          onRefresh: widget.onRefresh,
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+          child: Row(
             children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: PortalColors.brandTint,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.receipt_long_rounded,
+                  size: 16,
+                  color: PortalColors.brand,
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  'Expense Records',
-                  style: portalText(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: PortalColors.heading,
-                    height: 16 / 13.5,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Expense Records',
+                      style: portalText(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: PortalColors.heading,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Review travel claims and open any record for details.',
+                      style: portalText(
+                        fontSize: 11,
+                        color: PortalColors.muted,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.fromLTRB(11, 5, 11, 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: PortalColors.purpleTint,
+                  color: PortalColors.greenTint,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   widget.totalAmountLabel,
                   style: portalText(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: PortalColors.purple,
-                    height: 13 / 11,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: PortalColors.green,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+        ),
+        const SizedBox(height: 12),
+        if (records.isEmpty)
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              'Review submitted travel claims and open any record for full details.',
-              style: portalText(
-                fontSize: 10.5,
-                color: PortalColors.muted,
-                height: 13 / 10.5,
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: _ExpenseEmptyState(
+              filtered: hasFilters || widget.expenses.isNotEmpty,
+              onRecord: () async {
+                final saved = await showRecordExpenseSheet(context);
+                if (saved == true && context.mounted) {
+                  await context.read<ExpenseCubit>().load(keepExisting: true);
+                }
+              },
             ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            height: 38,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: PortalColors.background,
-              borderRadius: BorderRadius.circular(11),
-              border: Border.all(color: PortalColors.border),
-            ),
-            child: Row(
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Column(
               children: [
-                const Icon(Icons.search, size: 14, color: PortalColors.muted),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    onChanged: (v) => setState(() => _query = v),
-                    style: portalText(
-                      fontSize: 11.3,
-                      color: PortalColors.heading,
-                      height: 14 / 11.3,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                      hintText: 'Search by purpose, outcome, or remark...',
-                      hintStyle: portalText(
-                        fontSize: 11.3,
-                        color: const Color(0xFF757575),
-                        height: 14 / 11.3,
-                      ),
-                    ),
-                  ),
-                ),
+                for (var i = 0; i < records.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 10),
+                  _ExpenseRecordCard(claim: records[i]),
+                ],
               ],
             ),
           ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Container(
+      ],
+    );
+  }
+}
+
+class _ExpenseFiltersCard extends StatelessWidget {
+  const _ExpenseFiltersCard({
+    required this.query,
+    required this.status,
+    required this.statusOptions,
+    required this.shown,
+    required this.total,
+    required this.isRefreshing,
+    required this.onQuery,
+    required this.onStatus,
+    required this.onRefresh,
+  });
+
+  final String query;
+  final String status;
+  final List<String> statusOptions;
+  final int shown;
+  final int total;
+  final bool isRefreshing;
+  final ValueChanged<String> onQuery;
+  final ValueChanged<String> onStatus;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 11),
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: PortalColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: PortalColors.brandTint,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.filter_alt_rounded,
+                  size: 13,
+                  color: PortalColors.brand,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Filters & Actions',
+                      style: portalText(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: PortalColors.heading,
+                      ),
+                    ),
+                    Text(
+                      'Search claims or filter by approval status.',
+                      style: portalText(
+                        fontSize: 9.5,
+                        color: PortalColors.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 11,
-                  vertical: 5,
+                  horizontal: 8,
+                  vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   color: PortalColors.background,
@@ -722,38 +878,347 @@ class _ExpenseRecordsListState extends State<_ExpenseRecordsList> {
                   border: Border.all(color: PortalColors.border),
                 ),
                 child: Text(
-                  '📋 Found ${records.length}',
+                  '$shown / $total',
                   style: portalText(
-                    fontSize: 10.5,
+                    fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: PortalColors.secondaryText,
-                    height: 13 / 10.5,
                   ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'SEARCH',
+            style: portalText(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: PortalColors.muted,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 36,
+                  child: TextField(
+                    onChanged: onQuery,
+                    style: portalText(
+                      fontSize: 11.5,
+                      color: PortalColors.heading,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Search purpose, outcome, remark...',
+                      hintStyle: portalText(
+                        fontSize: 11.5,
+                        color: PortalColors.muted,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        size: 16,
+                        color: PortalColors.muted,
+                      ),
+                      prefixIconConstraints: const BoxConstraints(
+                        minWidth: 36,
+                        minHeight: 36,
+                      ),
+                      filled: true,
+                      fillColor: PortalColors.background,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      border: _inputBorder(),
+                      enabledBorder: _inputBorder(),
+                      focusedBorder: _inputBorder(PortalColors.brand),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: isRefreshing ? null : onRefresh,
+                child: Container(
+                  height: 36,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: PortalColors.background,
+                    borderRadius: BorderRadius.circular(9),
+                    border: Border.all(color: PortalColors.border),
+                  ),
+                  child: Row(
+                    children: [
+                      if (isRefreshing)
+                        const SizedBox(
+                          width: 13,
+                          height: 13,
+                          child: CircularProgressIndicator(strokeWidth: 1.8),
+                        )
+                      else
+                        const Icon(
+                          Icons.refresh_rounded,
+                          size: 14,
+                          color: PortalColors.brand,
+                        ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Refresh',
+                        style: portalText(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: PortalColors.brand,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 9),
+          Text(
+            'STATUS',
+            style: portalText(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: PortalColors.muted,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 4),
+          _StatusDropdown(
+            value: status,
+            options: statusOptions,
+            onChanged: onStatus,
+          ),
+        ],
+      ),
+    );
+  }
+
+  static OutlineInputBorder _inputBorder([Color? color]) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(9),
+      borderSide: BorderSide(color: color ?? PortalColors.border),
+    );
+  }
+}
+
+class _StatusDropdown extends StatelessWidget {
+  const _StatusDropdown({
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
+
+  final String value;
+  final List<String> options;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      onSelected: onChanged,
+      offset: const Offset(0, 40),
+      color: PortalColors.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 10,
+      shadowColor: PortalColors.brand.withValues(alpha: 0.18),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      itemBuilder: (_) => [
+        for (final option in options)
+          PopupMenuItem<String>(
+            value: option,
+            height: 38,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  child: option == value
+                      ? const Icon(
+                          Icons.check_rounded,
+                          size: 15,
+                          color: PortalColors.brand,
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  option,
+                  style: portalText(
+                    fontSize: 12,
+                    fontWeight:
+                        option == value ? FontWeight.w700 : FontWeight.w500,
+                    color: option == value
+                        ? PortalColors.brand
+                        : PortalColors.heading,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+      child: Container(
+        width: double.infinity,
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: PortalColors.background,
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(color: PortalColors.border),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.tune_rounded,
+              size: 14,
+              color: PortalColors.muted.withValues(alpha: 0.95),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                value,
+                overflow: TextOverflow.ellipsis,
+                style: portalText(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: PortalColors.secondaryText,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 20,
+              color: PortalColors.muted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ExpenseEmptyState extends StatelessWidget {
+  const _ExpenseEmptyState({
+    required this.filtered,
+    required this.onRecord,
+  });
+
+  final bool filtered;
+  final VoidCallback onRecord;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(22, 34, 22, 30),
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: PortalColors.border),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            PortalColors.brandTint.withValues(alpha: 0.45),
+            PortalColors.surface,
+          ],
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 68,
+            height: 68,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: PortalColors.surface,
+              border: Border.all(color: PortalColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: PortalColors.brand.withValues(alpha: 0.08),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(
+                    colors: PortalColors.brandGradient,
+                  ),
+                ),
+                child: Icon(
+                  filtered
+                      ? Icons.search_off_rounded
+                      : Icons.receipt_long_rounded,
+                  size: 20,
+                  color: Colors.white,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          if (records.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: PortalColors.border),
+          const SizedBox(height: 16),
+          Text(
+            filtered ? 'No matching expenses' : 'No expense records yet',
+            textAlign: TextAlign.center,
+            style: portalText(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: PortalColors.heading,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            filtered
+                ? 'Try another status or clear your search to see more claims.'
+                : 'Record your first travel expense to track distance and reimbursements here.',
+            textAlign: TextAlign.center,
+            style: portalText(
+              fontSize: 12,
+              color: PortalColors.muted,
+              height: 1.45,
+            ),
+          ),
+          if (!filtered) ...[
+            const SizedBox(height: 18),
+            GestureDetector(
+              onTap: onRecord,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: PortalColors.brand,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Record Expense',
+                      style: portalText(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Text(
-                widget.expenses.isEmpty
-                    ? 'Record your first travel expense to see it here.'
-                    : 'No records match your search.',
-                textAlign: TextAlign.center,
-                style: portalText(fontSize: 12, color: PortalColors.muted),
-              ),
-            )
-          else
-            for (var i = 0; i < records.length; i++) ...[
-              if (i > 0) const SizedBox(height: 10),
-              _ExpenseRecordCard(claim: records[i]),
-            ],
+            ),
+          ],
         ],
       ),
     );
@@ -831,234 +1296,235 @@ class _ExpenseRecordCard extends StatelessWidget {
         .where((o) => o.isNotEmpty)
         .join(', ');
     final note = outcomes.isNotEmpty
-        ? 'Outcome: $outcomes'
+        ? outcomes
         : claim.remark.trim().isNotEmpty
-        ? 'Remark: ${claim.remark.trim()}'
+        ? claim.remark.trim()
         : null;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(13),
         border: Border.all(color: PortalColors.border),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: PortalColors.brand.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Color(0x061C1B29),
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(11, 9, 11, 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: PortalColors.brand.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.directions_car_filled_outlined,
+                    size: 14,
+                    color: PortalColors.brand,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        claim.purpose,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: portalText(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: PortalColors.heading,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 10,
+                            color: PortalColors.muted,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            claim.dateLabel,
+                            style: portalText(
+                              fontSize: 10,
+                              color: PortalColors.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: claim.statusBg,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 5,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: claim.statusColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        claim.status,
+                        style: portalText(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w700,
+                          color: claim.statusColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, thickness: 1, color: PortalColors.border),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(11, 9, 11, 9),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      claim.purpose,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: portalText(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        color: PortalColors.heading,
-                        height: 16 / 13.5,
+                    Expanded(
+                      child: _MetaChip(
+                        icon: Icons.route_rounded,
+                        label: claim.kmLabel,
+                        background: const Color(0xFFEAF1FD),
+                        foreground: const Color(0xFF3B6FE0),
                       ),
                     ),
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today_outlined,
-                          size: 11,
-                          color: PortalColors.muted,
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _MetaChip(
+                        icon: Icons.place_outlined,
+                        label: claim.stopsCountLabel,
+                        background: PortalColors.purpleTint,
+                        foreground: PortalColors.purple,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: PortalColors.greenTint,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        claim.amountLabel,
+                        style: portalText(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: PortalColors.green,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          claim.dateLabel,
-                          style: portalText(
-                            fontSize: 10.5,
-                            color: PortalColors.muted,
-                            height: 13 / 10.5,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: PortalColors.greenTint,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  claim.amountLabel,
-                  style: portalText(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: PortalColors.green,
-                    height: 17 / 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: [
-              _Pill(
-                text: '📏 ${claim.kmLabel}',
-                background: const Color(0xFFEAF1FD),
-                foreground: const Color(0xFF3B6FE0),
-              ),
-              _Pill(
-                text: '⇄ ${claim.stopsCountLabel}',
-                background: PortalColors.purpleTint,
-                foreground: PortalColors.purple,
-              ),
-            ],
-          ),
-          if (note != null) ...[
-            const SizedBox(height: 10),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: PortalColors.background,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                note,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: portalText(
-                  fontSize: 11,
-                  color: PortalColors.muted,
-                  height: 14 / 11,
-                ),
-              ),
-            ),
-          ],
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.only(top: 10),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: PortalColors.border)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Material(
-                  color: PortalColors.purpleTint,
-                  borderRadius: BorderRadius.circular(8),
-                  child: InkWell(
-                    onTap: () =>
-                        showExpenseDetailsDialog(context, claim: claim),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SvgPicture.asset(
-                            'assets/icons/expense/ic_view.svg',
-                            width: 13,
-                            height: 13,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'View',
-                            style: portalText(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: PortalColors.purple,
-                              height: 13 / 10.5,
-                            ),
-                          ),
-                        ],
+                if (note != null) ...[
+                  const SizedBox(height: 7),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: PortalColors.background,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      note,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: portalText(
+                        fontSize: 10,
+                        color: PortalColors.muted,
+                        height: 1.3,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Material(
-                  color: PortalColors.greenTint,
-                  borderRadius: BorderRadius.circular(8),
-                  child: InkWell(
-                    onTap: () => _onEdit(context),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SvgPicture.asset(
-                            'assets/icons/visits/ic_edit.svg',
-                            width: 13,
-                            height: 13,
-                            colorFilter: const ColorFilter.mode(
-                              PortalColors.green,
-                              BlendMode.srcIn,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            'Edit',
-                            style: portalText(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: PortalColors.green,
-                              height: 13 / 10.5,
-                            ),
-                          ),
-                        ],
+                ],
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ActionBtn(
+                        label: 'View',
+                        color: PortalColors.purple,
+                        tint: PortalColors.purpleTint,
+                        iconAsset: 'assets/icons/expense/ic_view.svg',
+                        onTap: () =>
+                            showExpenseDetailsDialog(context, claim: claim),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Material(
-                  color: PortalColors.redTint,
-                  borderRadius: BorderRadius.circular(8),
-                  child: InkWell(
-                    onTap: () => _onDelete(context),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 6,
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _ActionBtn(
+                        label: 'Edit',
+                        color: PortalColors.green,
+                        tint: PortalColors.greenTint,
+                        iconAsset: 'assets/icons/visits/ic_edit.svg',
+                        onTap: () => _onEdit(context),
                       ),
-                      child: SvgPicture.asset(
-                        'assets/icons/visits/ic_delete.svg',
-                        width: 13,
-                        height: 13,
-                        colorFilter: const ColorFilter.mode(
-                          PortalColors.red,
-                          BlendMode.srcIn,
+                    ),
+                    const SizedBox(width: 6),
+                    Material(
+                      color: PortalColors.redTint,
+                      borderRadius: BorderRadius.circular(8),
+                      child: InkWell(
+                        onTap: () => _onDelete(context),
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: 34,
+                          height: 30,
+                          child: Center(
+                            child: SvgPicture.asset(
+                              'assets/icons/visits/ic_delete.svg',
+                              width: 12,
+                              height: 12,
+                              colorFilter: const ColorFilter.mode(
+                                PortalColors.red,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -1069,32 +1535,94 @@ class _ExpenseRecordCard extends StatelessWidget {
   }
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill({
-    required this.text,
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({
+    required this.icon,
+    required this.label,
     required this.background,
     required this.foreground,
   });
 
-  final String text;
+  final IconData icon;
+  final String label;
   final Color background;
   final Color foreground;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(
-        text,
-        style: portalText(
-          fontSize: 9.5,
-          fontWeight: FontWeight.w700,
-          color: foreground,
-          height: 11 / 9.5,
+      child: Row(
+        children: [
+          Icon(icon, size: 12, color: foreground),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: portalText(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: foreground,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionBtn extends StatelessWidget {
+  const _ActionBtn({
+    required this.label,
+    required this.color,
+    required this.tint,
+    required this.iconAsset,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color color;
+  final Color tint;
+  final String iconAsset;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: tint,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: SizedBox(
+          height: 30,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                iconAsset,
+                width: 12,
+                height: 12,
+                colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: portalText(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
