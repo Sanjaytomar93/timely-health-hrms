@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/features/expense/domain/entities/expense_claim.dart';
 import 'package:timelay_health/features/expense/presentation/models/expense_claim_ui_model.dart';
 
@@ -41,6 +43,8 @@ class ExpenseUiMapper {
 
   static ExpenseClaimUiModel toUi(ExpenseClaim entity) {
     final km = entity.km;
+    final status = entity.status.trim().isEmpty ? 'Pending' : entity.status;
+    final colors = _statusColors(status);
     return ExpenseClaimUiModel(
       id: entity.id,
       purpose: _title(entity.purpose),
@@ -51,9 +55,24 @@ class ExpenseUiMapper {
       stopsCountLabel: '${entity.stops.length} stops',
       remark: entity.remark,
       stops: entity.stops.map(_stopToUi).toList(),
+      status: status,
+      statusBg: colors.$1,
+      statusColor: colors.$2,
       date: entity.date,
       rateApplied: entity.rateApplied > 0 ? entity.rateApplied : 4,
     );
+  }
+
+  static (Color, Color) _statusColors(String status) {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return (PortalColors.greenTint, PortalColors.green);
+      case 'rejected':
+        return (PortalColors.redTint, PortalColors.red);
+      case 'pending':
+      default:
+        return (PortalColors.orangeTint, PortalColors.orange);
+    }
   }
 
   static List<ExpenseClaimUiModel> toUiList(List<ExpenseClaim> entities) {

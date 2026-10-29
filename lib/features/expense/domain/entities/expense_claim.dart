@@ -61,6 +61,7 @@ class ExpenseClaim {
     required this.upsellValue,
     required this.remark,
     required this.stops,
+    this.status = 'Pending',
     this.createdAt,
     this.updatedAt,
   });
@@ -76,6 +77,7 @@ class ExpenseClaim {
   final double upsellValue;
   final String remark;
   final List<ExpenseStop> stops;
+  final String status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 }
