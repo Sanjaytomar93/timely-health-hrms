@@ -1,17 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:timelay_health/features/camp/presentation/models/patient_list_ui.dart';
-import 'package:timelay_health/features/camp/presentation/theme/camp_colors.dart';
-import 'package:timelay_health/features/camp/presentation/widgets/camp_top_bar.dart';
-import 'package:timelay_health/features/camp/presentation/widgets/patient_widgets.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_top_bar.dart';
+import 'package:timelay_health/features/camp/members/presentation/models/patient_list_ui.dart';
+import 'package:timelay_health/features/camp/members/presentation/screens/patient_detail_screen.dart';
+import 'package:timelay_health/features/camp/members/presentation/widgets/add_medical_test_sheet.dart';
+import 'package:timelay_health/features/camp/members/presentation/widgets/add_patient_sheet.dart';
+import 'package:timelay_health/features/camp/members/presentation/widgets/patient_accordion_card.dart';
+import 'package:timelay_health/features/camp/members/presentation/widgets/share_report_sheet.dart';
+import 'package:timelay_health/features/camp/members/presentation/widgets/patients_add_new_button.dart';
+import 'package:timelay_health/features/camp/members/presentation/widgets/patients_empty_state.dart';
+import 'package:timelay_health/features/camp/members/presentation/widgets/patients_filter_chips.dart';
+import 'package:timelay_health/features/camp/members/presentation/widgets/patients_hero_header.dart';
+import 'package:timelay_health/features/camp/members/presentation/widgets/patients_search_bar.dart';
+import 'package:timelay_health/features/camp/members/presentation/widgets/patients_section_header.dart';
+import 'package:timelay_health/features/camp/members/presentation/widgets/patients_stat_grid.dart';
 
-class PatientsScreen extends StatefulWidget {
-  const PatientsScreen({super.key});
+class MembersScreen extends StatefulWidget {
+  const MembersScreen({super.key});
 
   @override
-  State<PatientsScreen> createState() => _PatientsScreenState();
+  State<MembersScreen> createState() => _MembersScreenState();
 }
 
-class _PatientsScreenState extends State<PatientsScreen> {
+class _MembersScreenState extends State<MembersScreen> {
   final _data = PatientListUi.demo();
   final _search = TextEditingController();
   String _filter = 'All';
@@ -23,7 +34,6 @@ class _PatientsScreenState extends State<PatientsScreen> {
     super.dispose();
   }
 
-  // ── Filtered list ────────────────────────────────────────────
   List<PatientUi> get _filtered {
     return _data.patients.where((p) {
       final q = _query.trim().toLowerCase();
@@ -43,7 +53,6 @@ class _PatientsScreenState extends State<PatientsScreen> {
     }).toList();
   }
 
-  // ── Count badges for filter chips ────────────────────────────
   Map<String, int> get _counts {
     final all = _data.patients;
     return {
@@ -54,6 +63,29 @@ class _PatientsScreenState extends State<PatientsScreen> {
     };
   }
 
+  Future<void> _openAddPatientFlow() async {
+    final created = await showAddPatientSheet(context);
+    if (created == null || !mounted) return;
+    final test = await showAddMedicalTestSheet(
+      context,
+      campName: created.campName,
+      patientName: created.patientName,
+    );
+    if (test == null || !mounted) return;
+    await openPatientDetailScreen(
+      context,
+      args: PatientDetailArgs(
+        name: created.patientName,
+        age: created.age,
+        gender: created.gender,
+        phone: created.phone,
+        address: created.address,
+        campName: created.campName,
+        test: test,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final patients = _filtered;
@@ -62,35 +94,28 @@ class _PatientsScreenState extends State<PatientsScreen> {
       color: CampColors.background,
       child: Column(
         children: [
-          // ── Shared top bar ─────────────────────────────────
           const CampTopBar(),
-
-          // ── Scrollable body ────────────────────────────────
           Expanded(
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               slivers: [
-                // ── Gradient hero banner
                 SliverToBoxAdapter(
-                  child: PatientsHeroHeader(data: _data),
+                  child: PatientsHeroHeader(
+                    data: _data,
+                    onAddPatient: _openAddPatientFlow,
+                  ),
                 ),
-
-                // ── Stat grid (below hero, in-flow)
                 SliverToBoxAdapter(
                   child: PatientsStatGrid(stats: _data.stats),
                 ),
-
-                // ── Search bar
                 SliverToBoxAdapter(
                   child: PatientsSearchBar(
                     controller: _search,
                     onChanged: (v) => setState(() => _query = v),
                   ),
                 ),
-
-                // ── Filter chips with counts
                 SliverToBoxAdapter(
                   child: PatientsFilterChips(
                     selected: _filter,
@@ -98,10 +123,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
                     counts: _counts,
                   ),
                 ),
-
                 const SliverToBoxAdapter(child: SizedBox(height: 4)),
-
-                // ── Section header
                 if (patients.isNotEmpty)
                   SliverToBoxAdapter(
                     child: PatientsSectionHeader(
@@ -111,8 +133,6 @@ class _PatientsScreenState extends State<PatientsScreen> {
                       count: patients.length,
                     ),
                   ),
-
-                // ── Accordion patient cards
                 if (patients.isEmpty)
                   const SliverFillRemaining(
                     hasScrollBody: false,
@@ -127,17 +147,17 @@ class _PatientsScreenState extends State<PatientsScreen> {
                         onView: () {},
                         onEdit: () {},
                         onDelete: () {},
+                        onWhatsApp: () => showShareReportSheet(
+                          context,
+                          patient: patients[i],
+                        ),
                       ),
                       childCount: patients.length,
                     ),
                   ),
-
-                // ── Add new patient CTA
                 SliverToBoxAdapter(
-                  child: PatientsAddNewButton(onTap: () {}),
+                  child: PatientsAddNewButton(onTap: _openAddPatientFlow),
                 ),
-
-                // Bottom padding for nav bar
                 const SliverToBoxAdapter(child: SizedBox(height: 12)),
               ],
             ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
-import 'package:timelay_health/features/camp/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
 
 class CampBottomNav extends StatelessWidget {
   const CampBottomNav({

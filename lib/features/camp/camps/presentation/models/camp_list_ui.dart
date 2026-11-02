@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:timelay_health/features/camp/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
 
 enum CampListStatus { today, live, upcoming, completed }
 
@@ -22,11 +22,21 @@ class CampListStatUi {
 }
 
 class CampPersonUi {
-  const CampPersonUi({required this.initial, required this.bg, required this.fg});
+  const CampPersonUi({
+    required this.name,
+    required this.initial,
+    required this.bg,
+    required this.fg,
+    this.role,
+    this.status,
+  });
 
+  final String name;
   final String initial;
   final Color bg;
   final Color fg;
+  final String? role;
+  final String? status;
 }
 
 class CampItemUi {
@@ -41,8 +51,6 @@ class CampItemUi {
     required this.partners,
     this.createdBy = 'Unknown',
     this.assignedPartner = '—',
-    this.volunteerExtra = 0,
-    this.partnerExtra = 0,
     this.noVolunteers = false,
   });
 
@@ -56,9 +64,12 @@ class CampItemUi {
   final List<CampPersonUi> partners;
   final String createdBy;
   final String assignedPartner;
-  final int volunteerExtra;
-  final int partnerExtra;
   final bool noVolunteers;
+
+  int get volunteerExtra =>
+      volunteers.length > 3 ? volunteers.length - 3 : 0;
+
+  int get partnerExtra => partners.length > 3 ? partners.length - 3 : 0;
 
   String get statusLabel => switch (status) {
         CampListStatus.today => 'Today',
@@ -95,36 +106,81 @@ class CampListUi {
   final List<CampListStatUi> stats;
   final List<CampItemUi> camps;
 
-  static const _volK = CampPersonUi(
+  static const _volDara = CampPersonUi(
+    name: 'Dara Gowthami',
+    initial: 'D',
+    bg: Color(0xFFE8E4FF),
+    fg: Color(0xFF5B52D6),
+  );
+  static const _volAkhil = CampPersonUi(
+    name: 'K Akhil Kumar',
     initial: 'K',
-    bg: CampColors.primaryTint,
-    fg: Color(0xFF534AB7),
+    bg: Color(0xFFE8E4FF),
+    fg: Color(0xFF5B52D6),
   );
-  static const _partnerS = CampPersonUi(
-    initial: 'S',
-    bg: Color(0xFFE1F5EE),
-    fg: Color(0xFF0F6E56),
+  static const _volKejiya = CampPersonUi(
+    name: 'kejiya pari',
+    initial: 'K',
+    bg: Color(0xFFE8E4FF),
+    fg: Color(0xFF5B52D6),
   );
-  static const _partnerY = CampPersonUi(
-    initial: 'Y',
-    bg: CampColors.orangeTint,
-    fg: Color(0xFF854F0B),
+  static const _volAbhigna = CampPersonUi(
+    name: 'Dr Abhigna jupaka',
+    initial: 'D',
+    bg: Color(0xFFE8E4FF),
+    fg: Color(0xFF5B52D6),
   );
-  static const _volP = CampPersonUi(
+  static const _volTeja = CampPersonUi(
+    name: 'N Tejaswini',
+    initial: 'N',
+    bg: Color(0xFFE8E4FF),
+    fg: Color(0xFF5B52D6),
+  );
+  static const _volPavan = CampPersonUi(
+    name: 'Pavan Kumar',
     initial: 'P',
     bg: CampColors.primaryTint,
     fg: Color(0xFF534AB7),
   );
-  static const _volD = CampPersonUi(
-    initial: 'D',
-    bg: Color(0xFFE1F5EE),
-    fg: Color(0xFF0F6E56),
-  );
-  static const _volG = CampPersonUi(
+  static const _volGita = CampPersonUi(
+    name: 'Gita Rao',
     initial: 'G',
     bg: Color(0xFFFCEBEB),
     fg: Color(0xFFA32D2D),
   );
+
+  static const _partnerShiva = CampPersonUi(
+    name: 'shiva',
+    initial: 'S',
+    bg: Color(0xFFE8E4FF),
+    fg: Color(0xFF5B52D6),
+    role: 'CLINICAL PARTNER',
+    status: 'PENDING',
+  );
+  static const _partnerYash = CampPersonUi(
+    name: 'Yash',
+    initial: 'Y',
+    bg: CampColors.orangeTint,
+    fg: Color(0xFF854F0B),
+    role: 'CLINICAL PARTNER',
+    status: 'PENDING',
+  );
+  static const _partnerPavan = CampPersonUi(
+    name: 'pavan',
+    initial: 'P',
+    bg: CampColors.primaryTint,
+    fg: Color(0xFF534AB7),
+    role: 'CLINICAL PARTNER',
+    status: 'APPROVED',
+  );
+
+  static const _demoVolunteers = [
+    _volDara,
+    _volAkhil,
+    _volKejiya,
+    _volAbhigna,
+    _volTeja,
+  ];
 
   static CampListUi demo() {
     return const CampListUi(
@@ -180,10 +236,8 @@ class CampListUi {
           patients: 0,
           createdBy: 'Unknown',
           assignedPartner: 'pavan',
-          volunteers: [_volD, _volK, _volK],
-          partners: [_partnerS, _partnerY, _volP],
-          volunteerExtra: 7,
-          partnerExtra: 2,
+          volunteers: _demoVolunteers,
+          partners: [_partnerShiva, _partnerYash, _partnerPavan],
         ),
         CampItemUi(
           name: 'Shiva_Test',
@@ -194,8 +248,8 @@ class CampListUi {
           patients: 0,
           createdBy: 'Admin',
           assignedPartner: 'pavan',
-          volunteers: [_volK],
-          partners: [_partnerS, _partnerY],
+          volunteers: [_volAkhil, _volDara, _volTeja],
+          partners: [_partnerShiva],
         ),
         CampItemUi(
           name: 'Shivaram Clinic',
@@ -206,8 +260,8 @@ class CampListUi {
           patients: 0,
           createdBy: 'Admin',
           assignedPartner: 'suresh',
-          volunteers: [_volK],
-          partners: [_partnerS, _partnerY],
+          volunteers: [_volAkhil, _volAbhigna],
+          partners: [_partnerShiva, _partnerYash],
         ),
         CampItemUi(
           name: 'Test Camp',
@@ -218,8 +272,8 @@ class CampListUi {
           patients: 1,
           createdBy: 'Unknown',
           assignedPartner: 'pavan',
-          volunteers: [_volK],
-          partners: [_partnerS, _partnerY],
+          volunteers: [_volAkhil],
+          partners: [_partnerShiva, _partnerYash],
         ),
         CampItemUi(
           name: 'Mega Camp – 1',
@@ -230,9 +284,8 @@ class CampListUi {
           patients: 0,
           createdBy: 'Admin',
           assignedPartner: 'pavan',
-          volunteers: [_volP, _volD, _volG],
-          partners: [_partnerS, _partnerY],
-          volunteerExtra: 2,
+          volunteers: [_volPavan, _volDara, _volGita, _volAkhil, _volTeja],
+          partners: [_partnerShiva, _partnerYash],
         ),
         CampItemUi(
           name: 'Camp-3',
@@ -282,7 +335,7 @@ class CampListUi {
           patients: 0,
           createdBy: 'Admin',
           assignedPartner: 'pavan',
-          volunteers: [_volP, _volD, _volG],
+          volunteers: [_volPavan, _volDara, _volGita],
           partners: [],
         ),
         CampItemUi(

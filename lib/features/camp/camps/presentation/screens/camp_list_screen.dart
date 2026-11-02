@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:timelay_health/features/camp/presentation/models/camp_list_ui.dart';
-import 'package:timelay_health/features/camp/presentation/theme/camp_colors.dart';
-import 'package:timelay_health/features/camp/presentation/widgets/camp_list_widgets.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/camps/presentation/models/camp_list_ui.dart';
+import 'package:timelay_health/features/camp/camps/presentation/widgets/camp_list_card.dart';
+import 'package:timelay_health/features/camp/camps/presentation/widgets/camp_list_filter_chips.dart';
+import 'package:timelay_health/features/camp/camps/presentation/widgets/camp_list_search_bar.dart';
+import 'package:timelay_health/features/camp/camps/presentation/widgets/camp_list_section_header.dart';
+import 'package:timelay_health/features/camp/camps/presentation/widgets/camp_list_stat_strip.dart';
+import 'package:timelay_health/features/camp/camps/presentation/widgets/camp_list_top_bar.dart';
 
 class CampListScreen extends StatefulWidget {
   const CampListScreen({super.key});

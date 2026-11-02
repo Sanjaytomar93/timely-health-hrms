@@ -25,11 +25,14 @@ class SalaryDetailsSheet extends StatelessWidget {
     final size = MediaQuery.sizeOf(context);
     final dialogWidth = (size.width - 32).clamp(300.0, 400.0);
 
+    final maxHeight = size.height - 40;
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Container(
         width: dialogWidth,
+        constraints: BoxConstraints(maxHeight: maxHeight),
         decoration: BoxDecoration(
           color: PortalColors.surface,
           borderRadius: BorderRadius.circular(20),
@@ -46,69 +49,71 @@ class SalaryDetailsSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _Header(payslip: payslip),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _NetPayBanner(payslip: payslip),
-                  const SizedBox(height: 10),
-                  if (payslip.pairs.isNotEmpty)
-                    _CompactPairs(pairs: payslip.pairs)
-                  else
-                    _CompactStats(rows: payslip.detailRows),
-                  const SizedBox(height: 10),
-                  _MetaStrip(
-                    leaves: payslip.approvedLeaves,
-                    monthMeta: payslip.monthMeta,
-                  ),
-                  if (payslip.weeks.isNotEmpty) ...[
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _NetPayBanner(payslip: payslip),
                     const SizedBox(height: 10),
-                    _WeekChips(weeks: payslip.weeks),
-                  ],
-                  const SizedBox(height: 10),
-                  _CompOffStrip(
-                    taken: payslip.compOffTaken,
-                    used: payslip.compOffUsed,
-                    balance: payslip.compOffBalance,
-                  ),
-                  if (!payslip.canDownload) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Payslip opens after the 26th. Earlier months anytime.',
-                      textAlign: TextAlign.center,
-                      style: portalText(
-                        fontSize: 10,
-                        color: PortalColors.muted,
-                        height: 1.3,
-                      ),
+                    if (payslip.pairs.isNotEmpty)
+                      _CompactPairs(pairs: payslip.pairs)
+                    else
+                      _CompactStats(rows: payslip.detailRows),
+                    const SizedBox(height: 10),
+                    _MetaStrip(
+                      leaves: payslip.approvedLeaves,
+                      monthMeta: payslip.monthMeta,
                     ),
-                  ],
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SheetBtn(
-                          label: 'Close',
-                          onTap: () => Navigator.of(context).pop(),
-                          outlined: true,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 3,
-                        child: _SheetBtn(
-                          label: 'Download Payslip',
-                          onTap: payslip.canDownload
-                              ? () =>
-                                    downloadOfficialPayslip(context, payslip)
-                              : null,
-                          enabled: payslip.canDownload,
+                    if (payslip.weeks.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      _WeekChips(weeks: payslip.weeks),
+                    ],
+                    const SizedBox(height: 10),
+                    _CompOffStrip(
+                      taken: payslip.compOffTaken,
+                      used: payslip.compOffUsed,
+                      balance: payslip.compOffBalance,
+                    ),
+                    if (!payslip.canDownload) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Payslip opens after the 26th. Earlier months anytime.',
+                        textAlign: TextAlign.center,
+                        style: portalText(
+                          fontSize: 10,
+                          color: PortalColors.muted,
+                          height: 1.3,
                         ),
                       ),
                     ],
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _SheetBtn(
+                            label: 'Close',
+                            onTap: () => Navigator.of(context).pop(),
+                            outlined: true,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          flex: 3,
+                          child: _SheetBtn(
+                            label: 'Download Payslip',
+                            onTap: payslip.canDownload
+                                ? () =>
+                                      downloadOfficialPayslip(context, payslip)
+                                : null,
+                            enabled: payslip.canDownload,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

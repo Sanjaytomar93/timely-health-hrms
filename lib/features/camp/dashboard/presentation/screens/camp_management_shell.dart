@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
-import 'package:timelay_health/features/camp/presentation/screens/camp_dashboard_screen.dart';
-import 'package:timelay_health/features/camp/presentation/screens/camp_list_screen.dart';
-import 'package:timelay_health/features/camp/presentation/screens/patients_screen.dart';
-import 'package:timelay_health/features/camp/presentation/theme/camp_colors.dart';
-import 'package:timelay_health/features/camp/presentation/widgets/camp_bottom_nav.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/screens/camp_dashboard_screen.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_bottom_nav.dart';
+import 'package:timelay_health/features/camp/profile/presentation/screens/camp_profile_screen.dart';
+import 'package:timelay_health/features/camp/camps/presentation/screens/camp_list_screen.dart';
+import 'package:timelay_health/features/camp/members/presentation/screens/members_screen.dart';
 
 class CampManagementShell extends StatefulWidget {
   const CampManagementShell({super.key});
@@ -33,8 +34,8 @@ class _CampManagementShellState extends State<CampManagementShell> {
             children: const [
               CampDashboardScreen(),
               CampListScreen(),
-              PatientsScreen(),
-              CampPlaceholderTab(title: 'Profile'),
+              MembersScreen(),
+              CampProfileScreen(),
             ],
           ),
         ),

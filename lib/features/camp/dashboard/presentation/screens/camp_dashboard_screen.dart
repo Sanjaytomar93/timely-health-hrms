@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:timelay_health/core/theme/portal_text.dart';
-import 'package:timelay_health/features/camp/presentation/models/camp_dashboard_ui.dart';
-import 'package:timelay_health/features/camp/presentation/theme/camp_colors.dart';
-import 'package:timelay_health/features/camp/presentation/widgets/camp_dashboard_sections.dart';
-import 'package:timelay_health/features/camp/presentation/widgets/camp_top_bar.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/models/camp_dashboard_ui.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_bmi_card.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_bp_analysis_card.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_date_filter_card.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_distribution_card.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_hero_with_stats.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_top_bar.dart';
 
 class CampDashboardScreen extends StatefulWidget {
   const CampDashboardScreen({super.key});
@@ -66,36 +69,6 @@ class _CampDashboardScreenState extends State<CampDashboardScreen> {
                   onToggle: (v) => setState(() => _showSugar = v),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class CampPlaceholderTab extends StatelessWidget {
-  const CampPlaceholderTab({super.key, required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: CampColors.background,
-      child: Column(
-        children: [
-          const CampTopBar(),
-          Expanded(
-            child: Center(
-              child: Text(
-                '$title coming soon',
-                style: portalText(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: CampColors.muted,
-                ),
-              ),
             ),
           ),
         ],

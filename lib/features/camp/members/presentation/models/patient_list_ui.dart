@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:timelay_health/features/camp/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
 
 // --------------------------------------------------------------------------
 // Enums
@@ -8,6 +8,8 @@ import 'package:timelay_health/features/camp/presentation/theme/camp_colors.dart
 enum PatientGender { male, female, other }
 
 enum PatientCampStatus { test, campLabel, na }
+
+enum PatientHealthStatus { pending, screened }
 
 // --------------------------------------------------------------------------
 // Patient UI model
@@ -22,6 +24,7 @@ class PatientUi {
     required this.phone,
     this.campTag,
     this.statusTag,
+    this.healthStatus = PatientHealthStatus.pending,
     this.avatarBg,
     this.avatarFg,
   });
@@ -38,6 +41,8 @@ class PatientUi {
   /// e.g. 'Test'. Null means no status tag.
   final String? statusTag;
 
+  final PatientHealthStatus healthStatus;
+
   final Color? avatarBg;
   final Color? avatarFg;
 
@@ -45,6 +50,11 @@ class PatientUi {
         PatientGender.male => 'Male',
         PatientGender.female => 'Female',
         PatientGender.other => 'Other',
+      };
+
+  String get healthStatusLabel => switch (healthStatus) {
+        PatientHealthStatus.pending => 'Pending',
+        PatientHealthStatus.screened => 'Screened',
       };
 
   String get ageGenderLine => '$age yrs · $genderLabel';
@@ -150,6 +160,7 @@ class PatientListUi {
           gender: PatientGender.female,
           phone: '6300596228',
           statusTag: 'Test',
+          healthStatus: PatientHealthStatus.screened,
           avatarBg: Color(0xFFF0EFFE),
           avatarFg: Color(0xFF534AB7),
         ),
@@ -159,6 +170,7 @@ class PatientListUi {
           age: 1,
           gender: PatientGender.female,
           phone: '8051281283',
+          healthStatus: PatientHealthStatus.pending,
           avatarBg: Color(0xFFE1F5EE),
           avatarFg: Color(0xFF0F6E56),
         ),
@@ -169,6 +181,7 @@ class PatientListUi {
           gender: PatientGender.male,
           phone: '0987564543',
           statusTag: 'Test',
+          healthStatus: PatientHealthStatus.screened,
           avatarBg: Color(0xFFFEF3E2),
           avatarFg: Color(0xFF854F0B),
         ),
@@ -179,6 +192,7 @@ class PatientListUi {
           gender: PatientGender.male,
           phone: '7856343267',
           campTag: 'Camp-7',
+          healthStatus: PatientHealthStatus.pending,
           avatarBg: Color(0xFFE6F1FB),
           avatarFg: Color(0xFF185FA5),
         ),
@@ -189,6 +203,7 @@ class PatientListUi {
           gender: PatientGender.male,
           phone: '8967543223',
           campTag: 'Camp-7',
+          healthStatus: PatientHealthStatus.screened,
           avatarBg: Color(0xFFFCEBEB),
           avatarFg: Color(0xFFA32D2D),
         ),
@@ -199,6 +214,7 @@ class PatientListUi {
           gender: PatientGender.female,
           phone: '918521630432',
           campTag: 'Camp-3',
+          healthStatus: PatientHealthStatus.pending,
           avatarBg: Color(0xFFFBEAF0),
           avatarFg: Color(0xFF993556),
         ),
@@ -209,6 +225,7 @@ class PatientListUi {
           gender: PatientGender.male,
           phone: '918688860223',
           campTag: 'Camp-3',
+          healthStatus: PatientHealthStatus.screened,
           avatarBg: Color(0xFFF0EFFE),
           avatarFg: Color(0xFF534AB7),
         ),
@@ -219,6 +236,7 @@ class PatientListUi {
           gender: PatientGender.female,
           phone: '6898746532',
           campTag: 'Camp-2',
+          healthStatus: PatientHealthStatus.pending,
           avatarBg: Color(0xFFE1F5EE),
           avatarFg: Color(0xFF0F6E56),
         ),
@@ -229,6 +247,7 @@ class PatientListUi {
           gender: PatientGender.female,
           phone: '9865323265',
           campTag: 'Camp-2',
+          healthStatus: PatientHealthStatus.screened,
           avatarBg: Color(0xFFFEF3E2),
           avatarFg: Color(0xFF854F0B),
         ),

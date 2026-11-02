@@ -3,7 +3,7 @@ import 'package:timelay_health/features/auth/domain/entities/employee.dart';
 import 'package:timelay_health/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:timelay_health/features/auth/presentation/screens/login_screen.dart';
 import 'package:timelay_health/features/auth/presentation/screens/splash_screen.dart';
-import 'package:timelay_health/features/camp/presentation/screens/camp_management_shell.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/screens/camp_management_shell.dart';
 import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
 import 'package:timelay_health/features/events/presentation/screens/my_events_screen.dart';
 import 'package:timelay_health/features/expense/presentation/screens/expense_screen.dart';
