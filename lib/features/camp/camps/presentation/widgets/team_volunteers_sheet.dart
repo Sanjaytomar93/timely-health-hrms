@@ -10,7 +10,7 @@ Future<void> showTeamVolunteersSheet(
 }) {
   return showDialog<void>(
     context: context,
-    barrierColor: Colors.black.withValues(alpha: 0.45),
+    barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (_) => TeamVolunteersSheet(camp: camp),
   );
 }
@@ -45,35 +45,27 @@ class TeamVolunteersSheet extends StatelessWidget {
               shrinkWrap: true,
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
               itemCount: people.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, i) {
                 final p = people[i];
                 return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xFFFAFAFC),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: CampColors.border),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x081C1B29),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
                   ),
                   child: Row(
                     children: [
-                      CampPersonAvatar(person: p, size: 42),
+                      CampPersonAvatar(person: p, size: 40),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           p.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: portalText(
-                            fontSize: 14,
+                            fontSize: 13.5,
                             fontWeight: FontWeight.w700,
                             color: CampColors.heading,
                           ),

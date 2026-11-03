@@ -134,6 +134,7 @@ class _ShimmerListCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
+        color: PortalColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: PortalColors.border),
       ),

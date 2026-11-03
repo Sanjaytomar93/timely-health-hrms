@@ -26,7 +26,7 @@ class CampBottomNav extends StatelessWidget {
     (
       icon: Icons.people_outline_rounded,
       activeIcon: Icons.people_rounded,
-      label: 'Members',
+      label: 'Patients',
     ),
     (
       icon: Icons.person_outline_rounded,
@@ -40,26 +40,26 @@ class CampBottomNav extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: CampColors.surface,
-        border: Border(top: BorderSide(color: Color(0xFFEEEDF2))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
-            offset: Offset(0, -2),
+            color: Color(0x40000000),
+            blurRadius: 48,
+            offset: Offset(-1, -15),
+            spreadRadius: -17,
           ),
         ],
       ),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: 60,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                for (var i = 0; i < _items.length; i++)
-                  _CampNavItem(
+        minimum: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+          child: Row(
+            children: [
+              for (var i = 0; i < _items.length; i++)
+                Expanded(
+                  child: _CampNavItem(
                     icon: currentIndex == i
                         ? _items[i].activeIcon
                         : _items[i].icon,
@@ -67,8 +67,8 @@ class CampBottomNav extends StatelessWidget {
                     selected: currentIndex == i,
                     onTap: () => onTap(i),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
       ),
@@ -91,30 +91,47 @@ class _CampNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
+    const boxSize = 42.0;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOut,
+            width: boxSize,
+            height: boxSize,
+            decoration: BoxDecoration(
+              color: selected
+                  ? CampColors.primary.withValues(alpha: 0.12)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            alignment: Alignment.center,
+            child: Icon(
               icon,
-              size: 24,
+              size: 26,
               color: selected ? CampColors.primary : const Color(0xFF888888),
             ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: portalText(
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                color: selected ? CampColors.primary : const Color(0xFF888888),
-              ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: portalText(
+              fontSize: 11,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? CampColors.primary : const Color(0xFF888888),
+              height: 1.1,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

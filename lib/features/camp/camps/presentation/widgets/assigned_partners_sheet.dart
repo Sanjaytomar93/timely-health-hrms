@@ -10,7 +10,7 @@ Future<void> showAssignedPartnersSheet(
 }) {
   return showDialog<void>(
     context: context,
-    barrierColor: Colors.black.withValues(alpha: 0.45),
+    barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (_) => AssignedPartnersSheet(camp: camp),
   );
 }
@@ -27,7 +27,7 @@ class AssignedPartnersSheet extends StatelessWidget {
 
     return CampSheetFrame(
       header: CampSheetGradientHeader(
-        icon: Icons.work_outline_rounded,
+        icon: Icons.handshake_outlined,
         title: 'Assigned Partners',
         subtitle: '$count clinic${count == 1 ? '' : 's'} assigned',
       ),
@@ -45,30 +45,20 @@ class AssignedPartnersSheet extends StatelessWidget {
               shrinkWrap: true,
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
               itemCount: people.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, i) {
                 final p = people[i];
                 final pending = (p.status ?? '').toUpperCase() == 'PENDING';
                 return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xFFFAFAFC),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: CampColors.border),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x081C1B29),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
                   ),
                   child: Row(
                     children: [
-                      CampPersonAvatar(person: p, size: 42),
+                      CampPersonAvatar(person: p, size: 40),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -76,8 +66,10 @@ class AssignedPartnersSheet extends StatelessWidget {
                           children: [
                             Text(
                               p.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: portalText(
-                                fontSize: 14,
+                                fontSize: 13.5,
                                 fontWeight: FontWeight.w700,
                                 color: CampColors.heading,
                               ),
@@ -86,10 +78,11 @@ class AssignedPartnersSheet extends StatelessWidget {
                               const SizedBox(height: 3),
                               Text(
                                 p.role!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: portalText(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.4,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
                                   color: CampColors.muted,
                                 ),
                               ),
@@ -98,41 +91,14 @@ class AssignedPartnersSheet extends StatelessWidget {
                         ),
                       ),
                       if (p.status != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
+                        Text(
+                          p.status!.toUpperCase(),
+                          style: portalText(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
                             color: pending
-                                ? const Color(0xFFFFF4DF)
-                                : CampColors.greenTint,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                pending
-                                    ? Icons.schedule_rounded
-                                    : Icons.check_circle_outline_rounded,
-                                size: 13,
-                                color: pending
-                                    ? const Color(0xFFA15C07)
-                                    : CampColors.green,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                p.status!.toUpperCase(),
-                                style: portalText(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: pending
-                                      ? const Color(0xFFA15C07)
-                                      : CampColors.green,
-                                ),
-                              ),
-                            ],
+                                ? const Color(0xFF9A7B3C)
+                                : CampColors.green,
                           ),
                         ),
                     ],

@@ -17,8 +17,8 @@ class CampTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 62,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      height: 68,
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
       color: CampColors.surface,
       child: Row(
         children: [
@@ -30,7 +30,7 @@ class CampTopBar extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 child: Image.asset(
                   _logoAsset,
-                  height: 38,
+                  height: 52,
                   fit: BoxFit.contain,
                   alignment: Alignment.centerLeft,
                   filterQuality: FilterQuality.high,
@@ -47,15 +47,12 @@ class CampTopBar extends StatelessWidget {
                 onTap: () => AppRoutes.push(context, AppRoutes.notifications),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  width: 38,
-                  height: 38,
+                  width: 40,
+                  height: 40,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                   child: const Icon(
                     Icons.notifications_none_rounded,
-                    size: 20,
+                    size: 22,
                     color: CampColors.primary,
                   ),
                 ),

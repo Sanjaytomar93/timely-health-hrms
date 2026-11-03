@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timelay_health/features/camp/camps/domain/entities/camp.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
 
 enum CampListStatus { today, live, upcoming, completed }
@@ -11,6 +12,7 @@ class CampListStatUi {
     required this.icon,
     required this.iconColor,
     required this.iconBg,
+    this.filter = 'All camps',
   });
 
   final String title;
@@ -19,6 +21,9 @@ class CampListStatUi {
   final IconData icon;
   final Color iconColor;
   final Color iconBg;
+
+  /// Camp list filter applied when this stat card is tapped.
+  final String filter;
 }
 
 class CampPersonUi {
@@ -39,6 +44,30 @@ class CampPersonUi {
   final String? status;
 }
 
+class CampPatientUi {
+  const CampPatientUi({
+    required this.id,
+    required this.name,
+    required this.contact,
+    required this.age,
+    required this.genderLabel,
+    required this.isScreened,
+    this.initial = '?',
+  });
+
+  final String id;
+  final String name;
+  final String contact;
+  final int age;
+  final String genderLabel;
+  final bool isScreened;
+  final String initial;
+
+  String get ageGenderLabel => '$age yrs / $genderLabel';
+
+  String get healthLabel => isScreened ? 'Screened' : 'Pending';
+}
+
 class CampItemUi {
   const CampItemUi({
     required this.name,
@@ -47,19 +76,23 @@ class CampItemUi {
     required this.date,
     required this.time,
     required this.patients,
+    required this.patientItems,
     required this.volunteers,
     required this.partners,
+    this.id = '',
     this.createdBy = 'Unknown',
     this.assignedPartner = '—',
     this.noVolunteers = false,
   });
 
+  final String id;
   final String name;
   final CampListStatus status;
   final String location;
   final String date;
   final String time;
   final int patients;
+  final List<CampPatientUi> patientItems;
   final List<CampPersonUi> volunteers;
   final List<CampPersonUi> partners;
   final String createdBy;
@@ -97,261 +130,150 @@ class CampItemUi {
       };
 }
 
-class CampListUi {
-  const CampListUi({
-    required this.stats,
-    required this.camps,
-  });
+class CampListUiMapper {
+  const CampListUiMapper._();
 
-  final List<CampListStatUi> stats;
-  final List<CampItemUi> camps;
-
-  static const _volDara = CampPersonUi(
-    name: 'Dara Gowthami',
-    initial: 'D',
-    bg: Color(0xFFE8E4FF),
-    fg: Color(0xFF5B52D6),
-  );
-  static const _volAkhil = CampPersonUi(
-    name: 'K Akhil Kumar',
-    initial: 'K',
-    bg: Color(0xFFE8E4FF),
-    fg: Color(0xFF5B52D6),
-  );
-  static const _volKejiya = CampPersonUi(
-    name: 'kejiya pari',
-    initial: 'K',
-    bg: Color(0xFFE8E4FF),
-    fg: Color(0xFF5B52D6),
-  );
-  static const _volAbhigna = CampPersonUi(
-    name: 'Dr Abhigna jupaka',
-    initial: 'D',
-    bg: Color(0xFFE8E4FF),
-    fg: Color(0xFF5B52D6),
-  );
-  static const _volTeja = CampPersonUi(
-    name: 'N Tejaswini',
-    initial: 'N',
-    bg: Color(0xFFE8E4FF),
-    fg: Color(0xFF5B52D6),
-  );
-  static const _volPavan = CampPersonUi(
-    name: 'Pavan Kumar',
-    initial: 'P',
-    bg: CampColors.primaryTint,
-    fg: Color(0xFF534AB7),
-  );
-  static const _volGita = CampPersonUi(
-    name: 'Gita Rao',
-    initial: 'G',
-    bg: Color(0xFFFCEBEB),
-    fg: Color(0xFFA32D2D),
-  );
-
-  static const _partnerShiva = CampPersonUi(
-    name: 'shiva',
-    initial: 'S',
-    bg: Color(0xFFE8E4FF),
-    fg: Color(0xFF5B52D6),
-    role: 'CLINICAL PARTNER',
-    status: 'PENDING',
-  );
-  static const _partnerYash = CampPersonUi(
-    name: 'Yash',
-    initial: 'Y',
-    bg: CampColors.orangeTint,
-    fg: Color(0xFF854F0B),
-    role: 'CLINICAL PARTNER',
-    status: 'PENDING',
-  );
-  static const _partnerPavan = CampPersonUi(
-    name: 'pavan',
-    initial: 'P',
-    bg: CampColors.primaryTint,
-    fg: Color(0xFF534AB7),
-    role: 'CLINICAL PARTNER',
-    status: 'APPROVED',
-  );
-
-  static const _demoVolunteers = [
-    _volDara,
-    _volAkhil,
-    _volKejiya,
-    _volAbhigna,
-    _volTeja,
+  static const _tones = <(Color, Color)>[
+    (Color(0xFFE8E4FF), Color(0xFF5B52D6)),
+    (CampColors.primaryTint, Color(0xFF534AB7)),
+    (CampColors.orangeTint, Color(0xFF854F0B)),
+    (Color(0xFFFCEBEB), Color(0xFFA32D2D)),
+    (Color(0xFFE8F3FC), Color(0xFF378ADD)),
   ];
 
-  static CampListUi demo() {
-    return const CampListUi(
-      stats: [
-        CampListStatUi(
-          title: 'TOTAL CAMPS',
-          value: '4',
-          subtitle: 'assigned camps',
-          icon: Icons.location_on_rounded,
-          iconColor: Color(0xFF378ADD),
-          iconBg: Color(0xFFE8F3FC),
-        ),
-        CampListStatUi(
-          title: 'ACTIVE CAMPS',
-          value: '0',
-          subtitle: 'currently running',
-          icon: Icons.monitor_heart_outlined,
-          iconColor: Color(0xFF1D9E75),
-          iconBg: Color(0xFFE6F7F0),
-        ),
-        CampListStatUi(
-          title: 'PATIENTS',
-          value: '4',
-          subtitle: 'total patients',
-          icon: Icons.groups_rounded,
-          iconColor: Color(0xFFEF9F27),
-          iconBg: Color(0xFFFEF3E2),
-        ),
-        CampListStatUi(
-          title: 'UPCOMING',
-          value: '1',
-          subtitle: 'scheduled camps',
-          icon: Icons.calendar_month_rounded,
-          iconColor: Color(0xFF0D9488),
-          iconBg: Color(0xFFE0F7F5),
-        ),
-        CampListStatUi(
-          title: 'COMPLETED',
-          value: '3',
-          subtitle: 'finished camps',
-          icon: Icons.verified_rounded,
-          iconColor: Color(0xFFE24B4A),
-          iconBg: Color(0xFFFCEBEB),
-        ),
-      ],
-      camps: [
-        CampItemUi(
-          name: 'Iryax Health',
-          status: CampListStatus.completed,
-          location: 'Road no. 50, Madhapur, Hyderabad.',
-          date: '2026-08-09',
-          time: '09:00 AM TO 06:00 PM',
-          patients: 0,
-          createdBy: 'Unknown',
-          assignedPartner: 'pavan',
-          volunteers: _demoVolunteers,
-          partners: [_partnerShiva, _partnerYash, _partnerPavan],
-        ),
-        CampItemUi(
-          name: 'Shiva_Test',
-          status: CampListStatus.today,
-          location: 'Hyderabad',
-          date: '2026-06-22',
-          time: '02:00 PM TO 05:00 PM',
-          patients: 0,
-          createdBy: 'Admin',
-          assignedPartner: 'pavan',
-          volunteers: [_volAkhil, _volDara, _volTeja],
-          partners: [_partnerShiva],
-        ),
-        CampItemUi(
-          name: 'Shivaram Clinic',
-          status: CampListStatus.completed,
-          location: 'Madhapur',
-          date: '2026-06-21',
-          time: '10:00 AM TO 05:00 PM',
-          patients: 0,
-          createdBy: 'Admin',
-          assignedPartner: 'suresh',
-          volunteers: [_volAkhil, _volAbhigna],
-          partners: [_partnerShiva, _partnerYash],
-        ),
-        CampItemUi(
-          name: 'Test Camp',
-          status: CampListStatus.completed,
-          location: 'Hyderabad',
-          date: '2026-06-20',
-          time: '10:00 AM TO 03:00 PM',
-          patients: 1,
-          createdBy: 'Unknown',
-          assignedPartner: 'pavan',
-          volunteers: [_volAkhil],
-          partners: [_partnerShiva, _partnerYash],
-        ),
-        CampItemUi(
-          name: 'Mega Camp – 1',
-          status: CampListStatus.completed,
-          location: 'Hyderabad',
-          date: '2026-01-27',
-          time: '10:00 AM TO 06:00 PM',
-          patients: 0,
-          createdBy: 'Admin',
-          assignedPartner: 'pavan',
-          volunteers: [_volPavan, _volDara, _volGita, _volAkhil, _volTeja],
-          partners: [_partnerShiva, _partnerYash],
-        ),
-        CampItemUi(
-          name: 'Camp-3',
-          status: CampListStatus.completed,
-          location: 'Banjarahills',
-          date: '2025-12-21',
-          time: '10:00 AM TO 04:00 PM',
-          patients: 2,
-          createdBy: 'Unknown',
-          assignedPartner: '—',
-          volunteers: [],
-          partners: [],
-          noVolunteers: true,
-        ),
-        CampItemUi(
-          name: 'Camp-2',
-          status: CampListStatus.completed,
-          location: 'Madhapur',
-          date: '2025-12-20',
-          time: '10:00 AM TO 04:00 PM',
-          patients: 4,
-          createdBy: 'Unknown',
-          assignedPartner: '—',
-          volunteers: [],
-          partners: [],
-          noVolunteers: true,
-        ),
-        CampItemUi(
-          name: 'Camp-1',
-          status: CampListStatus.completed,
-          location: 'Tolichowki',
-          date: '2025-12-20',
-          time: '10:00 AM TO 04:00 PM',
-          patients: 2,
-          createdBy: 'Unknown',
-          assignedPartner: '—',
-          volunteers: [],
-          partners: [],
-          noVolunteers: true,
-        ),
-        CampItemUi(
-          name: 'Camp-6',
-          status: CampListStatus.completed,
-          location: 'Madhapur, Ayyappa Society',
-          date: '2026-01-04',
-          time: '09:00 AM TO 06:00 PM',
-          patients: 0,
-          createdBy: 'Admin',
-          assignedPartner: 'pavan',
-          volunteers: [_volPavan, _volDara, _volGita],
-          partners: [],
-        ),
-        CampItemUi(
-          name: 'Camp-7',
-          status: CampListStatus.completed,
-          location: 'Hyderabad',
-          date: '2025-12-28',
-          time: '10:00 AM TO 04:00 PM',
-          patients: 1,
-          createdBy: 'Unknown',
-          assignedPartner: '—',
-          volunteers: [],
-          partners: [],
-          noVolunteers: true,
-        ),
-      ],
+  static List<CampItemUi> toUiList(List<Camp> camps) {
+    return [for (final camp in camps) toUi(camp)];
+  }
+
+  static CampItemUi toUi(Camp camp) {
+    final volunteers = [
+      for (var i = 0; i < camp.volunteers.length; i++)
+        _personUi(camp.volunteers[i], i),
+    ];
+    final partners = [
+      for (var i = 0; i < camp.partners.length; i++)
+        _personUi(camp.partners[i], i),
+    ];
+
+    final patientItems = [
+      for (final p in camp.patients) _patientUi(p),
+    ];
+
+    return CampItemUi(
+      id: camp.id,
+      name: camp.name.trim().isEmpty ? 'Untitled camp' : camp.name.trim(),
+      status: switch (camp.status) {
+        CampStatus.today => CampListStatus.today,
+        CampStatus.live => CampListStatus.live,
+        CampStatus.upcoming => CampListStatus.upcoming,
+        CampStatus.completed => CampListStatus.completed,
+      },
+      location: camp.location.trim().isEmpty ? '—' : camp.location.trim(),
+      date: camp.date,
+      time: camp.time,
+      patients: patientItems.length,
+      patientItems: patientItems,
+      volunteers: volunteers,
+      partners: partners,
+      createdBy: camp.createdBy,
+      assignedPartner: camp.assignedPartner,
+      noVolunteers: volunteers.isEmpty,
+    );
+  }
+
+  static CampPatientUi _patientUi(CampPatient patient) {
+    final name = patient.displayName.trim().isEmpty
+        ? 'Unknown Patient'
+        : patient.displayName.trim();
+    final gender = switch (patient.gender) {
+      CampPatientGender.female => 'Female',
+      CampPatientGender.male => 'Male',
+      CampPatientGender.other => 'Other',
+    };
+    return CampPatientUi(
+      id: patient.id,
+      name: name,
+      contact: patient.contact.trim().isEmpty ? '—' : patient.contact.trim(),
+      age: patient.age,
+      genderLabel: gender,
+      isScreened: patient.isScreened,
+      initial: name[0].toUpperCase(),
+    );
+  }
+
+  static List<CampListStatUi> toStats(List<CampItemUi> camps) {
+    final active = camps
+        .where(
+          (c) =>
+              c.status == CampListStatus.today ||
+              c.status == CampListStatus.live,
+        )
+        .length;
+    final upcoming =
+        camps.where((c) => c.status == CampListStatus.upcoming).length;
+    final completed =
+        camps.where((c) => c.status == CampListStatus.completed).length;
+    final patients = camps.fold<int>(0, (sum, c) => sum + c.patients);
+
+    return [
+      CampListStatUi(
+        title: 'TOTAL CAMPS',
+        value: '${camps.length}',
+        subtitle: 'assigned camps',
+        icon: Icons.location_on_rounded,
+        iconColor: const Color(0xFF378ADD),
+        iconBg: const Color(0xFFE8F3FC),
+        filter: 'All camps',
+      ),
+      CampListStatUi(
+        title: 'ACTIVE CAMPS',
+        value: '$active',
+        subtitle: 'currently running',
+        icon: Icons.monitor_heart_outlined,
+        iconColor: const Color(0xFF1D9E75),
+        iconBg: const Color(0xFFE6F7F0),
+        filter: 'Today',
+      ),
+      CampListStatUi(
+        title: 'PATIENTS',
+        value: '$patients',
+        subtitle: 'total patients',
+        icon: Icons.groups_rounded,
+        iconColor: const Color(0xFFEF9F27),
+        iconBg: const Color(0xFFFEF3E2),
+        filter: 'All camps',
+      ),
+      CampListStatUi(
+        title: 'UPCOMING',
+        value: '$upcoming',
+        subtitle: 'scheduled camps',
+        icon: Icons.calendar_month_rounded,
+        iconColor: const Color(0xFF0D9488),
+        iconBg: const Color(0xFFE0F7F5),
+        filter: 'Upcoming',
+      ),
+      CampListStatUi(
+        title: 'COMPLETED',
+        value: '$completed',
+        subtitle: 'finished camps',
+        icon: Icons.verified_rounded,
+        iconColor: const Color(0xFFE24B4A),
+        iconBg: const Color(0xFFFCEBEB),
+        filter: 'Completed',
+      ),
+    ];
+  }
+
+  static CampPersonUi _personUi(CampPerson person, int index) {
+    final name = person.name.trim().isEmpty ? 'Unknown' : person.name.trim();
+    final tone = _tones[index % _tones.length];
+    return CampPersonUi(
+      name: name,
+      initial: name[0].toUpperCase(),
+      bg: tone.$1,
+      fg: tone.$2,
+      role: person.role,
+      status: person.status,
     );
   }
 }

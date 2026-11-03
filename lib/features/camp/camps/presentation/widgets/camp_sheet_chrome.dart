@@ -4,9 +4,9 @@ import 'package:timelay_health/features/camp/camps/presentation/models/camp_list
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
 
 const campSheetGradient = LinearGradient(
-  begin: Alignment.centerLeft,
-  end: Alignment.centerRight,
-  colors: [Color(0xFF7B6CF0), Color(0xFF5B9AED)],
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: [CampColors.primary, Color(0xFF3A3268), CampColors.primaryLight],
 );
 
 class CampSheetFrame extends StatelessWidget {
@@ -184,23 +184,18 @@ class CampPersonAvatar extends StatelessWidget {
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFC9C2F5), width: 1.6),
-        boxShadow: [
-          BoxShadow(
-            color: person.fg.withValues(alpha: 0.08),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: CampColors.primaryTint,
+        borderRadius: BorderRadius.circular(size * 0.3),
+        border: Border.all(
+          color: CampColors.primary.withValues(alpha: 0.1),
+        ),
       ),
       child: Text(
         person.initial,
         style: portalText(
-          fontSize: size * 0.38,
+          fontSize: size * 0.36,
           fontWeight: FontWeight.w700,
-          color: person.fg,
+          color: CampColors.primary,
         ),
       ),
     );

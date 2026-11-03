@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timelay_health/features/camp/dashboard/domain/entities/volunteer_dashboard.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
 
 class CampStatUi {
@@ -94,16 +95,44 @@ class CampDashboardUi {
   final List<CampSliceUi> sugarSlices;
   final int sugarPatients;
 
-  static CampDashboardUi demo() {
-    return const CampDashboardUi(
+  static const empty = CampDashboardUi(
+    greeting: 'Welcome back',
+    title: '',
+    subtitle: 'Manage your assigned camps and patients.',
+    dateLabel: '',
+    stats: [],
+    distribution: [],
+    distributionTotal: 0,
+    participation: [],
+    bmi: [],
+    bpSlices: [],
+    bpPatients: 0,
+    sugarSlices: [],
+    sugarPatients: 0,
+  );
+}
+
+class CampDashboardUiMapper {
+  const CampDashboardUiMapper._();
+
+  static CampDashboardUi fromEntity(
+    VolunteerDashboard dashboard, {
+    required String employeeName,
+  }) {
+    final stats = dashboard.stats;
+    final charts = dashboard.charts;
+    final dist = charts.campDistribution;
+    final total = dist.total;
+
+    return CampDashboardUi(
       greeting: 'Welcome back',
-      title: 'K Akhil Kumar',
+      title: employeeName,
       subtitle: 'Manage your assigned camps and patients.',
-      dateLabel: 'Tue, Oct 27, 2026',
+      dateLabel: _todayLabel(),
       stats: [
         CampStatUi(
           title: 'Total',
-          value: '4',
+          value: '${stats.totalCamps}',
           subtitle: 'assigned camps',
           icon: Icons.location_on_outlined,
           accent: CampColors.primary,
@@ -111,7 +140,7 @@ class CampDashboardUi {
         ),
         CampStatUi(
           title: 'Active',
-          value: '0',
+          value: '${stats.activeCamps}',
           subtitle: 'currently running',
           icon: Icons.monitor_heart_outlined,
           accent: CampColors.green,
@@ -120,7 +149,7 @@ class CampDashboardUi {
         ),
         CampStatUi(
           title: 'Patients',
-          value: '4',
+          value: '${stats.totalPatients}',
           subtitle: 'total patients',
           icon: Icons.groups_outlined,
           accent: CampColors.orange,
@@ -128,7 +157,7 @@ class CampDashboardUi {
         ),
         CampStatUi(
           title: 'Upcoming',
-          value: '1',
+          value: '${stats.upcomingCamps}',
           subtitle: 'scheduled camps',
           icon: Icons.calendar_month_outlined,
           accent: CampColors.blue,
@@ -136,7 +165,7 @@ class CampDashboardUi {
         ),
         CampStatUi(
           title: 'Screened',
-          value: '4',
+          value: '${stats.screenedPatients}',
           subtitle: 'screened patients',
           icon: Icons.verified_user_outlined,
           accent: CampColors.slate,
@@ -144,63 +173,117 @@ class CampDashboardUi {
         ),
       ],
       distribution: [
-        CampSliceUi(label: 'Live', count: 0, percent: 0, color: CampColors.red),
-        CampSliceUi(
-          label: 'Today',
-          count: 1,
-          percent: 5,
-          color: CampColors.green,
-        ),
-        CampSliceUi(
-          label: 'Upcoming',
-          count: 0,
-          percent: 0,
-          color: CampColors.orange,
-        ),
-        CampSliceUi(
-          label: 'Completed',
-          count: 19,
-          percent: 95,
-          color: CampColors.primary,
-        ),
+        _slice('Live', dist.live, total, CampColors.red),
+        _slice('Today', dist.today, total, CampColors.green),
+        _slice('Upcoming', dist.upcoming, total, CampColors.orange),
+        _slice('Completed', dist.completed, total, CampColors.primary),
       ],
-      distributionTotal: 20,
-      participation: [
-        CampParticipationUi(label: 'Camp-4', volunteers: 8, patients: 42),
-        CampParticipationUi(label: 'Camp-2', volunteers: 6, patients: 35),
-        CampParticipationUi(label: 'Camp-7', volunteers: 10, patients: 48),
-        CampParticipationUi(label: 'Camp-1', volunteers: 5, patients: 28),
-        CampParticipationUi(label: 'Camp-9', volunteers: 7, patients: 40),
-        CampParticipationUi(label: 'Camp-3', volunteers: 9, patients: 45),
-        CampParticipationUi(label: 'Camp-5', volunteers: 4, patients: 22),
-      ],
-      bmi: [
-        CampBmiUi(label: 'Camp-2', under: 1, healthy: 1, over: 1, obese: 2),
-        CampBmiUi(label: 'Camp-7', under: 0, healthy: 1, over: 1, obese: 0),
-        CampBmiUi(label: 'Camp-4', under: 0, healthy: 1, over: 1, obese: 0),
-        CampBmiUi(label: 'Test', under: 0, healthy: 0, over: 1, obese: 0),
-        CampBmiUi(label: 'Camp-3', under: 0, healthy: 1, over: 0, obese: 0),
-      ],
-      bpSlices: [
-        CampSliceUi(
-          label: 'Normal',
-          count: 6,
-          percent: 50,
-          color: CampColors.green,
-        ),
-        CampSliceUi(label: 'High', count: 6, percent: 50, color: CampColors.red),
-      ],
-      bpPatients: 12,
-      sugarSlices: [
-        CampSliceUi(
-          label: 'Normal',
-          count: 8,
-          percent: 67,
-          color: CampColors.green,
-        ),
-        CampSliceUi(label: 'High', count: 4, percent: 33, color: CampColors.red),
-      ],
-      sugarPatients: 12,
+      distributionTotal: total,
+      participation: charts.campParticipation
+          .map(
+            (e) => CampParticipationUi(
+              label: e.campName,
+              volunteers: e.screened.toDouble(),
+              patients: e.patients.toDouble(),
+            ),
+          )
+          .toList(growable: false),
+      bmi: _bmiFromDistribution(charts.bmiDistribution),
+      bpSlices: _metricSlices(charts.healthMetrics.bp),
+      bpPatients: _sumValues(charts.healthMetrics.bp),
+      sugarSlices: _metricSlices(charts.healthMetrics.sugar),
+      sugarPatients: _sumValues(charts.healthMetrics.sugar),
     );
+  }
+
+  static CampSliceUi _slice(String label, int count, int total, Color color) {
+    final percent = total <= 0 ? 0.0 : (count / total) * 100;
+    return CampSliceUi(
+      label: label,
+      count: count,
+      percent: percent,
+      color: color,
+    );
+  }
+
+  static List<CampBmiUi> _bmiFromDistribution(
+    List<VolunteerNamedCount> items,
+  ) {
+    double under = 0, healthy = 0, over = 0, obese = 0;
+    for (final item in items) {
+      final key = item.name.trim().toLowerCase();
+      final value = item.value.toDouble();
+      if (key == 'underweight' || key == 'under') {
+        under = value;
+      } else if (key == 'healthy' || key == 'normal') {
+        healthy = value;
+      } else if (key == 'overweight' || key == 'over') {
+        over = value;
+      } else if (key == 'obese') {
+        obese = value;
+      }
+    }
+    return [
+      CampBmiUi(label: 'Under', under: under, healthy: 0, over: 0, obese: 0),
+      CampBmiUi(
+        label: 'Healthy',
+        under: 0,
+        healthy: healthy,
+        over: 0,
+        obese: 0,
+      ),
+      CampBmiUi(label: 'Over', under: 0, healthy: 0, over: over, obese: 0),
+      CampBmiUi(label: 'Obese', under: 0, healthy: 0, over: 0, obese: obese),
+    ];
+  }
+
+  static List<CampSliceUi> _metricSlices(List<VolunteerNamedCount> items) {
+    final total = _sumValues(items);
+    return [
+      for (final item in items)
+        CampSliceUi(
+          label: item.name,
+          count: item.value,
+          percent: total <= 0 ? 0 : (item.value / total) * 100,
+          color: _metricColor(item.name),
+        ),
+    ];
+  }
+
+  static int _sumValues(List<VolunteerNamedCount> items) =>
+      items.fold<int>(0, (sum, e) => sum + e.value);
+
+  static Color _metricColor(String name) {
+    switch (name.trim().toLowerCase()) {
+      case 'normal':
+        return CampColors.green;
+      case 'elevated':
+      case 'borderline':
+        return CampColors.orange;
+      case 'high':
+        return CampColors.red;
+      default:
+        return CampColors.primary;
+    }
+  }
+
+  static String _todayLabel() {
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final now = DateTime.now();
+    return '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}, ${now.year}';
   }
 }

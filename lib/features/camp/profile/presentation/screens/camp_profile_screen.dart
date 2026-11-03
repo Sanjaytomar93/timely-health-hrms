@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_top_bar.dart';
-import 'package:timelay_health/features/camp/members/presentation/widgets/member_tokens.dart';
+import 'package:timelay_health/features/camp/patients/presentation/widgets/patient_tokens.dart';
 
 class CampProfileScreen extends StatefulWidget {
   const CampProfileScreen({super.key});
@@ -41,7 +41,7 @@ class _CampProfileScreenState extends State<CampProfileScreen> {
     if (bmi == null) {
       return (
         label: '—',
-        color: kMemberMuted,
+        color: kPatientMuted,
         bg: const Color(0xFFF3F2F7),
       );
     }
@@ -198,46 +198,47 @@ class _IdentityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final soft = Colors.white.withValues(alpha: 0.82);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1A1635), kMemberPrimary, Color(0xFF4B4285)],
+          colors: [Color(0xFF1A1635), kPatientPrimary, Color(0xFF4B4285)],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: kMemberPrimary.withValues(alpha: 0.28),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: kPatientPrimary.withValues(alpha: 0.22),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            width: 54,
-            height: 54,
+            width: 48,
+            height: 48,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             ),
             child: Text(
               initials,
               style: const TextStyle(
                 fontFamily: 'Inter',
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
               ),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,35 +247,32 @@ class _IdentityCard extends StatelessWidget {
                   name,
                   style: const TextStyle(
                     fontFamily: 'Inter',
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
+                    height: 1.15,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   meta,
                   style: TextStyle(
                     fontFamily: 'Inter',
-                    fontSize: 12.5,
-                    color: Colors.white.withValues(alpha: 0.85),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: soft,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  phone,
+                  '$phone  ·  $location',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: 'Inter',
-                    fontSize: 12.5,
-                    color: Colors.white.withValues(alpha: 0.85),
-                  ),
-                ),
-                Text(
-                  location,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 12.5,
-                    color: Colors.white.withValues(alpha: 0.85),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: soft,
                   ),
                 ),
               ],
@@ -307,14 +305,14 @@ class _StatsGrid extends StatelessWidget {
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 1.55,
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 8,
+      childAspectRatio: 2.35,
       children: [
         _StatCard(
           icon: Icons.monitor_weight_outlined,
           tint: const Color(0xFFF0EEF8),
-          iconColor: kMemberPrimary,
+          iconColor: kPatientPrimary,
           value: weight,
           label: 'Weight',
         ),
@@ -362,51 +360,62 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: kMemberBorder),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: kPatientBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           Container(
-            width: 30,
-            height: 30,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               color: tint,
               borderRadius: BorderRadius.circular(9),
             ),
             child: Icon(icon, size: 16, color: iconColor),
           ),
-          const Spacer(),
-          Text(
-            value,
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: kMemberHeading,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: kMemberMuted,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: kPatientHeading,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: kPatientMuted,
+                    height: 1.1,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -453,7 +462,7 @@ class _ClinicalVitalsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: kMemberBorder),
+        border: Border.all(color: kPatientBorder),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -471,7 +480,7 @@ class _ClinicalVitalsCard extends StatelessWidget {
               fontFamily: 'Inter',
               fontSize: 15,
               fontWeight: FontWeight.w800,
-              color: kMemberHeading,
+              color: kPatientHeading,
             ),
           ),
           const SizedBox(height: 14),
@@ -524,12 +533,12 @@ class _ClinicalVitalsCard extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [kMemberPrimary, kMemberPrimaryLight],
+                  colors: [kPatientPrimary, kPatientPrimaryLight],
                 ),
                 borderRadius: BorderRadius.circular(13),
                 boxShadow: [
                   BoxShadow(
-                    color: kMemberPrimary.withValues(alpha: 0.28),
+                    color: kPatientPrimary.withValues(alpha: 0.28),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -701,7 +710,7 @@ class _Field extends StatelessWidget {
             fontFamily: 'Inter',
             fontSize: 11.5,
             fontWeight: FontWeight.w700,
-            color: kMemberMuted,
+            color: kPatientMuted,
           ),
         ),
         const SizedBox(height: 6),
@@ -713,7 +722,7 @@ class _Field extends StatelessWidget {
             fontFamily: 'Inter',
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: kMemberHeading,
+            color: kPatientHeading,
           ),
           decoration: InputDecoration(
             filled: true,
@@ -722,15 +731,15 @@ class _Field extends StatelessWidget {
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: kMemberBorder),
+              borderSide: const BorderSide(color: kPatientBorder),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: kMemberBorder),
+              borderSide: const BorderSide(color: kPatientBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: kMemberPrimary, width: 1.2),
+              borderSide: const BorderSide(color: kPatientPrimary, width: 1.2),
             ),
           ),
         ),
@@ -761,7 +770,7 @@ class _SugarField extends StatelessWidget {
             fontFamily: 'Inter',
             fontSize: 11.5,
             fontWeight: FontWeight.w700,
-            color: kMemberMuted,
+            color: kPatientMuted,
           ),
         ),
         const SizedBox(height: 6),
@@ -771,7 +780,7 @@ class _SugarField extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFFF7F6FB),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: kMemberBorder),
+            border: Border.all(color: kPatientBorder),
           ),
           child: Row(
             children: [
@@ -783,7 +792,7 @@ class _SugarField extends StatelessWidget {
                     fontFamily: 'Inter',
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: kMemberHeading,
+                    color: kPatientHeading,
                   ),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
@@ -795,7 +804,7 @@ class _SugarField extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 decoration: BoxDecoration(
-                  color: kMemberPrimary.withValues(alpha: 0.08),
+                  color: kPatientPrimary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: DropdownButtonHideUnderline(
@@ -805,13 +814,13 @@ class _SugarField extends StatelessWidget {
                     icon: const Icon(
                       Icons.keyboard_arrow_down_rounded,
                       size: 16,
-                      color: kMemberPrimary,
+                      color: kPatientPrimary,
                     ),
                     style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 11.5,
                       fontWeight: FontWeight.w800,
-                      color: kMemberPrimary,
+                      color: kPatientPrimary,
                     ),
                     items: const [
                       DropdownMenuItem(value: 'Fasting', child: Text('Fasting')),
@@ -849,7 +858,7 @@ class _BpField extends StatelessWidget {
             fontFamily: 'Inter',
             fontSize: 11.5,
             fontWeight: FontWeight.w700,
-            color: kMemberMuted,
+            color: kPatientMuted,
           ),
         ),
         const SizedBox(height: 6),
@@ -858,7 +867,7 @@ class _BpField extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFFF7F6FB),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: kMemberBorder),
+            border: Border.all(color: kPatientBorder),
           ),
           child: Row(
             children: [
@@ -871,7 +880,7 @@ class _BpField extends StatelessWidget {
                     fontFamily: 'Inter',
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: kMemberHeading,
+                    color: kPatientHeading,
                   ),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
@@ -885,7 +894,7 @@ class _BpField extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w800,
-                  color: kMemberMuted,
+                  color: kPatientMuted,
                 ),
               ),
               Expanded(
@@ -897,7 +906,7 @@ class _BpField extends StatelessWidget {
                     fontFamily: 'Inter',
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: kMemberHeading,
+                    color: kPatientHeading,
                   ),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
@@ -937,7 +946,7 @@ class _RecentEntries extends StatelessWidget {
             fontFamily: 'Inter',
             fontSize: 11,
             fontWeight: FontWeight.w800,
-            color: kMemberMuted,
+            color: kPatientMuted,
             letterSpacing: 0.6,
           ),
         ),
@@ -953,7 +962,7 @@ class _RecentEntries extends StatelessWidget {
                   height: 8,
                   margin: const EdgeInsets.only(top: 5),
                   decoration: const BoxDecoration(
-                    color: kMemberPrimary,
+                    color: kPatientPrimary,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -970,14 +979,14 @@ class _RecentEntries extends StatelessWidget {
                         TextSpan(
                           text: '${e.$1}  ',
                           style: const TextStyle(
-                            color: kMemberMuted,
+                            color: kPatientMuted,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         TextSpan(
                           text: e.$2,
                           style: const TextStyle(
-                            color: kMemberHeading,
+                            color: kPatientHeading,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -1048,7 +1057,7 @@ class _MedicalHistory extends StatelessWidget {
       _Hist(
         icon: Icons.monitor_weight_outlined,
         tint: const Color(0xFFF0EEF8),
-        iconColor: kMemberPrimary,
+        iconColor: kPatientPrimary,
         title: 'Weight',
         value: '$weight kg',
         time: '20/01/2026, 13:35:18',
@@ -1063,7 +1072,7 @@ class _MedicalHistory extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: kMemberBorder),
+        border: Border.all(color: kPatientBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1074,7 +1083,7 @@ class _MedicalHistory extends StatelessWidget {
               fontFamily: 'Inter',
               fontSize: 15,
               fontWeight: FontWeight.w800,
-              color: kMemberHeading,
+              color: kPatientHeading,
             ),
           ),
           const SizedBox(height: 12),
@@ -1122,7 +1131,7 @@ class _HistoryTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF8F7FC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: kMemberBorder),
+        border: Border.all(color: kPatientBorder),
       ),
       child: Row(
         children: [
@@ -1146,7 +1155,7 @@ class _HistoryTile extends StatelessWidget {
                     fontFamily: 'Inter',
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    color: kMemberHeading,
+                    color: kPatientHeading,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -1155,7 +1164,7 @@ class _HistoryTile extends StatelessWidget {
                   style: const TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 11,
-                    color: kMemberMuted,
+                    color: kPatientMuted,
                   ),
                 ),
               ],

@@ -169,3 +169,106 @@ class CampStackedBarPainter extends CustomPainter {
   bool shouldRepaint(covariant CampStackedBarPainter oldDelegate) =>
       oldDelegate.items != items || oldDelegate.maxY != maxY;
 }
+
+class CampParticipationBarPainter extends CustomPainter {
+  CampParticipationBarPainter({required this.items, this.maxY = 5});
+
+  final List<CampParticipationUi> items;
+  final double maxY;
+
+  static const _leftAxis = 20.0;
+  static const _bottomLabels = 22.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (items.isEmpty) return;
+    final chartTop = 8.0;
+    final chartBottom = size.height - _bottomLabels;
+    final chartLeft = _leftAxis;
+    final chartRight = size.width;
+    final chartH = chartBottom - chartTop;
+    final chartW = chartRight - chartLeft;
+    final peak = maxY <= 0 ? 1.0 : maxY;
+
+    final grid = Paint()
+      ..color = CampColors.border
+      ..strokeWidth = 1;
+
+    for (var i = 0; i <= 5; i++) {
+      final t = i / 5;
+      final y = chartBottom - chartH * t;
+      canvas.drawLine(Offset(chartLeft, y), Offset(chartRight, y), grid);
+      final tp = TextPainter(
+        text: TextSpan(
+          text: '$i',
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+            color: CampColors.muted,
+            height: 1,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(2, y - tp.height / 2));
+    }
+
+    final groupW = chartW / items.length;
+    final barW = groupW * 0.44;
+
+    for (var i = 0; i < items.length; i++) {
+      final item = items[i];
+      final left = chartLeft + groupW * i + (groupW - barW) / 2;
+      var y = chartBottom;
+
+      void stack(double value, Color color, {bool isTop = false}) {
+        if (value <= 0) return;
+        final h = (value / peak) * chartH;
+        y -= h;
+        final r = isTop ? const Radius.circular(3) : Radius.zero;
+        canvas.drawRRect(
+          RRect.fromRectAndCorners(
+            Rect.fromLTWH(left, y, barW, h),
+            topLeft: r,
+            topRight: r,
+          ),
+          Paint()..color = color,
+        );
+      }
+
+      final screened = item.volunteers.clamp(0.0, item.patients).toDouble();
+      final pending =
+          (item.patients - screened).clamp(0.0, item.patients).toDouble();
+      final hasScreened = screened > 0;
+      stack(pending, CampColors.primary, isTop: !hasScreened);
+      stack(screened, CampColors.green, isTop: true);
+
+      final raw = item.label.trim();
+      final short = raw.length <= 8 ? raw : '${raw.substring(0, 7)}…';
+      final label = TextPainter(
+        text: TextSpan(
+          text: short,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+            color: CampColors.muted,
+            height: 1.2,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout(maxWidth: groupW);
+      label.paint(
+        canvas,
+        Offset(
+          chartLeft + groupW * i + (groupW - label.width) / 2,
+          chartBottom + 6,
+        ),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CampParticipationBarPainter oldDelegate) =>
+      oldDelegate.items != items || oldDelegate.maxY != maxY;
+}
