@@ -131,28 +131,40 @@ class _MyLettersViewState extends State<_MyLettersView> {
               child: RefreshIndicator(
                 color: PortalColors.purple,
                 onRefresh: _refresh,
-                child: ListView(
+                child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.only(bottom: 32),
-                  children: [
-                    _LettersHeader(employee: _employee),
-                    const _LettersBanner(),
-                    _LetterStatsRow(
-                      total: letters.length,
-                      countOf: (t) => ofType(t).length,
-                      allSent: allSent,
-                      selected: _type,
-                      onSelect: (t) => setState(() => _type = t),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          _LettersHeader(employee: _employee),
+                          const _LettersBanner(),
+                          _LetterStatsRow(
+                            total: letters.length,
+                            countOf: (t) => ofType(t).length,
+                            allSent: allSent,
+                            selected: _type,
+                            onSelect: (t) => setState(() => _type = t),
+                          ),
+                        ],
+                      ),
                     ),
-                    _LettersListCard(
-                      type: _type,
-                      letters: visible,
-                      isLoading: isLoading,
-                      error: error,
-                      onRetry: _refresh,
-                      onTypeChanged: (t) => setState(() => _type = t),
-                      refreshing: state is LettersLoading,
-                      onSubmitResignation: _openResignationForm,
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: _LettersListCard(
+                          type: _type,
+                          letters: visible,
+                          isLoading: isLoading,
+                          error: error,
+                          onRetry: _refresh,
+                          onTypeChanged: (t) => setState(() => _type = t),
+                          refreshing: state is LettersLoading,
+                          onSubmitResignation: _openResignationForm,
+                          expand: true,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -427,45 +439,57 @@ class _LetterStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const hPad = 18.0;
+    const gap = 8.0;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardWidth = (screenWidth - (hPad * 2) - (gap * 2)) / 3;
+
+    final items = <Widget>[
+      _StatCard(
+        width: cardWidth,
+        label: 'TOTAL LETTERS',
+        value: '$total',
+        subtitle: 'in your inbox',
+        icon: Icons.inbox_outlined,
+        tint: const Color(0xFFEAF1FD),
+        iconColor: const Color(0xFF3B6FE0),
+      ),
+      for (final type in LetterType.values)
+        _StatCard(
+          width: cardWidth,
+          label: type.label.toUpperCase(),
+          value: '${countOf(type)}',
+          subtitle: selected == type ? 'viewing now' : 'tap to view',
+          icon: type.icon,
+          tint: type.tint,
+          iconColor: type.color,
+          selected: selected == type,
+          onTap: () => onSelect(type),
+        ),
+      _StatCard(
+        width: cardWidth,
+        label: 'STATUS',
+        value: allSent ? 'Sent' : '—',
+        subtitle: 'official letters',
+        icon: Icons.send_outlined,
+        tint: PortalColors.greenTint,
+        iconColor: PortalColors.green,
+      ),
+    ];
+
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.fromLTRB(17, 4, 18, 12),
+        padding: const EdgeInsets.fromLTRB(hPad, 4, hPad, 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _StatCard(
-              label: 'TOTAL LETTERS',
-              value: '$total',
-              subtitle: 'in your inbox',
-              icon: Icons.inbox_outlined,
-              tint: const Color(0xFFEAF1FD),
-              iconColor: const Color(0xFF3B6FE0),
-            ),
-            for (final type in LetterType.values) ...[
-              const SizedBox(width: 8),
-              _StatCard(
-                label: type.label.toUpperCase(),
-                value: '${countOf(type)}',
-                subtitle: selected == type ? 'viewing now' : 'tap to view',
-                icon: type.icon,
-                tint: type.tint,
-                iconColor: type.color,
-                selected: selected == type,
-                onTap: () => onSelect(type),
-              ),
+            for (var i = 0; i < items.length; i++) ...[
+              if (i > 0) const SizedBox(width: gap),
+              items[i],
             ],
-            const SizedBox(width: 8),
-            _StatCard(
-              label: 'STATUS',
-              value: allSent ? 'Sent' : '—',
-              subtitle: 'official letters',
-              icon: Icons.send_outlined,
-              tint: PortalColors.greenTint,
-              iconColor: PortalColors.green,
-            ),
           ],
         ),
       ),
@@ -475,6 +499,7 @@ class _LetterStatsRow extends StatelessWidget {
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
+    required this.width,
     required this.label,
     required this.value,
     required this.subtitle,
@@ -485,6 +510,7 @@ class _StatCard extends StatelessWidget {
     this.onTap,
   });
 
+  final double width;
   final String label;
   final String value;
   final String subtitle;
@@ -501,11 +527,11 @@ class _StatCard extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        width: 133,
-        padding: const EdgeInsets.all(13),
+        width: width,
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 9),
         decoration: BoxDecoration(
           color: selected ? tint : PortalColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: selected ? iconColor : PortalColors.border,
             width: selected ? 1.4 : 1,
@@ -524,49 +550,51 @@ class _StatCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 28,
-              height: 28,
+              width: 24,
+              height: 24,
               decoration: BoxDecoration(
                 color: selected ? iconColor : tint,
-                borderRadius: BorderRadius.circular(9),
+                borderRadius: BorderRadius.circular(8),
               ),
               alignment: Alignment.center,
               child: Icon(
                 icon,
-                size: 15,
+                size: 13,
                 color: selected ? Colors.white : iconColor,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 7),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: portalText(
-                fontSize: 9.5,
+                fontSize: 8.5,
                 fontWeight: FontWeight.w700,
                 color: PortalColors.muted,
-                letterSpacing: 0.4,
-                height: 11 / 9.5,
+                letterSpacing: 0.3,
+                height: 1.15,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 1),
             Text(
               value,
               style: portalText(
-                fontSize: 20,
+                fontSize: 17,
                 fontWeight: FontWeight.w700,
                 color: value == '—' ? PortalColors.muted : iconColor,
-                height: 24 / 20,
+                height: 1.15,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 1),
             Text(
               subtitle,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: portalText(
-                fontSize: 9.5,
+                fontSize: 8.5,
                 color: PortalColors.muted,
-                height: 11 / 9.5,
+                height: 1.15,
               ),
             ),
           ],
@@ -586,6 +614,7 @@ class _LettersListCard extends StatelessWidget {
     required this.onTypeChanged,
     required this.refreshing,
     required this.onSubmitResignation,
+    this.expand = false,
   });
 
   final bool refreshing;
@@ -596,13 +625,14 @@ class _LettersListCard extends StatelessWidget {
   final String? error;
   final VoidCallback onRetry;
   final ValueChanged<LetterType> onTypeChanged;
+  final bool expand;
 
-  Widget _content() {
+  Widget _content({bool fill = false}) {
     if (isLoading) {
-      return const Padding(
-        key: ValueKey('loading'),
-        padding: EdgeInsets.symmetric(vertical: 32),
-        child: Center(
+      return Padding(
+        key: const ValueKey('loading'),
+        padding: EdgeInsets.symmetric(vertical: fill ? 48 : 32),
+        child: const Center(
           child: CircularProgressIndicator(color: PortalColors.purple),
         ),
       );
@@ -615,9 +645,19 @@ class _LettersListCard extends StatelessWidget {
       );
     }
     if (letters.isEmpty) {
-      return _EmptyLetters(key: ValueKey('empty-$type'), type: type);
+      return _EmptyLetters(
+        key: ValueKey('empty-$type'),
+        type: type,
+        fill: fill,
+      );
     }
-    return Column(
+    if (fill && letters.length == 1) {
+      return SizedBox.expand(
+        key: ValueKey('list-$type'),
+        child: _LetterCard(letter: letters.first, fill: true),
+      );
+    }
+    final list = Column(
       key: ValueKey('list-$type'),
       children: [
         for (var i = 0; i < letters.length; i++) ...[
@@ -626,6 +666,10 @@ class _LettersListCard extends StatelessWidget {
         ],
       ],
     );
+    if (!fill) return list;
+    return SizedBox.expand(
+      child: SingleChildScrollView(child: list),
+    );
   }
 
   @override
@@ -633,6 +677,7 @@ class _LettersListCard extends StatelessWidget {
     final noun = '${type.label.toLowerCase()} letter';
 
     return Container(
+      width: double.infinity,
       margin: const EdgeInsets.fromLTRB(16, 4, 18, 0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -710,10 +755,18 @@ class _LettersListCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 14),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            child: _content(),
-          ),
+          if (expand)
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                child: _content(fill: true),
+              ),
+            )
+          else
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              child: _content(),
+            ),
           const SizedBox(height: 12),
           const Divider(height: 1, color: PortalColors.border),
           const SizedBox(height: 10),
@@ -848,9 +901,10 @@ class _TypeToggle extends StatelessWidget {
 }
 
 class _LetterCard extends StatelessWidget {
-  const _LetterCard({required this.letter});
+  const _LetterCard({required this.letter, this.fill = false});
 
   final EmployeeLetter letter;
+  final bool fill;
 
   @override
   Widget build(BuildContext context) {
@@ -860,10 +914,22 @@ class _LetterCard extends StatelessWidget {
     final isResignation = letter.type == LetterType.resignation;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+      width: double.infinity,
+      height: fill ? double.infinity : null,
+      padding: EdgeInsets.fromLTRB(14, 18, 14, isResignation ? 12 : 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PortalColors.border),
+        gradient: fill
+            ? LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  letter.type.tint.withValues(alpha: 0.35),
+                  PortalColors.surface,
+                ],
+              )
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -871,16 +937,16 @@ class _LetterCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
                   color: letter.type.tint,
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
                 child: Icon(
                   letter.type.icon,
-                  size: 18,
+                  size: 20,
                   color: letter.type.color,
                 ),
               ),
@@ -892,21 +958,21 @@ class _LetterCard extends StatelessWidget {
                     Text(
                       '${letter.type.label} Letter',
                       style: portalText(
-                        fontSize: 13,
+                        fontSize: 13.5,
                         fontWeight: FontWeight.w700,
                         color: PortalColors.heading,
-                        height: 16 / 13,
+                        height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       isResignation
                           ? 'Submitted on ${letter.sentOnDate}'
                           : 'Sent ${letter.sentOnDate} · ${letter.sentOnTime}',
                       style: portalText(
-                        fontSize: 10,
+                        fontSize: 10.5,
                         color: PortalColors.muted,
-                        height: 12 / 10,
+                        height: 1.2,
                       ),
                     ),
                   ],
@@ -915,30 +981,50 @@ class _LetterCard extends StatelessWidget {
               _StatusPill(status: letter.status),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isResignation ? 12 : 16),
           Container(
-            padding: const EdgeInsets.all(10),
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: isResignation
+                  ? 10
+                  : fill
+                  ? 18
+                  : 14,
+              vertical: isResignation
+                  ? 12
+                  : fill
+                  ? 22
+                  : 16,
+            ),
             decoration: BoxDecoration(
               color: PortalColors.background,
-              borderRadius: BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
               children: [
                 Row(
                   children: [
                     CircleAvatar(
-                      radius: 13,
+                      radius: isResignation
+                          ? 13
+                          : fill
+                          ? 20
+                          : 16,
                       backgroundColor: PortalColors.purpleTint,
                       child: Text(
                         initial,
                         style: portalText(
-                          fontSize: 11,
+                          fontSize: isResignation
+                              ? 11
+                              : fill
+                              ? 15
+                              : 12.5,
                           fontWeight: FontWeight.w700,
                           color: PortalColors.purple,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -948,15 +1034,16 @@ class _LetterCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: portalText(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
+                              fontSize: fill ? 14.5 : 12.5,
+                              fontWeight: FontWeight.w800,
                               color: PortalColors.heading,
                             ),
                           ),
+                          SizedBox(height: fill ? 4 : 3),
                           Text(
                             letter.employeeId,
                             style: portalText(
-                              fontSize: 9.5,
+                              fontSize: fill ? 11.5 : 10.5,
                               color: PortalColors.muted,
                             ),
                           ),
@@ -964,9 +1051,9 @@ class _LetterCard extends StatelessWidget {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 4,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: fill ? 10 : 9,
+                        vertical: fill ? 6 : 5,
                       ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEAF1FD),
@@ -975,7 +1062,7 @@ class _LetterCard extends StatelessWidget {
                       child: Text(
                         letter.designation.toUpperCase(),
                         style: portalText(
-                          fontSize: 9,
+                          fontSize: fill ? 9.5 : 9,
                           fontWeight: FontWeight.w700,
                           color: const Color(0xFF3B6FE0),
                           letterSpacing: 0.3,
@@ -984,12 +1071,12 @@ class _LetterCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: isResignation ? 12 : fill ? 22 : 18),
                 Row(
                   children: [
                     const Icon(
                       Icons.date_range_outlined,
-                      size: 13,
+                      size: 14,
                       color: PortalColors.muted,
                     ),
                     const SizedBox(width: 6),
@@ -998,7 +1085,7 @@ class _LetterCard extends StatelessWidget {
                           ? 'Joining → Last day'
                           : 'Employment period',
                       style: portalText(
-                        fontSize: 10,
+                        fontSize: fill ? 11.5 : 10.5,
                         color: PortalColors.muted,
                       ),
                     ),
@@ -1006,7 +1093,7 @@ class _LetterCard extends StatelessWidget {
                     Text(
                       letter.periodLabel,
                       style: portalText(
-                        fontSize: 10.5,
+                        fontSize: fill ? 12 : 11,
                         fontWeight: FontWeight.w700,
                         color: PortalColors.heading,
                       ),
@@ -1019,8 +1106,10 @@ class _LetterCard extends StatelessWidget {
           if (isResignation) ...[
             const SizedBox(height: 12),
             _ResignationDetails(letter: letter),
+            if (fill) const Spacer(),
           ] else ...[
-            const SizedBox(height: 12),
+            if (fill) const Spacer(),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -1535,52 +1624,93 @@ class _LettersError extends StatelessWidget {
 }
 
 class _EmptyLetters extends StatelessWidget {
-  const _EmptyLetters({super.key, required this.type});
+  const _EmptyLetters({
+    super.key,
+    required this.type,
+    this.fill = false,
+  });
 
   final LetterType type;
+  final bool fill;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+      width: double.infinity,
+      height: fill ? double.infinity : null,
+      constraints: fill ? null : const BoxConstraints(minHeight: 260),
+      padding: EdgeInsets.symmetric(
+        horizontal: 22,
+        vertical: fill ? 36 : 40,
+      ),
       decoration: BoxDecoration(
-        color: PortalColors.background,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: PortalColors.border),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            type.tint.withValues(alpha: 0.55),
+            PortalColors.background,
+            PortalColors.surface,
+          ],
+        ),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 64,
-            height: 64,
-            decoration: const BoxDecoration(
-              color: PortalColors.purpleTint,
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
+              color: PortalColors.surface,
+              border: Border.all(color: PortalColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: type.color.withValues(alpha: 0.14),
+                  blurRadius: 22,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
-            alignment: Alignment.center,
-            child: SvgPicture.asset(
-              'assets/icons/menu/ic_letters.svg',
-              width: 28,
-              height: 28,
+            child: Center(
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [type.color, type.color.withValues(alpha: 0.75)],
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Icon(type.icon, size: 24, color: Colors.white),
+              ),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 22),
           Text(
             'No ${type.label.toLowerCase()} letter yet',
-            style: portalText(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: PortalColors.heading,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Your letter will appear here once HR sends it.',
             textAlign: TextAlign.center,
             style: portalText(
-              fontSize: 11,
+              fontSize: 15.5,
+              fontWeight: FontWeight.w800,
+              color: PortalColors.heading,
+              height: 1.25,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Your ${type.label.toLowerCase()} letter will appear here\nonce HR sends it.',
+            textAlign: TextAlign.center,
+            style: portalText(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w500,
               color: PortalColors.muted,
-              height: 1.4,
+              height: 1.45,
             ),
           ),
         ],

@@ -276,7 +276,7 @@ class IssuesCubit extends Cubit<IssuesState> {
     return source.where((issue) {
       if (q.isNotEmpty) {
         final hay =
-            '${issue.title} ${issue.description} ${issue.issueType} ${issue.status}'
+            '${issue.title} ${issue.description} ${issue.employeeName} ${issue.issueType} ${issue.status}'
                 .toLowerCase();
         if (!hay.contains(q)) return false;
       }

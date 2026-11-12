@@ -173,80 +173,46 @@ class DashboardShimmer extends StatelessWidget {
         baseColor: Color(0xFFE4E1EF),
         highlightColor: Color(0xFFF8F7FC),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 28),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting
-              ShimmerBox(width: 200, height: 20, radius: 8),
-              SizedBox(height: 8),
-              ShimmerBox(width: 140, height: 12, radius: 6),
+              ShimmerBox(width: 220, height: 22, radius: 8),
+              SizedBox(height: 10),
+              ShimmerBox(width: 160, height: 12, radius: 6),
               SizedBox(height: 12),
-              // Profile card
-              _ShimmerSurfaceCard(
-                height: 92,
-                child: Row(
-                  children: [
-                    ShimmerBox(height: 52, circle: true),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ShimmerBox(width: 130, height: 14, radius: 6),
-                          SizedBox(height: 8),
-                          ShimmerBox(width: 90, height: 10, radius: 5),
-                          SizedBox(height: 6),
-                          ShimmerBox(width: 160, height: 10, radius: 5),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 12),
-              // Attendance banner
-              ShimmerBox(width: double.infinity, height: 88, radius: 18),
-              SizedBox(height: 14),
-              // Stat cards 2x2
+              ShimmerBox(width: double.infinity, height: 100, radius: 18),
+              SizedBox(height: 16),
+              ShimmerBox(width: double.infinity, height: 148, radius: 18),
+              SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: ShimmerBox(height: 92, radius: 16)),
+                  Expanded(child: ShimmerBox(height: 78, radius: 16)),
                   SizedBox(width: 10),
-                  Expanded(child: ShimmerBox(height: 92, radius: 16)),
+                  Expanded(child: ShimmerBox(height: 78, radius: 16)),
                 ],
               ),
               SizedBox(height: 10),
               Row(
                 children: [
-                  Expanded(child: ShimmerBox(height: 92, radius: 16)),
+                  Expanded(child: ShimmerBox(height: 78, radius: 16)),
                   SizedBox(width: 10),
-                  Expanded(child: ShimmerBox(height: 92, radius: 16)),
+                  Expanded(child: ShimmerBox(height: 78, radius: 16)),
                 ],
               ),
-              SizedBox(height: 16),
-              // Quick actions
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _QuickActionBone(),
-                  _QuickActionBone(),
-                  _QuickActionBone(),
-                  _QuickActionBone(),
-                ],
-              ),
+              SizedBox(height: 10),
+              ShimmerBox(width: double.infinity, height: 78, radius: 16),
               SizedBox(height: 20),
-              // Late minutes chart
+              ShimmerBox(width: 110, height: 14, radius: 6),
+              SizedBox(height: 10),
+              ShimmerBox(width: double.infinity, height: 78, radius: 18),
+              SizedBox(height: 24),
               ShimmerBox(width: double.infinity, height: 210, radius: 18),
               SizedBox(height: 14),
-              // Absent week-wise
               ShimmerBox(width: double.infinity, height: 180, radius: 18),
               SizedBox(height: 14),
-              // Recent activity
-              ShimmerBox(width: double.infinity, height: 150, radius: 18),
+              ShimmerBox(width: double.infinity, height: 156, radius: 18),
               SizedBox(height: 14),
-              // Updates
               ShimmerBox(width: double.infinity, height: 140, radius: 18),
             ],
           ),
@@ -256,39 +222,52 @@ class DashboardShimmer extends StatelessWidget {
   }
 }
 
-class _QuickActionBone extends StatelessWidget {
-  const _QuickActionBone();
+/// Lower home sections shimmer (kept header/profile/banner during refresh).
+class DashboardContentShimmer extends StatelessWidget {
+  const DashboardContentShimmer({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      children: [
-        ShimmerBox(width: 56, height: 56, radius: 16),
-        SizedBox(height: 8),
-        ShimmerBox(width: 48, height: 10, radius: 5),
-      ],
-    );
-  }
-}
-
-class _ShimmerSurfaceCard extends StatelessWidget {
-  const _ShimmerSurfaceCard({required this.height, required this.child});
-
-  final double height;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: height,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: PortalColors.border),
+    return const Shimmer(
+      baseColor: Color(0xFFE4E1EF),
+      highlightColor: Color(0xFFF8F7FC),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(child: ShimmerBox(height: 78, radius: 16)),
+                SizedBox(width: 10),
+                Expanded(child: ShimmerBox(height: 78, radius: 16)),
+              ],
+            ),
+            SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: ShimmerBox(height: 78, radius: 16)),
+                SizedBox(width: 10),
+                Expanded(child: ShimmerBox(height: 78, radius: 16)),
+              ],
+            ),
+            SizedBox(height: 10),
+            ShimmerBox(width: double.infinity, height: 78, radius: 16),
+            SizedBox(height: 20),
+            ShimmerBox(width: 110, height: 14, radius: 6),
+            SizedBox(height: 10),
+            ShimmerBox(width: double.infinity, height: 78, radius: 18),
+            SizedBox(height: 24),
+            ShimmerBox(width: double.infinity, height: 210, radius: 18),
+            SizedBox(height: 14),
+            ShimmerBox(width: double.infinity, height: 180, radius: 18),
+            SizedBox(height: 14),
+            ShimmerBox(width: double.infinity, height: 156, radius: 18),
+            SizedBox(height: 14),
+            ShimmerBox(width: double.infinity, height: 140, radius: 18),
+          ],
+        ),
       ),
-      child: child,
     );
   }
 }
@@ -786,65 +765,74 @@ class PayslipsShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SingleChildScrollView(
-      physics: NeverScrollableScrollPhysics(),
+    const hPad = 18.0;
+    const gap = 10.0;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardWidth = (screenWidth - (hPad * 2) - (gap * 2)) / 3;
+
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
       child: Shimmer(
-        baseColor: Color(0xFFE4E1EF),
-        highlightColor: Color(0xFFF8F7FC),
+        baseColor: const Color(0xFFE4E1EF),
+        highlightColor: const Color(0xFFF8F7FC),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
+            const Padding(
               padding: EdgeInsets.fromLTRB(18, 16, 18, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(child: ShimmerBox(width: 100, height: 16, radius: 6)),
-                      ShimmerBox(width: 120, height: 30, radius: 11),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  ShimmerBox(width: 220, height: 10, radius: 5),
-                ],
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: ShimmerBox(width: 120, height: 30, radius: 11),
               ),
             ),
-            SizedBox(height: 14),
+            const SizedBox(height: 14),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              physics: NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(horizontal: 18),
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: hPad),
               child: Row(
                 children: [
-                  _PayslipStatBone(),
-                  SizedBox(width: 10),
-                  _PayslipStatBone(),
-                  SizedBox(width: 10),
-                  _PayslipStatBone(),
-                  SizedBox(width: 10),
-                  _PayslipStatBone(),
+                  for (var i = 0; i < 4; i++) ...[
+                    if (i > 0) const SizedBox(width: gap),
+                    _PayslipStatBone(width: cardWidth),
+                  ],
                 ],
               ),
             ),
-            Padding(
+            const Padding(
               padding: EdgeInsets.fromLTRB(18, 14, 18, 0),
               child: _PayslipFiltersBone(),
             ),
-            Padding(
+            const Padding(
               padding: EdgeInsets.fromLTRB(18, 18, 18, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  ShimmerBox(width: 120, height: 13, radius: 5),
-                  SizedBox(height: 6),
-                  ShimmerBox(width: 200, height: 10, radius: 5),
+                  ShimmerBox(width: 32, height: 32, radius: 10),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ShimmerBox(width: 120, height: 13, radius: 5),
+                        SizedBox(height: 6),
+                        ShimmerBox(width: 200, height: 10, radius: 5),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(18, 14, 18, 28),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(18, 14, 18, 0),
               child: _PayslipRecordBone(),
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(18, 14, 18, 28),
+              child: ShimmerBox(
+                width: double.infinity,
+                height: 64,
+                radius: 18,
+              ),
             ),
           ],
         ),
@@ -853,13 +841,31 @@ class PayslipsShimmer extends StatelessWidget {
   }
 }
 
+class PayslipRecordsShimmer extends StatelessWidget {
+  const PayslipRecordsShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Shimmer(
+      baseColor: Color(0xFFE4E1EF),
+      highlightColor: Color(0xFFF8F7FC),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(18, 14, 18, 0),
+        child: _PayslipRecordBone(),
+      ),
+    );
+  }
+}
+
 class _PayslipStatBone extends StatelessWidget {
-  const _PayslipStatBone();
+  const _PayslipStatBone({required this.width});
+
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 128,
+      width: width,
       padding: const EdgeInsets.fromLTRB(13, 13, 10, 12),
       decoration: BoxDecoration(
         color: PortalColors.surface,
@@ -905,14 +911,18 @@ class _PayslipFiltersBone extends StatelessWidget {
               ShimmerBox(width: 58, height: 11, radius: 5),
             ],
           ),
-          SizedBox(height: 14),
+          SizedBox(height: 12),
+          ShimmerBox(width: 48, height: 9, radius: 4),
+          SizedBox(height: 6),
           ShimmerBox(width: double.infinity, height: 42, radius: 11),
           SizedBox(height: 12),
+          ShimmerBox(width: 48, height: 9, radius: 4),
+          SizedBox(height: 6),
           ShimmerBox(width: double.infinity, height: 42, radius: 11),
           SizedBox(height: 12),
           ShimmerBox(width: double.infinity, height: 40, radius: 11),
           SizedBox(height: 12),
-          ShimmerBox(width: 140, height: 11, radius: 5),
+          ShimmerBox(width: 160, height: 11, radius: 5),
         ],
       ),
     );
@@ -935,27 +945,39 @@ class _PayslipRecordBone extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ShimmerBox(width: 110, height: 14, radius: 5),
-          SizedBox(height: 6),
-          ShimmerBox(width: 160, height: 9, radius: 4),
-          SizedBox(height: 14),
           Row(
             children: [
-              Expanded(child: ShimmerBox(height: 48, radius: 11)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerBox(width: 110, height: 14, radius: 5),
+                    SizedBox(height: 6),
+                    ShimmerBox(width: 160, height: 9, radius: 4),
+                  ],
+                ),
+              ),
+              ShimmerBox(width: 72, height: 22, radius: 999),
+            ],
+          ),
+          SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: ShimmerBox(height: 62, radius: 12)),
               SizedBox(width: 8),
-              Expanded(child: ShimmerBox(height: 48, radius: 11)),
+              Expanded(child: ShimmerBox(height: 62, radius: 12)),
               SizedBox(width: 8),
-              Expanded(child: ShimmerBox(height: 48, radius: 11)),
+              Expanded(child: ShimmerBox(height: 62, radius: 12)),
             ],
           ),
           SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: ShimmerBox(height: 48, radius: 11)),
+              Expanded(child: ShimmerBox(height: 62, radius: 12)),
               SizedBox(width: 8),
-              Expanded(child: ShimmerBox(height: 48, radius: 11)),
+              Expanded(child: ShimmerBox(height: 62, radius: 12)),
               SizedBox(width: 8),
-              Expanded(child: ShimmerBox(height: 48, radius: 11)),
+              Expanded(child: ShimmerBox(height: 62, radius: 12)),
             ],
           ),
           SizedBox(height: 14),
@@ -1033,6 +1055,290 @@ class VisitsShimmer extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Flipkart-style shimmer for My Issues screen.
+class IssuesShimmer extends StatelessWidget {
+  const IssuesShimmer({super.key});
+
+  static const _base = Color(0xFFE6E6E6);
+  static const _highlight = Color(0xFFF7F7F7);
+  static const _bone = Color(0xFFE6E6E6);
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: PortalColors.background,
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Shimmer(
+          baseColor: _base,
+          highlightColor: _highlight,
+          duration: const Duration(milliseconds: 1100),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Search
+                _fkBox(height: 48, radius: 12),
+                const SizedBox(height: 14),
+                // Stats — 3 visible like screen
+                const Row(
+                  children: [
+                    Expanded(child: _FkStatBone()),
+                    SizedBox(width: 8),
+                    Expanded(child: _FkStatBone()),
+                    SizedBox(width: 8),
+                    Expanded(child: _FkStatBone()),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                // Raise banner block
+                _fkBox(height: 128, radius: 16),
+                const SizedBox(height: 14),
+                // Filters block
+                const _FkFiltersBone(),
+                const SizedBox(height: 18),
+                // Issues list title
+                Row(
+                  children: [
+                    _fkBox(width: 26, height: 26, radius: 8),
+                    const SizedBox(width: 8),
+                    _fkBox(width: 100, height: 13, radius: 6),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const _FkIssueCardBone(),
+                const SizedBox(height: 10),
+                const _FkIssueCardBone(),
+                const SizedBox(height: 10),
+                const _FkIssueCardBone(),
+                const SizedBox(height: 10),
+                const _FkIssueCardBone(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _fkBox({
+    double? width,
+    required double height,
+    double radius = 8,
+  }) {
+    return Container(
+      width: width ?? double.infinity,
+      height: height,
+      decoration: BoxDecoration(
+        color: _bone,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+  }
+}
+
+class _FkStatBone extends StatelessWidget {
+  const _FkStatBone();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6E6E6),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD9D9D9),
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: 42,
+            height: 8,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD9D9D9),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: 30,
+            height: 14,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD9D9D9),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 5),
+          Container(
+            width: 56,
+            height: 7,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD9D9D9),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FkFiltersBone extends StatelessWidget {
+  const _FkFiltersBone();
+
+  @override
+  Widget build(BuildContext context) {
+    Widget line({double? width, required double height, double radius = 6}) {
+      return Container(
+        width: width ?? double.infinity,
+        height: height,
+        decoration: BoxDecoration(
+          color: const Color(0xFFD9D9D9),
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6E6E6),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              line(width: 28, height: 28, radius: 8),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    line(width: 64, height: 11),
+                    const SizedBox(height: 6),
+                    line(width: 140, height: 8),
+                  ],
+                ),
+              ),
+              line(width: 40, height: 10),
+            ],
+          ),
+          const SizedBox(height: 14),
+          line(width: 52, height: 8),
+          const SizedBox(height: 6),
+          line(height: 40, radius: 10),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    line(width: 44, height: 8),
+                    const SizedBox(height: 6),
+                    line(height: 40, radius: 10),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    line(width: 36, height: 8),
+                    const SizedBox(height: 6),
+                    line(height: 40, radius: 10),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FkIssueCardBone extends StatelessWidget {
+  const _FkIssueCardBone();
+
+  @override
+  Widget build(BuildContext context) {
+    Widget line({double? width, required double height, double radius = 6}) {
+      return Container(
+        width: width ?? double.infinity,
+        height: height,
+        decoration: BoxDecoration(
+          color: const Color(0xFFD9D9D9),
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 12, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6E6E6),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: line(height: 13)),
+              const SizedBox(width: 10),
+              line(width: 28, height: 28, radius: 8),
+              const SizedBox(width: 4),
+              line(width: 28, height: 28, radius: 8),
+              const SizedBox(width: 4),
+              line(width: 28, height: 28, radius: 8),
+            ],
+          ),
+          const SizedBox(height: 10),
+          line(height: 9),
+          const SizedBox(height: 6),
+          line(width: 170, height: 9),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              line(width: 56, height: 18, radius: 999),
+              const SizedBox(width: 6),
+              line(width: 50, height: 18, radius: 999),
+              const SizedBox(width: 6),
+              line(width: 60, height: 18, radius: 999),
+            ],
+          ),
+          const SizedBox(height: 12),
+          line(height: 1, radius: 1),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              line(width: 70, height: 9),
+              const Spacer(),
+              line(width: 88, height: 9),
+            ],
+          ),
+        ],
       ),
     );
   }

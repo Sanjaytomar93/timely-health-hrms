@@ -92,6 +92,14 @@ class DashboardUiMapper {
           subtitle: 'of $workingDays days',
           iconAsset: 'assets/icons/stat_cards/ic_stat_attendance.svg',
         ),
+        StatCardData(
+          title: 'Leaves',
+          value: '${data.leaves.length}',
+          subtitle: data.leaves.length == 1
+              ? 'request this month'
+              : 'requests this month',
+          iconAsset: 'assets/icons/stat_cards/ic_stat_leave.svg',
+        ),
       ],
       lateMinutes: _fiveWeeks(data.lateGraph),
       absentDays: _absentUi(data),

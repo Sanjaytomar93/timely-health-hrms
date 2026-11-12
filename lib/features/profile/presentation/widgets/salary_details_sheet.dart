@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
+import 'package:timelay_health/core/widgets/portal_back_button.dart';
+import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
+import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
 import 'package:timelay_health/features/payslips/presentation/models/payslip_ui_model.dart';
 import 'package:timelay_health/features/payslips/presentation/utils/payslip_pdf.dart';
 
@@ -8,10 +12,10 @@ Future<void> showSalaryDetailsSheet(
   BuildContext context, {
   required PayslipUiModel payslip,
 }) {
-  return showDialog<void>(
-    context: context,
-    barrierColor: Colors.black.withValues(alpha: 0.45),
-    builder: (context) => SalaryDetailsSheet(payslip: payslip),
+  return Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => SalaryDetailsSheet(payslip: payslip),
+    ),
   );
 }
 
@@ -22,95 +26,88 @@ class SalaryDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-    final dialogWidth = (size.width - 32).clamp(300.0, 400.0);
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: Container(
-        width: dialogWidth,
-        decoration: BoxDecoration(
-          color: PortalColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.14),
-              blurRadius: 28,
-              offset: const Offset(0, 14),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
+    return Scaffold(
+      backgroundColor: PortalColors.background,
+      body: PortalSafeArea(
+        bottom: false,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            _Header(payslip: payslip),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            _AppBar(payslip: payslip),
+            Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  _EmployeeStrip(payslip: payslip),
+                  const SizedBox(height: 12),
                   _NetPayBanner(payslip: payslip),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
                   if (payslip.pairs.isNotEmpty)
                     _CompactPairs(pairs: payslip.pairs)
                   else
                     _CompactStats(rows: payslip.detailRows),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   _MetaStrip(
                     leaves: payslip.approvedLeaves,
                     monthMeta: payslip.monthMeta,
                   ),
                   if (payslip.weeks.isNotEmpty) ...[
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     _WeekChips(weeks: payslip.weeks),
                   ],
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   _CompOffStrip(
                     taken: payslip.compOffTaken,
                     used: payslip.compOffUsed,
                     balance: payslip.compOffBalance,
                   ),
                   if (!payslip.canDownload) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Payslip opens after the 26th. Earlier months anytime.',
-                      textAlign: TextAlign.center,
-                      style: portalText(
-                        fontSize: 10,
-                        color: PortalColors.muted,
-                        height: 1.3,
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: PortalColors.orangeTint,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Payslip opens after the 26th. Earlier months anytime.',
+                        textAlign: TextAlign.center,
+                        style: portalText(
+                          fontSize: 11,
+                          color: PortalColors.secondaryText,
+                          height: 1.35,
+                        ),
                       ),
                     ),
                   ],
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SheetBtn(
-                          label: 'Close',
-                          onTap: () => Navigator.of(context).pop(),
-                          outlined: true,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 3,
-                        child: _SheetBtn(
-                          label: 'Download Payslip',
-                          onTap: payslip.canDownload
-                              ? () =>
-                                    downloadOfficialPayslip(context, payslip)
-                              : null,
-                          enabled: payslip.canDownload,
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
+          ),
+          Container(
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomInset),
+            decoration: BoxDecoration(
+              color: PortalColors.surface,
+              border: Border(
+                top: BorderSide(
+                  color: PortalColors.border.withValues(alpha: 0.9),
+                ),
+              ),
+            ),
+            child: _SheetBtn(
+              label: 'Download Payslip',
+              onTap: payslip.canDownload
+                  ? () => downloadOfficialPayslip(context, payslip)
+                  : null,
+              enabled: payslip.canDownload,
+            ),
+          ),
           ],
         ),
       ),
@@ -118,44 +115,99 @@ class SalaryDetailsSheet extends StatelessWidget {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.payslip});
+class _AppBar extends StatelessWidget {
+  const _AppBar({required this.payslip});
 
   final PayslipUiModel payslip;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: PortalColors.brandGradient,
-        ),
+      color: PortalColors.surface,
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+      child: Row(
+        children: [
+          const PortalBackButton(),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Salary Details',
+                  style: portalText(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: PortalColors.heading,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  payslip.monthLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 11,
+                    color: PortalColors.muted,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const TopNotificationButton(
+            asset: 'assets/icons/payslips/ic_notification.svg',
+          ),
+          const SizedBox(width: 14),
+          const TopCalendarButton(
+            asset: 'assets/icons/payslips/ic_notification_cal.svg',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmployeeStrip extends StatelessWidget {
+  const _EmployeeStrip({required this.payslip});
+
+  final PayslipUiModel payslip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PortalColors.border),
       ),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: PortalColors.brandGradient,
+              ),
             ),
             alignment: Alignment.center,
             child: Text(
               payslip.initials,
               style: portalText(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,44 +217,24 @@ class _Header extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: portalText(
-                    fontSize: 14,
+                    fontSize: 14.5,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: PortalColors.heading,
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
-                  '${payslip.employeeCode}  ·  ${payslip.monthLabel}',
+                  '${payslip.employeeCode} · ${payslip.designation}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: portalText(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.78),
+                    fontSize: 11.5,
+                    color: PortalColors.muted,
                     height: 1.2,
-                  ),
-                ),
-                Text(
-                  '${payslip.department}  ·  ${payslip.designation}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: portalText(
-                    fontSize: 10,
-                    color: Colors.white.withValues(alpha: 0.62),
-                    height: 1.25,
                   ),
                 ),
               ],
-            ),
-          ),
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            visualDensity: VisualDensity.compact,
-            icon: Icon(
-              Icons.close_rounded,
-              size: 20,
-              color: Colors.white.withValues(alpha: 0.9),
             ),
           ),
         ],
@@ -220,80 +252,118 @@ class _NetPayBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final finalPay = payslip.finalPayLabel;
     final isZero = finalPay == '₹0' || finalPay == '₹0.00';
+    final amount = finalPay == '₹0' ? payslip.calculatedLabel : finalPay;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       decoration: BoxDecoration(
-        color: PortalColors.background,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: PortalColors.border),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: PortalColors.brandGradient,
+        ),
+        borderRadius: BorderRadius.circular(18),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Net / Final Pay',
-                  style: portalText(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: PortalColors.muted,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  finalPay == '₹0' ? payslip.calculatedLabel : finalPay,
-                  style: portalText(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: isZero ? PortalColors.red : PortalColors.heading,
-                    height: 1.15,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Row(
             children: [
               Text(
-                payslip.salaryLabel,
+                'Net / Final Pay',
                 style: portalText(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF3D7AFE),
-                  height: 1.2,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: 0.72),
                 ),
               ),
-              Text(
-                payslip.dailyRateLabel,
-                style: portalText(
-                  fontSize: 10,
-                  color: PortalColors.muted,
-                  height: 1.25,
-                ),
-              ),
+              const Spacer(),
               Container(
-                margin: const EdgeInsets.only(top: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  color: payslip.statusBackground,
+                  color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   payslip.statusLabel,
                   style: portalText(
-                    fontSize: 9.5,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w700,
-                    color: payslip.statusColor,
+                    color: Colors.white,
                   ),
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            amount,
+            style: portalText(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: isZero ? PortalColors.redSoft : Colors.white,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _PayMeta(
+                  label: 'Gross',
+                  value: payslip.salaryLabel,
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 28,
+                color: Colors.white.withValues(alpha: 0.18),
+              ),
+              Expanded(
+                child: _PayMeta(
+                  label: 'Daily Rate',
+                  value: payslip.dailyRateLabel,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PayMeta extends StatelessWidget {
+  const _PayMeta({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: portalText(
+              fontSize: 10.5,
+              color: Colors.white.withValues(alpha: 0.65),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: portalText(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
@@ -331,27 +401,28 @@ class _CompactPairs extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: PortalColors.surface,
-            borderRadius: BorderRadius.circular(14),
+            color: PortalColors.background,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: PortalColors.border),
           ),
           child: Column(
             children: [
-              for (var i = 0; i < tiles.length; i += 3)
+              for (var i = 0; i < tiles.length; i += 2)
                 Padding(
-                  padding: EdgeInsets.only(bottom: i + 3 < tiles.length ? 6 : 0),
+                  padding: EdgeInsets.only(bottom: i + 2 < tiles.length ? 8 : 0),
                   child: Row(
                     children: [
-                      for (var j = 0; j < 3; j++) ...[
-                        if (j > 0) const SizedBox(width: 6),
-                        Expanded(
-                          child: i + j < tiles.length
-                              ? _MiniTile(tiles[i + j])
-                              : const SizedBox.shrink(),
-                        ),
-                      ],
+                      Expanded(
+                        child: _MiniTile(tiles[i]),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: i + 1 < tiles.length
+                            ? _MiniTile(tiles[i + 1])
+                            : const SizedBox.shrink(),
+                      ),
                     ],
                   ),
                 ),
@@ -359,15 +430,15 @@ class _CompactPairs extends StatelessWidget {
           ),
         ),
         if (highlight != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: PortalColors.greenTint,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: PortalColors.green.withValues(alpha: 0.25),
+                color: PortalColors.green.withValues(alpha: 0.22),
               ),
             ),
             child: Row(
@@ -376,7 +447,7 @@ class _CompactPairs extends StatelessWidget {
                   child: Text(
                     highlight.leftLabel,
                     style: portalText(
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: PortalColors.heading,
                     ),
@@ -385,7 +456,7 @@ class _CompactPairs extends StatelessWidget {
                 Text(
                   highlight.leftValue,
                   style: portalText(
-                    fontSize: 14,
+                    fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: highlight.leftColor,
                   ),
@@ -413,34 +484,35 @@ class _MiniTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
-        color: PortalColors.background,
-        borderRadius: BorderRadius.circular(10),
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: PortalColors.border),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            data.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: portalText(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: PortalColors.muted,
+              height: 1.15,
+            ),
+          ),
+          const SizedBox(height: 4),
           Text(
             data.value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 12.5,
+              fontSize: 14,
               fontWeight: FontWeight.w800,
               color: data.color,
-              height: 1.15,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            data.label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: portalText(
-              fontSize: 8.5,
-              fontWeight: FontWeight.w600,
-              color: PortalColors.muted,
               height: 1.15,
             ),
           ),
@@ -459,39 +531,46 @@ class _CompactStats extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        color: PortalColors.background,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: PortalColors.border),
       ),
       child: Column(
         children: [
-          for (final row in rows)
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0)
+              Divider(
+                height: 1,
+                color: PortalColors.border.withValues(alpha: 0.8),
+              ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
-                      row.label,
+                      rows[i].label,
                       style: portalText(
-                        fontSize: 11,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: PortalColors.muted,
                       ),
                     ),
                   ),
                   Text(
-                    row.value,
+                    rows[i].value,
                     style: portalText(
-                      fontSize: 11.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: row.valueColor,
+                      color: rows[i].valueColor,
                     ),
                   ),
                 ],
               ),
             ),
+          ],
         ],
       ),
     );
@@ -516,7 +595,7 @@ class _MetaStrip extends StatelessWidget {
             valueColor: noLeaves ? PortalColors.muted : PortalColors.red,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Expanded(
           child: _InfoChip(
             label: 'Period',
@@ -543,10 +622,10 @@ class _InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: PortalColors.background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PortalColors.border),
       ),
       child: Column(
@@ -555,18 +634,18 @@ class _InfoChip extends StatelessWidget {
           Text(
             label,
             style: portalText(
-              fontSize: 9.5,
+              fontSize: 10.5,
               fontWeight: FontWeight.w600,
               color: PortalColors.muted,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 11.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: valueColor,
             ),
@@ -586,10 +665,10 @@ class _WeekChips extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
       decoration: BoxDecoration(
         color: PortalColors.background,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: PortalColors.border),
       ),
       child: Column(
@@ -598,14 +677,14 @@ class _WeekChips extends StatelessWidget {
           Text(
             'Weekly Attendance',
             style: portalText(
-              fontSize: 11,
+              fontSize: 12.5,
               fontWeight: FontWeight.w700,
               color: PortalColors.heading,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           for (var i = 0; i < weeks.length; i++) ...[
-            if (i > 0) const SizedBox(height: 4),
+            if (i > 0) const SizedBox(height: 6),
             _WeekRow(week: weeks[i]),
           ],
         ],
@@ -622,20 +701,20 @@ class _WeekRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: PortalColors.border),
       ),
       child: Row(
         children: [
           SizedBox(
-            width: 42,
+            width: 36,
             child: Text(
               week.title.replaceAll('Week ', 'W'),
               style: portalText(
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: FontWeight.w800,
                 color: PortalColors.heading,
               ),
@@ -647,7 +726,7 @@ class _WeekRow extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: portalText(
-                fontSize: 10.5,
+                fontSize: 11.5,
                 fontWeight: FontWeight.w600,
                 color: PortalColors.secondaryText,
               ),
@@ -657,14 +736,14 @@ class _WeekRow extends StatelessWidget {
           Text(
             week.total.replaceAll('Total: ', ''),
             style: portalText(
-              fontSize: 10.5,
+              fontSize: 11.5,
               fontWeight: FontWeight.w700,
               color: PortalColors.heading,
             ),
           ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: week.eligible
                   ? PortalColors.greenTint
@@ -674,7 +753,7 @@ class _WeekRow extends StatelessWidget {
             child: Text(
               week.weekOffLabel,
               style: portalText(
-                fontSize: 9.5,
+                fontSize: 10,
                 fontWeight: FontWeight.w800,
                 color: week.eligible ? PortalColors.green : PortalColors.red,
               ),
@@ -701,10 +780,10 @@ class _CompOffStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
-        color: PortalColors.purpleTint,
-        borderRadius: BorderRadius.circular(14),
+        color: PortalColors.brandTint,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
@@ -753,13 +832,13 @@ class _CompCell extends StatelessWidget {
         children: [
           Text(
             label,
-            style: portalText(fontSize: 9, color: PortalColors.muted),
+            style: portalText(fontSize: 10, color: PortalColors.muted),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
           Text(
             value,
             style: portalText(
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: FontWeight.w800,
               color: color,
               height: 1.1,
@@ -787,32 +866,37 @@ class _SheetBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = enabled && onTap != null;
-    return GestureDetector(
-      onTap: active ? onTap : null,
-      child: Container(
-        height: 38,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: outlined
-              ? Colors.transparent
-              : active
-              ? PortalColors.brand
-              : const Color(0xFFE4E4E4),
-          borderRadius: BorderRadius.circular(12),
-          border: outlined
-              ? Border.all(color: PortalColors.border, width: 1)
-              : null,
-        ),
-        child: Text(
-          label,
-          style: portalText(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: active ? onTap : null,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          height: 46,
+          decoration: BoxDecoration(
             color: outlined
-                ? PortalColors.heading
+                ? PortalColors.surface
                 : active
-                ? Colors.white
-                : const Color(0xFF9A9A9A),
+                ? PortalColors.brand
+                : const Color(0xFFE8E8EE),
+            borderRadius: BorderRadius.circular(14),
+            border: outlined
+                ? Border.all(color: PortalColors.border, width: 1.2)
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: portalText(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: outlined
+                    ? PortalColors.heading
+                    : active
+                    ? Colors.white
+                    : const Color(0xFF9A9A9A),
+              ),
+            ),
           ),
         ),
       ),

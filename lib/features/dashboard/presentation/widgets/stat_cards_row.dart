@@ -33,6 +33,12 @@ class StatCardsRow extends StatelessWidget {
       subtitle: 'of 0 days',
       iconAsset: 'assets/icons/stat_cards/ic_stat_attendance.svg',
     ),
+    StatCardData(
+      title: 'Leaves',
+      value: '0',
+      subtitle: 'requests this month',
+      iconAsset: 'assets/icons/stat_cards/ic_stat_leave.svg',
+    ),
   ];
 
   @override
@@ -41,28 +47,34 @@ class StatCardsRow extends StatelessWidget {
     final rows = <Widget>[];
     for (var i = 0; i < items.length; i += 2) {
       if (i > 0) rows.add(const SizedBox(height: 10));
+      final hasPair = i + 1 < items.length;
+      final first = items[i];
       rows.add(
         IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: _CompactStatCard(
-                  data: items[i],
+          child: hasPair
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _CompactStatCard(
+                        data: first,
+                        valueColor: _valueColors[i % _valueColors.length],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _CompactStatCard(
+                        data: items[i + 1],
+                        valueColor:
+                            _valueColors[(i + 1) % _valueColors.length],
+                      ),
+                    ),
+                  ],
+                )
+              : _CompactStatCard(
+                  data: first,
                   valueColor: _valueColors[i % _valueColors.length],
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: i + 1 < items.length
-                    ? _CompactStatCard(
-                        data: items[i + 1],
-                        valueColor: _valueColors[(i + 1) % _valueColors.length],
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
-          ),
         ),
       );
     }
@@ -78,6 +90,7 @@ class StatCardsRow extends StatelessWidget {
     PortalColors.red,
     PortalColors.orange,
     PortalColors.brand,
+    PortalColors.brandLight,
   ];
 }
 

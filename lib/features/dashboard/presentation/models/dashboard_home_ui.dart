@@ -220,6 +220,12 @@ class DashboardHomeUi extends Equatable {
           subtitle: 'of 0 days',
           iconAsset: 'assets/icons/stat_cards/ic_stat_attendance.svg',
         ),
+        StatCardData(
+          title: 'Leaves',
+          value: '0',
+          subtitle: 'requests this month',
+          iconAsset: 'assets/icons/stat_cards/ic_stat_leave.svg',
+        ),
       ],
       lateMinutes: const [0, 0, 0, 0, 0],
       absentDays: DashboardAbsentUi.empty,

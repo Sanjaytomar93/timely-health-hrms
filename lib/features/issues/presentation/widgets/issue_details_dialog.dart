@@ -236,6 +236,7 @@ class _IssueDetailsDialog extends StatelessWidget {
   Widget _priorityField(String priority) {
     final key = priority.toLowerCase();
     final colors = switch (key) {
+      'critical' => (const Color(0xFFFDECEC), const Color(0xFFB71C1C)),
       'high' => (const Color(0xFFFDECEC), const Color(0xFFE53935)),
       'medium' => (const Color(0xFFFEF4E3), const Color(0xFFF0A72E)),
       'low' => (PortalColors.greenTint, PortalColors.green),

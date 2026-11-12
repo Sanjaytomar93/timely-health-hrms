@@ -44,6 +44,8 @@ class _PayslipsView extends StatelessWidget {
                 builder: (context, state) {
                   final loading =
                       state is PayslipsLoading && state.payslip == null;
+                  final refreshing =
+                      state is PayslipsLoading && state.payslip != null;
 
                   if (loading) {
                     return const PayslipsShimmer();
@@ -83,22 +85,14 @@ class _PayslipsView extends StatelessWidget {
                           monthLabel: payslip.monthFilterLabel,
                           showingCount: showRecord ? 1 : 0,
                           totalCount: state.payslip == null ? 0 : 1,
+                          isRefreshing: refreshing,
                         ),
                         const _RecordsHeader(),
-                        if (showRecord)
-                          _SalaryRecordCard(payslip: payslip)
-                        else if (state.payslip != null)
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(18, 24, 18, 0),
-                            child: Text(
-                              'No records match your search.',
-                              textAlign: TextAlign.center,
-                              style: portalText(
-                                fontSize: 12,
-                                color: PortalColors.muted,
-                              ),
-                            ),
-                          ),
+                        if (refreshing)
+                          const PayslipRecordsShimmer()
+                        else if (showRecord)
+                          _SalaryRecordCard(payslip: payslip),
+                        const _NoMoreRecordsCard(),
                       ],
                     ),
                   );
@@ -125,15 +119,31 @@ class _PayslipsAppBar extends StatelessWidget {
           const PortalBackButton(),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              'Payslips',
-              style: portalText(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: PortalColors.heading,
-                letterSpacing: 0.2,
-                height: 1.2,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Payslips',
+                  style: portalText(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: PortalColors.heading,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'View monthly salary summary and download payslips.',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 11,
+                    color: PortalColors.muted,
+                    height: 1.2,
+                  ),
+                ),
+              ],
             ),
           ),
           const TopNotificationButton(
@@ -162,60 +172,38 @@ class _SalaryHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'My Salary',
-                  style: portalText(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: PortalColors.heading,
-                    height: 1.2,
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 13,
+                vertical: 7,
+              ),
+              decoration: BoxDecoration(
+                color: PortalColors.surface,
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(color: PortalColors.border),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/payslips/ic_calendar_chip.svg',
+                    width: 13,
+                    height: 13,
                   ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 13,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: PortalColors.surface,
-                  borderRadius: BorderRadius.circular(11),
-                  border: Border.all(color: PortalColors.border),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/payslips/ic_calendar_chip.svg',
-                      width: 13,
-                      height: 13,
+                  const SizedBox(width: 6),
+                  Text(
+                    dateLabel,
+                    style: portalText(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: PortalColors.heading,
+                      height: 1.2,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      dateLabel,
-                      style: portalText(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: PortalColors.heading,
-                        height: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'View monthly salary summary and download payslips.',
-            style: portalText(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w400,
-              color: PortalColors.muted,
-              height: 1.25,
             ),
           ),
         ],
@@ -258,17 +246,22 @@ class _PayslipStatsRow extends StatelessWidget {
       ),
     ];
 
+    const hPad = 18.0;
+    const gap = 10.0;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardWidth = (screenWidth - (hPad * 2) - (gap * 2)) / 3;
+
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
+        padding: const EdgeInsets.symmetric(horizontal: hPad),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (var i = 0; i < items.length; i++) ...[
-              if (i > 0) const SizedBox(width: 10),
-              _StatCard(item: items[i]),
+              if (i > 0) const SizedBox(width: gap),
+              _StatCard(item: items[i], width: cardWidth),
             ],
           ],
         ),
@@ -286,13 +279,14 @@ class _Stat {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.item});
+  const _StatCard({required this.item, required this.width});
   final _Stat item;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 128,
+      width: width,
       padding: const EdgeInsets.fromLTRB(13, 13, 10, 12),
       decoration: BoxDecoration(
         color: PortalColors.surface,
@@ -345,11 +339,13 @@ class _PayslipFiltersCard extends StatefulWidget {
     required this.monthLabel,
     required this.showingCount,
     required this.totalCount,
+    this.isRefreshing = false,
   });
 
   final String monthLabel;
   final int showingCount;
   final int totalCount;
+  final bool isRefreshing;
 
   @override
   State<_PayslipFiltersCard> createState() => _PayslipFiltersCardState();
@@ -401,20 +397,33 @@ class _PayslipFiltersCardState extends State<_PayslipFiltersCard> {
               ),
               const Spacer(),
               GestureDetector(
-                onTap: () =>
-                    context.read<PayslipsCubit>().load(keepExisting: true),
+                onTap: widget.isRefreshing
+                    ? null
+                    : () => context
+                        .read<PayslipsCubit>()
+                        .load(keepExisting: true),
                 behavior: HitTestBehavior.opaque,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SvgPicture.asset(
-                      'assets/icons/payslips/ic_refresh.svg',
-                      width: 12,
-                      height: 12,
-                    ),
+                    if (widget.isRefreshing)
+                      const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.8,
+                          color: Color(0xFF3B6FE0),
+                        ),
+                      )
+                    else
+                      SvgPicture.asset(
+                        'assets/icons/payslips/ic_refresh.svg',
+                        width: 12,
+                        height: 12,
+                      ),
                     const SizedBox(width: 4),
                     Text(
-                      'Refresh',
+                      widget.isRefreshing ? 'Refreshing' : 'Refresh',
                       style: portalText(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -567,6 +576,127 @@ class _PayslipFiltersCardState extends State<_PayslipFiltersCard> {
   }
 }
 
+class _NoMoreRecordsCard extends StatelessWidget {
+  const _NoMoreRecordsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            color: PortalColors.brandTint,
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -8,
+                top: -12,
+                bottom: -12,
+                width: 120,
+                child: CustomPaint(painter: _WavePainter()),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 100, 16),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.trending_up_rounded,
+                      size: 26,
+                      color: PortalColors.brand,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'No more records',
+                            style: portalText(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: PortalColors.brand,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            'Your salary records will appear here',
+                            style: portalText(
+                              fontSize: 11.5,
+                              color: PortalColors.brandLight,
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WavePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final soft = Paint()
+      ..color = PortalColors.brand.withValues(alpha: 0.08);
+    final mid = Paint()
+      ..color = PortalColors.brand.withValues(alpha: 0.12);
+
+    final path1 = Path()
+      ..moveTo(size.width * 0.35, 0)
+      ..quadraticBezierTo(
+        size.width * 0.15,
+        size.height * 0.35,
+        size.width * 0.45,
+        size.height * 0.55,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.75,
+        size.height * 0.78,
+        size.width * 0.4,
+        size.height,
+      )
+      ..lineTo(size.width, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+
+    final path2 = Path()
+      ..moveTo(size.width * 0.55, 0)
+      ..quadraticBezierTo(
+        size.width * 0.35,
+        size.height * 0.4,
+        size.width * 0.62,
+        size.height * 0.62,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.9,
+        size.height * 0.82,
+        size.width * 0.55,
+        size.height,
+      )
+      ..lineTo(size.width, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+
+    canvas.drawPath(path1, soft);
+    canvas.drawPath(path2, mid);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 class _RecordsHeader extends StatelessWidget {
   const _RecordsHeader();
 
@@ -574,26 +704,51 @@ class _RecordsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          Text(
-            'Salary Records',
-            style: portalText(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w700,
-              color: PortalColors.heading,
-              height: 1.2,
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: PortalColors.brandTint,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            alignment: Alignment.center,
+            child: SvgPicture.asset(
+              'assets/icons/payslips/ic_records.svg',
+              width: 16,
+              height: 16,
+              colorFilter: const ColorFilter.mode(
+                PortalColors.brand,
+                BlendMode.srcIn,
+              ),
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            'Month-wise salary and payslip availability.',
-            style: portalText(
-              fontSize: 10.5,
-              color: PortalColors.muted,
-              height: 1.25,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Salary Records',
+                  style: portalText(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: PortalColors.heading,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Month-wise salary and payslip availability.',
+                  style: portalText(
+                    fontSize: 11,
+                    color: PortalColors.muted,
+                    height: 1.3,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -771,36 +926,51 @@ class _MetricTile extends StatelessWidget {
   final String value;
   final String label;
 
+  IconData get _icon {
+    final key = label.trim().toLowerCase();
+    if (key.contains('present')) return Icons.check_circle_outline_rounded;
+    if (key.contains('working')) return Icons.work_outline_rounded;
+    if (key.contains('half')) return Icons.access_time_rounded;
+    if (key.contains('earned') || key.contains('wo')) {
+      return Icons.event_busy_rounded;
+    }
+    if (key.contains('leave')) return Icons.beach_access_rounded;
+    if (key.contains('comp')) return Icons.swap_horiz_rounded;
+    return Icons.info_outline_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       decoration: BoxDecoration(
-        color: PortalColors.background,
-        borderRadius: BorderRadius.circular(11),
+        color: PortalColors.brandTint,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Icon(_icon, size: 18, color: PortalColors.brand),
+          const SizedBox(height: 6),
           Text(
             value,
             style: portalText(
               fontSize: 14,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: PortalColors.heading,
               height: 1.15,
             ),
           ),
           const SizedBox(height: 2),
           Text(
-            label.toUpperCase(),
+            label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
             style: portalText(
-              fontSize: 8.5,
-              fontWeight: FontWeight.w700,
-              color: PortalColors.muted,
-              letterSpacing: 0.3,
+              fontSize: 9.5,
+              fontWeight: FontWeight.w600,
+              color: PortalColors.brandLight,
               height: 1.15,
             ),
           ),
