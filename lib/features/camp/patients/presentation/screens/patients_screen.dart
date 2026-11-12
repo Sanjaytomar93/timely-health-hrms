@@ -8,6 +8,7 @@ import 'package:timelay_health/features/camp/patients/presentation/models/patien
 import 'package:timelay_health/features/camp/patients/presentation/screens/post_create_patient_screen.dart';
 import 'package:timelay_health/features/camp/patients/presentation/widgets/add_patient_sheet.dart';
 import 'package:timelay_health/features/camp/patients/presentation/widgets/delete_patient_dialog.dart';
+import 'package:timelay_health/features/camp/patients/presentation/widgets/edit_patient_vitals_sheet.dart';
 import 'package:timelay_health/features/camp/patients/presentation/widgets/patient_accordion_card.dart';
 import 'package:timelay_health/features/camp/patients/presentation/widgets/patients_empty_state.dart';
 import 'package:timelay_health/features/camp/patients/presentation/widgets/patients_filter_chips.dart';
@@ -15,6 +16,7 @@ import 'package:timelay_health/features/camp/patients/presentation/widgets/patie
 import 'package:timelay_health/features/camp/patients/presentation/widgets/patients_search_bar.dart';
 import 'package:timelay_health/features/camp/patients/presentation/widgets/patients_section_header.dart';
 import 'package:timelay_health/features/camp/patients/presentation/widgets/patients_stat_grid.dart';
+import 'package:timelay_health/features/camp/patients/presentation/screens/health_report_screen.dart';
 import 'package:timelay_health/features/camp/patients/presentation/widgets/share_report_sheet.dart';
 import 'package:timelay_health/features/camp/shared/camp_shimmer.dart';
 
@@ -78,6 +80,21 @@ class _PatientsViewState extends State<_PatientsView> {
     await openPostCreatePatientScreen(context, patient: created);
     if (!mounted) return;
     context.read<PatientsCubit>().load(keepExisting: true);
+  }
+
+  Future<void> _onEditPatient(PatientUi patient) async {
+    final updated = await showEditPatientVitalsSheet(
+      context,
+      patient: patient,
+    );
+    if (!updated || !mounted) return;
+    context.read<PatientsCubit>().load(keepExisting: true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${patient.name} vitals updated.'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Future<void> _onDeletePatient(PatientUi patient) async {
@@ -183,8 +200,11 @@ class _PatientsViewState extends State<_PatientsView> {
                             (context, i) => PatientAccordionCard(
                               patient: patients[i],
                               index: i,
-                              onView: () {},
-                              onEdit: () {},
+                              onView: () => openHealthReportById(
+                                context,
+                                patientId: patients[i].id,
+                              ),
+                              onEdit: () => _onEditPatient(patients[i]),
                               onDelete: () => _onDeletePatient(patients[i]),
                               onWhatsApp: () => showShareReportSheet(
                                 context,

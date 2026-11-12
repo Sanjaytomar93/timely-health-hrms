@@ -138,5 +138,5 @@ class _PulseWavePainter extends CustomPainter {
   bool shouldRepaint(covariant _PulseWavePainter oldDelegate) =>
       oldDelegate.color != color;
 }
-
 // ── Hero With Stats (Clean Wrapper) ─────────────────────────────────────────
+

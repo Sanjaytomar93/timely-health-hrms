@@ -105,7 +105,11 @@ class _CampDashboardViewState extends State<_CampDashboardView> {
                         }),
                       ),
                       if (data.distribution.isNotEmpty)
-                        CampDistributionCard(data: data),
+                        CampDistributionCard(
+                          data: data,
+                          from: _from,
+                          to: _to,
+                        ),
                       if (data.participation.isNotEmpty)
                         CampParticipationCard(items: data.participation),
                       if (data.bmi.isNotEmpty) CampBmiCard(items: data.bmi),

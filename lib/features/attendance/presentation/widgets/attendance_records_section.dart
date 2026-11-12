@@ -32,17 +32,21 @@ class AttendanceRecordsSection extends StatelessWidget {
   const AttendanceRecordsSection({
     super.key,
     required this.records,
+    this.filteredCount = 0,
+    this.hasMore = false,
     this.selectedOtIds = const {},
     this.onToggleOt,
   });
 
   final List<AttendanceRecordUiModel> records;
+  final int filteredCount;
+  final bool hasMore;
   final Set<String> selectedOtIds;
   final ValueChanged<String>? onToggleOt;
 
   @override
   Widget build(BuildContext context) {
-    final entries = _buildEntries(records);
+    final entries = _buildEntries(records, hasMore: hasMore);
 
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 22, 16, 24),
@@ -53,7 +57,7 @@ class AttendanceRecordsSection extends StatelessWidget {
           return switch (entry) {
             _HeaderEntry() => Padding(
               padding: const EdgeInsets.only(bottom: 14),
-              child: _SectionHeader(count: records.length),
+              child: _SectionHeader(count: filteredCount),
             ),
             _EmptyEntry() => const _EmptyRecords(),
             _MonthEntry(:final label, :final count) => Padding(
@@ -73,9 +77,22 @@ class AttendanceRecordsSection extends StatelessWidget {
                 ),
               ),
             ),
+            _LoadingMoreEntry() => const Padding(
+              padding: EdgeInsets.only(top: 8, bottom: 4),
+              child: Center(
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: PortalColors.brand,
+                  ),
+                ),
+              ),
+            ),
             _EndEntry() => Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: _EndOfList(count: records.length),
+              child: _EndOfList(count: filteredCount),
             ),
           };
         },
@@ -83,7 +100,10 @@ class AttendanceRecordsSection extends StatelessWidget {
     );
   }
 
-  static List<_Entry> _buildEntries(List<AttendanceRecordUiModel> list) {
+  static List<_Entry> _buildEntries(
+    List<AttendanceRecordUiModel> list, {
+    required bool hasMore,
+  }) {
     final entries = <_Entry>[const _HeaderEntry()];
     if (list.isEmpty) {
       entries.add(const _EmptyEntry());
@@ -105,7 +125,11 @@ class AttendanceRecordsSection extends StatelessWidget {
       }
       entries.add(_RecordEntry(record));
     }
-    entries.add(const _EndEntry());
+    if (hasMore) {
+      entries.add(const _LoadingMoreEntry());
+    } else {
+      entries.add(const _EndEntry());
+    }
     return entries;
   }
 
@@ -142,6 +166,10 @@ class _RecordEntry extends _Entry {
 
 class _EndEntry extends _Entry {
   const _EndEntry();
+}
+
+class _LoadingMoreEntry extends _Entry {
+  const _LoadingMoreEntry();
 }
 
 class _SectionHeader extends StatelessWidget {

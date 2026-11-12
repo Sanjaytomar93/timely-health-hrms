@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timelay_health/core/widgets/portal_back_button.dart';
+import 'package:timelay_health/features/camp/camps/data/repositories_impl/camp_repository_impl.dart';
+import 'package:timelay_health/features/camp/camps/domain/usecases/get_patient_by_id_usecase.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_ui_scope.dart';
 import 'package:timelay_health/features/camp/patients/data/repositories_impl/patient_repository_impl.dart';
@@ -10,6 +12,7 @@ import 'package:timelay_health/features/camp/patients/domain/usecases/update_pat
 import 'package:timelay_health/features/camp/patients/presentation/bloc/patient_detail_cubit.dart';
 import 'package:timelay_health/features/camp/patients/presentation/bloc/patient_detail_state.dart';
 import 'package:timelay_health/features/camp/patients/presentation/mappers/patient_detail_ui_mapper.dart';
+import 'package:timelay_health/features/camp/patients/presentation/utils/health_report_pdf.dart';
 import 'package:timelay_health/features/camp/patients/presentation/widgets/add_medical_test_sheet.dart';
 import 'package:timelay_health/features/camp/patients/presentation/widgets/patient_tokens.dart';
 import 'package:timelay_health/features/camp/shared/camp_shimmer.dart';
@@ -27,6 +30,7 @@ class PatientDetailArgs {
     this.registeredDate = '02/11/2026',
     this.reportPdfUrl,
     this.history = const [],
+    this.vitalTests = const [],
   });
 
   final String patientId;
@@ -40,6 +44,21 @@ class PatientDetailArgs {
   final MedicalTestResult test;
   final String? reportPdfUrl;
   final List<PatientHistoryUi> history;
+  final List<PatientVitalTest> vitalTests;
+}
+
+class PatientVitalTest {
+  const PatientVitalTest({
+    required this.id,
+    required this.type,
+    required this.unit,
+    this.date,
+  });
+
+  final String id;
+  final String type;
+  final String unit;
+  final DateTime? date;
 }
 
 Future<void> openPatientDetailScreen(
@@ -146,6 +165,7 @@ extension on PatientDetailArgs {
       test: test,
       reportPdfUrl: reportPdfUrl,
       history: history,
+      vitalTests: vitalTests,
     );
   }
 }
@@ -169,8 +189,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
   late TextEditingController _bpSys;
   late TextEditingController _bpDia;
   late List<_HistoryItem> _history;
-  late String _sugarType;
   bool _updatingVitals = false;
+  bool _downloading = false;
+  final _getPatient = GetPatientByIdUseCase(CampRepositoryImpl());
 
   @override
   void initState() {
@@ -181,7 +202,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     _sugar = TextEditingController(text: t.sugar);
     _bpSys = TextEditingController(text: t.bpSys);
     _bpDia = TextEditingController(text: t.bpDia);
-    _sugarType = t.sugarType;
     _history = widget.args.history.isNotEmpty
         ? [
             for (final h in widget.args.history)
@@ -302,15 +322,82 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     });
   }
 
-  String _sugarTypeLabel(String code) {
-    return switch (code.trim().toUpperCase()) {
-      'F' => 'Fasting',
-      'P' => 'PP',
-      _ => 'Random',
-    };
+  Future<void> _downloadReport() async {
+    if (_downloading) return;
+    final id = widget.args.patientId.trim();
+    final messenger = ScaffoldMessenger.of(context);
+    if (id.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Patient id missing. Cannot download report.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _downloading = true);
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('Preparing health report PDF...'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+    try {
+      final patient = await _getPatient(id);
+      await HealthReportPdf.download(patient);
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Could not download report. Try again.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
   }
 
-  num _parseNum(String raw) => num.tryParse(raw.trim()) ?? 0;
+  PatientVitalTest? _latestTest(String type) {
+    PatientVitalTest? best;
+    for (final test in widget.args.vitalTests) {
+      if (test.type.trim().toLowerCase() != type) continue;
+      if (best == null) {
+        best = test;
+        continue;
+      }
+      final bestDate = best.date;
+      final nextDate = test.date;
+      if (bestDate == null || (nextDate != null && nextDate.isAfter(bestDate))) {
+        best = test;
+      }
+    }
+    return best;
+  }
+
+  void _addVitalUpdate(
+    List<UpdatePatientTestItem> items,
+    String type,
+    String fallbackUnit,
+    String raw,
+  ) {
+    final text = raw.trim();
+    if (text.isEmpty) return;
+    final value = num.tryParse(text);
+    final test = _latestTest(type);
+    if (value == null || test == null || test.id.trim().isEmpty) return;
+    final unit = test.unit.trim();
+    items.add(
+      UpdatePatientTestItem(
+        testId: test.id,
+        type: type,
+        value: value,
+        unit: unit.isEmpty ? fallbackUnit : unit,
+      ),
+    );
+  }
 
   Future<void> _updateVitals() async {
     if (_updatingVitals) return;
@@ -325,18 +412,25 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       return;
     }
 
+    final tests = <UpdatePatientTestItem>[];
+    _addVitalUpdate(tests, 'weight', 'kg', _weight.text);
+    _addVitalUpdate(tests, 'height', 'cm', _height.text);
+    _addVitalUpdate(tests, 'sugar', 'mg/dL', _sugar.text);
+    _addVitalUpdate(tests, 'bp', 'mmHg', _bpSys.text);
+    if (tests.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No saved tests found to update.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     setState(() => _updatingVitals = true);
     try {
       await _updateVitalsUseCase(
-        UpdatePatientVitalsParams(
-          patientId: patientId,
-          weight: _parseNum(_weight.text),
-          height: _parseNum(_height.text),
-          sugar: _parseNum(_sugar.text),
-          systolic: _parseNum(_bpSys.text),
-          diastolic: _parseNum(_bpDia.text),
-          sugarType: _sugarTypeLabel(_sugarType),
-        ),
+        UpdatePatientVitalsParams(patientId: patientId, tests: tests),
       );
       if (!mounted) return;
       setState(() => _updatingVitals = false);
@@ -423,15 +517,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     gender: args.gender,
                     phone: args.phone,
                     address: args.address.isEmpty ? '—' : args.address,
+                    downloading: _downloading,
                     onAddTest: _addMoreTest,
-                    onDownload: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Report download started'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
+                    onDownload: _downloading ? null : _downloadReport,
                   ),
                   const SizedBox(height: 12),
                   _MetaBar(
@@ -469,6 +557,7 @@ class _PatientHeaderCard extends StatelessWidget {
     required this.address,
     required this.onAddTest,
     required this.onDownload,
+    this.downloading = false,
   });
 
   final String name;
@@ -477,7 +566,8 @@ class _PatientHeaderCard extends StatelessWidget {
   final String phone;
   final String address;
   final VoidCallback onAddTest;
-  final VoidCallback onDownload;
+  final VoidCallback? onDownload;
+  final bool downloading;
 
   @override
   Widget build(BuildContext context) {
@@ -606,10 +696,16 @@ class _PatientHeaderCard extends StatelessWidget {
                   height: 42,
                   child: OutlinedButton.icon(
                     onPressed: onDownload,
-                    icon: const Icon(Icons.description_outlined, size: 16),
-                    label: const Text(
-                      'Download',
-                      style: TextStyle(
+                    icon: downloading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.download_rounded, size: 16),
+                    label: Text(
+                      downloading ? 'Downloading...' : 'Download',
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,

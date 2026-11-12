@@ -11,6 +11,8 @@ class AddPatientTestParams {
     required this.campLocation,
     required this.campName,
     required this.date,
+    this.value2,
+    this.sugarType,
     this.doctorVerificationStatus = 'pending',
   });
 
@@ -18,6 +20,8 @@ class AddPatientTestParams {
   final String type;
   final num value;
   final String unit;
+  final num? value2;
+  final String? sugarType;
   final double bmi;
   final String campType;
   final DateTime campDate;

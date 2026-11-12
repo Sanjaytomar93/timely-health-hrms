@@ -14,4 +14,7 @@ class PatientEndpoints {
 
   static String patientTests(String patientId) =>
       '${patientById(patientId)}/tests';
+
+  static String updateTests(String patientId) =>
+      '${patientById(patientId)}/updatetests';
 }

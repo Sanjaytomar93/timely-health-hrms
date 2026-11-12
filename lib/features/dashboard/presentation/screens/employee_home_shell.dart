@@ -8,13 +8,18 @@ import 'package:timelay_health/features/attendance/presentation/screens/attendan
 import 'package:timelay_health/features/dashboard/presentation/bloc/dashboard_cubit.dart';
 import 'package:timelay_health/features/dashboard/presentation/bloc/monthly_performance_cubit.dart';
 import 'package:timelay_health/features/dashboard/presentation/bloc/monthly_performance_state.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/admin_dashboard_screen.dart';
 import 'package:timelay_health/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/monthly_performance_dialog.dart';
 import 'package:timelay_health/features/leaves/presentation/screens/leaves_screen.dart';
 import 'package:timelay_health/features/profile/presentation/screens/profile_hub_screen.dart';
 import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+
+/// Debug override — keep false so routing uses [Employee.isAdmin].
+const bool kForceAdminHome = false;
 
 class EmployeeHomeShell extends StatefulWidget {
   const EmployeeHomeShell({super.key});
@@ -86,6 +91,66 @@ class _EmployeeHomeShellState extends State<EmployeeHomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final employee = AuthSession.currentEmployee;
+    final isAdmin = kForceAdminHome || (employee?.isAdmin ?? false);
+    debugPrint(
+      'HOME isAdmin=$isAdmin force=$kForceAdminHome '
+      'role="${employee?.role}" designation="${employee?.designation}" '
+      'userType="${employee?.userType}" adminFlag=${employee?.adminFlag}',
+    );
+    final home = isAdmin
+        ? const AdminDashboardScreen()
+        : DashboardScreen(
+            onOpenAttendance: () => _openTab(1),
+            onOpenLeaves: () => _openTab(2),
+          );
+
+    Widget shell = AnnotatedRegion<SystemUiOverlayStyle>(
+      value: _index == 0
+          ? PortalSystemUi.darkStatusBar
+          : SystemUiOverlayStyle.dark.copyWith(
+              statusBarColor: Colors.transparent,
+            ),
+      child: PopScope(
+        canPop: _index == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _openTab(0);
+        },
+        child: Scaffold(
+          backgroundColor: PortalColors.background,
+          drawer: const HomeSideDrawer(),
+          drawerScrimColor: PortalColors.brand.withValues(alpha: 0.28),
+          body: PortalSafeArea(
+            bottom: false,
+            statusBarColor: _index == 0
+                ? PortalColors.brand
+                : PortalColors.surface,
+            child: IndexedStack(
+              index: _index,
+              children: [
+                home,
+                _visited.contains(1)
+                    ? AttendanceScreen(isActive: _index == 1)
+                    : const SizedBox.shrink(),
+                _visited.contains(2)
+                    ? const LeavesScreen()
+                    : const SizedBox.shrink(),
+                _visited.contains(3)
+                    ? const ProfileHubScreen()
+                    : const SizedBox.shrink(),
+              ],
+            ),
+          ),
+          bottomNavigationBar: EmployeeBottomNav(
+            currentIndex: _index,
+            onTap: _openTab,
+          ),
+        ),
+      ),
+    );
+
+    if (isAdmin) return shell;
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => DashboardCubit()..load()),
@@ -93,50 +158,7 @@ class _EmployeeHomeShellState extends State<EmployeeHomeShell> {
       ],
       child: BlocListener<MonthlyPerformanceCubit, MonthlyPerformanceState>(
         listener: _showPerformanceIfNeeded,
-        child: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: _index == 0
-              ? PortalSystemUi.darkStatusBar
-              : SystemUiOverlayStyle.dark.copyWith(
-                  statusBarColor: Colors.transparent,
-                ),
-          child: PopScope(
-            canPop: _index == 0,
-            onPopInvokedWithResult: (didPop, _) {
-              if (!didPop) _openTab(0);
-            },
-            child: Scaffold(
-              backgroundColor: PortalColors.background,
-              body: PortalSafeArea(
-                bottom: false,
-                statusBarColor: _index == 0
-                    ? PortalColors.brand
-                    : PortalColors.surface,
-                child: IndexedStack(
-                  index: _index,
-                  children: [
-                    DashboardScreen(
-                      onOpenAttendance: () => _openTab(1),
-                      onOpenLeaves: () => _openTab(2),
-                    ),
-                    _visited.contains(1)
-                        ? AttendanceScreen(isActive: _index == 1)
-                        : const SizedBox.shrink(),
-                    _visited.contains(2)
-                        ? const LeavesScreen()
-                        : const SizedBox.shrink(),
-                    _visited.contains(3)
-                        ? const ProfileHubScreen()
-                        : const SizedBox.shrink(),
-                  ],
-                ),
-              ),
-              bottomNavigationBar: EmployeeBottomNav(
-                currentIndex: _index,
-                onTap: _openTab,
-              ),
-            ),
-          ),
-        ),
+        child: shell,
       ),
     );
   }

@@ -159,6 +159,7 @@ class DashboardHomeUi extends Equatable {
     required this.recentActivity,
     required this.updates,
     required this.updatesMonthLabel,
+    this.campActivated = false,
   });
 
   final DashboardGreetingUi greeting;
@@ -170,6 +171,7 @@ class DashboardHomeUi extends Equatable {
   final List<DashboardActivityUi> recentActivity;
   final List<DashboardUpdateItemUi> updates;
   final String updatesMonthLabel;
+  final bool campActivated;
 
   static DashboardHomeUi get empty {
     final now = DateTime.now();
@@ -240,6 +242,7 @@ class DashboardHomeUi extends Equatable {
     recentActivity,
     updates,
     updatesMonthLabel,
+    campActivated,
   ];
 }
 

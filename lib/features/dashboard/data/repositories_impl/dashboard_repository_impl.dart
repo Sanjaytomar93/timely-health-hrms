@@ -73,6 +73,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
       stats: dashboard.stats,
       lateGraph: dashboard.lateGraph,
       absentGraph: dashboard.absentGraph,
+      campActivated: dashboard.campActivated,
     );
   }
 

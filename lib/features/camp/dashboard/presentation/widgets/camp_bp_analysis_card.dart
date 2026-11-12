@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/models/camp_dashboard_ui.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/utils/camp_distribution_export.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_chart_painters.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_distribution_legend_row.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_export_button.dart';
 
-class CampBpAnalysisCard extends StatelessWidget {
+class CampBpAnalysisCard extends StatefulWidget {
   const CampBpAnalysisCard({
     super.key,
     required this.data,
@@ -19,9 +20,25 @@ class CampBpAnalysisCard extends StatelessWidget {
   final ValueChanged<bool> onToggle;
 
   @override
+  State<CampBpAnalysisCard> createState() => _CampBpAnalysisCardState();
+}
+
+class _CampBpAnalysisCardState extends State<CampBpAnalysisCard> {
+  bool _isExporting = false;
+
+  Future<void> _onExport() => CampExportButton.run(
+        this,
+        isLoading: _isExporting,
+        setLoading: (v) => setState(() => _isExporting = v),
+        action: CampDistributionExport.exportBpSugarPdf,
+      );
+
+  @override
   Widget build(BuildContext context) {
-    final slices = showSugar ? data.sugarSlices : data.bpSlices;
-    final patients = showSugar ? data.sugarPatients : data.bpPatients;
+    final slices =
+        widget.showSugar ? widget.data.sugarSlices : widget.data.bpSlices;
+    final patients =
+        widget.showSugar ? widget.data.sugarPatients : widget.data.bpPatients;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 14, 14, 20),
@@ -34,7 +51,7 @@ class CampBpAnalysisCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  showSugar ? 'Sugar Analysis' : 'Blood Pressure',
+                  widget.showSugar ? 'Sugar Analysis' : 'Blood Pressure',
                   style: portalText(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -42,7 +59,7 @@ class CampBpAnalysisCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const CampExportButton(),
+              CampExportButton(onTap: _onExport, isLoading: _isExporting),
             ],
           ),
           const SizedBox(height: 14),
@@ -60,15 +77,15 @@ class CampBpAnalysisCard extends StatelessWidget {
                 Expanded(
                   child: _AnalysisSegmentButton(
                     label: 'Blood Pressure',
-                    selected: !showSugar,
-                    onTap: () => onToggle(false),
+                    selected: !widget.showSugar,
+                    onTap: () => widget.onToggle(false),
                   ),
                 ),
                 Expanded(
                   child: _AnalysisSegmentButton(
                     label: 'Sugar',
-                    selected: showSugar,
-                    onTap: () => onToggle(true),
+                    selected: widget.showSugar,
+                    onTap: () => widget.onToggle(true),
                   ),
                 ),
               ],

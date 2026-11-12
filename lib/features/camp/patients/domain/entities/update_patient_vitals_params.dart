@@ -1,19 +1,23 @@
+class UpdatePatientTestItem {
+  const UpdatePatientTestItem({
+    required this.testId,
+    required this.type,
+    required this.value,
+    required this.unit,
+  });
+
+  final String testId;
+  final String type;
+  final num value;
+  final String unit;
+}
+
 class UpdatePatientVitalsParams {
   const UpdatePatientVitalsParams({
     required this.patientId,
-    required this.weight,
-    required this.height,
-    required this.sugar,
-    required this.systolic,
-    required this.diastolic,
-    required this.sugarType,
+    required this.tests,
   });
 
   final String patientId;
-  final num weight;
-  final num height;
-  final num sugar;
-  final num systolic;
-  final num diastolic;
-  final String sugarType;
+  final List<UpdatePatientTestItem> tests;
 }

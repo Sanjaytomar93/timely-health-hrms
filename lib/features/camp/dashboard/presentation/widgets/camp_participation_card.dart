@@ -2,13 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/models/camp_dashboard_ui.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/utils/camp_distribution_export.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_chart_painters.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_export_button.dart';
 
-class CampParticipationCard extends StatelessWidget {
+class CampParticipationCard extends StatefulWidget {
   const CampParticipationCard({super.key, required this.items});
 
   final List<CampParticipationUi> items;
+
+  @override
+  State<CampParticipationCard> createState() => _CampParticipationCardState();
+}
+
+class _CampParticipationCardState extends State<CampParticipationCard> {
+  bool _isExporting = false;
+
+  Future<void> _onExport() => CampExportButton.run(
+        this,
+        isLoading: _isExporting,
+        setLoading: (v) => setState(() => _isExporting = v),
+        action: CampDistributionExport.exportParticipationPdf,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +46,7 @@ class CampParticipationCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const CampExportButton(),
+              CampExportButton(onTap: _onExport, isLoading: _isExporting),
             ],
           ),
           const SizedBox(height: 12),
@@ -47,7 +62,10 @@ class CampParticipationCard extends StatelessWidget {
             height: 175,
             width: double.infinity,
             child: CustomPaint(
-              painter: CampParticipationBarPainter(items: items, maxY: 5),
+              painter: CampParticipationBarPainter(
+                items: widget.items,
+                maxY: 5,
+              ),
             ),
           ),
         ],

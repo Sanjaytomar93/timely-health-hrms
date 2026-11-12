@@ -48,37 +48,43 @@ class PatientRemoteDataSource {
     if (patientId.isEmpty) {
       throw const PatientFailure('Patient id missing.');
     }
-
-    late final http.Response response;
-    try {
-      response = await _client
-          .post(
-            Uri.parse(PatientEndpoints.patientTests(patientId)),
-            headers: const {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'vitals': {
-                'weight': params.weight,
-                'height': params.height,
-                'sugar': params.sugar,
-                'systolic': params.systolic,
-                'diastolic': params.diastolic,
-                'sugarType': params.sugarType,
-              },
-            }),
-          )
-          .timeout(const Duration(seconds: 30));
-    } catch (_) {
-      throw const PatientFailure(
-        'Unable to reach server. Check your internet connection.',
-      );
+    if (params.tests.isEmpty) {
+      throw const PatientFailure('No saved tests found to update.');
     }
 
-    final body = _decode(response.body);
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw PatientFailure(_message(body, 'Failed to update vitals.'));
-    }
-    if (body['success'] == false) {
-      throw PatientFailure(_message(body, 'Failed to update vitals.'));
+    for (final test in params.tests) {
+      final testId = test.testId.trim();
+      if (testId.isEmpty) {
+        throw const PatientFailure('Test id missing.');
+      }
+
+      late final http.Response response;
+      try {
+        response = await _client
+            .put(
+              Uri.parse(PatientEndpoints.updateTests(patientId)),
+              headers: const {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'testId': testId,
+                'type': test.type,
+                'value': test.value,
+                'unit': test.unit,
+              }),
+            )
+            .timeout(const Duration(seconds: 30));
+      } catch (_) {
+        throw const PatientFailure(
+          'Unable to reach server. Check your internet connection.',
+        );
+      }
+
+      final body = _decode(response.body);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw PatientFailure(_message(body, 'Failed to update vitals.'));
+      }
+      if (body['success'] == false) {
+        throw PatientFailure(_message(body, 'Failed to update vitals.'));
+      }
     }
   }
 
@@ -88,27 +94,32 @@ class PatientRemoteDataSource {
       throw const PatientFailure('Patient id missing.');
     }
 
+    final sugarType = params.sugarType?.trim() ?? '';
+    final payload = <String, dynamic>{
+      'type': params.type,
+      'value': params.value,
+      'unit': params.unit,
+      'bmi': params.bmi,
+      'campType': params.campType,
+      'campDate': params.campDate.toUtc().toIso8601String(),
+      'campId': params.campId,
+      'campLocation': params.campLocation,
+      'campName': params.campName,
+      'date': params.date.toUtc().toIso8601String(),
+      'doctorVerification': {
+        'status': params.doctorVerificationStatus,
+      },
+    };
+    if (params.value2 != null) payload['value2'] = params.value2;
+    if (sugarType.isNotEmpty) payload['sugarType'] = sugarType;
+
     late final http.Response response;
     try {
       response = await _client
           .post(
             Uri.parse(PatientEndpoints.patientTests(patientId)),
             headers: const {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'type': params.type,
-              'value': params.value,
-              'unit': params.unit,
-              'bmi': params.bmi,
-              'campType': params.campType,
-              'campDate': params.campDate.toUtc().toIso8601String(),
-              'campId': params.campId,
-              'campLocation': params.campLocation,
-              'campName': params.campName,
-              'date': params.date.toUtc().toIso8601String(),
-              'doctorVerification': {
-                'status': params.doctorVerificationStatus,
-              },
-            }),
+            body: jsonEncode(payload),
           )
           .timeout(const Duration(seconds: 30));
     } catch (_) {

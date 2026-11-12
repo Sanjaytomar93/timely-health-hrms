@@ -31,7 +31,12 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   final GetMyShiftUseCase _getMyShift;
   final ClaimOtUseCase _claimOt;
 
+  static const int pageSize = 10;
+
   List<AttendanceRecordUiModel> _allRecords = const [];
+  List<AttendanceRecordUiModel> _filteredRecords = const [];
+  int _visibleCount = pageSize;
+  bool _loadingMore = false;
   AttendanceStatsUiModel _stats = AttendanceStatsUiModel.empty;
   AttendanceFilter _filter = AttendanceFilter.empty;
   String _shiftLabel = '—';
@@ -42,6 +47,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       AttendanceLoading(
         records: keepExisting ? state.records : const [],
         allRecords: keepExisting ? _allRecords : const [],
+        filteredCount: keepExisting ? _filteredRecords.length : 0,
+        hasMore: keepExisting ? state.hasMore : false,
         stats: keepExisting ? _stats : AttendanceStatsUiModel.empty,
         filter: _filter,
         shiftLabel: keepExisting ? _shiftLabel : '—',
@@ -62,6 +69,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
           'Employee ID missing. Please login again.',
           records: keepExisting ? state.records : const [],
           allRecords: keepExisting ? _allRecords : const [],
+          filteredCount: keepExisting ? _filteredRecords.length : 0,
+          hasMore: keepExisting ? state.hasMore : false,
           stats: keepExisting ? _stats : AttendanceStatsUiModel.empty,
           filter: _filter,
           shiftLabel: keepExisting ? _shiftLabel : '—',
@@ -109,6 +118,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
           e.message,
           records: keepExisting ? state.records : const [],
           allRecords: keepExisting ? _allRecords : const [],
+          filteredCount: keepExisting ? _filteredRecords.length : 0,
+          hasMore: keepExisting ? state.hasMore : false,
           stats: keepExisting ? _stats : AttendanceStatsUiModel.empty,
           filter: _filter,
           shiftLabel: keepExisting ? _shiftLabel : '—',
@@ -122,6 +133,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
           'Failed to load attendance. Please try again.',
           records: keepExisting ? state.records : const [],
           allRecords: keepExisting ? _allRecords : const [],
+          filteredCount: keepExisting ? _filteredRecords.length : 0,
+          hasMore: keepExisting ? state.hasMore : false,
           stats: keepExisting ? _stats : AttendanceStatsUiModel.empty,
           filter: _filter,
           shiftLabel: keepExisting ? _shiftLabel : '—',
@@ -129,6 +142,19 @@ class AttendanceCubit extends Cubit<AttendanceState> {
         ),
       );
     }
+  }
+
+  void loadMore() {
+    if (_loadingMore || _visibleCount >= _filteredRecords.length) return;
+    _loadingMore = true;
+    final next = _visibleCount + pageSize;
+    _visibleCount = next > _filteredRecords.length
+        ? _filteredRecords.length
+        : next;
+    _emitVisible();
+    Future<void>.delayed(const Duration(milliseconds: 250), () {
+      _loadingMore = false;
+    });
   }
 
   void setExactDate(DateTime? date) {
@@ -231,7 +257,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }
 
   Future<({String fileName, String filePath})> exportCsv() async {
-    final rows = state.records;
+    final rows = _filteredRecords;
     if (rows.isEmpty) {
       throw const AttendanceFailure('No records to export.');
     }
@@ -289,11 +315,21 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }
 
   void _emitFiltered() {
-    final filtered = _applyFilter(_allRecords, _filter);
+    _filteredRecords = _applyFilter(_allRecords, _filter);
+    _visibleCount = _filteredRecords.length < pageSize
+        ? _filteredRecords.length
+        : pageSize;
+    _emitVisible();
+  }
+
+  void _emitVisible() {
+    final end = _visibleCount.clamp(0, _filteredRecords.length);
     emit(
       AttendanceLoaded(
-        records: filtered,
+        records: _filteredRecords.take(end).toList(),
         allRecords: _allRecords,
+        filteredCount: _filteredRecords.length,
+        hasMore: end < _filteredRecords.length,
         stats: _stats,
         filter: _filter,
         shiftLabel: _shiftLabel,

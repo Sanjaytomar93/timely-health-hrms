@@ -5,14 +5,19 @@ sealed class AttendanceState extends Equatable {
   const AttendanceState({
     this.records = const [],
     this.allRecords = const [],
+    this.filteredCount = 0,
+    this.hasMore = false,
     this.stats = AttendanceStatsUiModel.empty,
     this.filter = AttendanceFilter.empty,
     this.shiftLabel = '—',
     this.selectedOtIds = const {},
   });
 
+  /// Visible page of filtered records (10 at a time).
   final List<AttendanceRecordUiModel> records;
   final List<AttendanceRecordUiModel> allRecords;
+  final int filteredCount;
+  final bool hasMore;
   final AttendanceStatsUiModel stats;
   final AttendanceFilter filter;
   final String shiftLabel;
@@ -29,6 +34,8 @@ sealed class AttendanceState extends Equatable {
   List<Object?> get props => [
     records,
     allRecords,
+    filteredCount,
+    hasMore,
     stats,
     filter,
     shiftLabel,
@@ -44,6 +51,8 @@ class AttendanceLoading extends AttendanceState {
   const AttendanceLoading({
     super.records,
     super.allRecords,
+    super.filteredCount,
+    super.hasMore,
     super.stats,
     super.filter,
     super.shiftLabel,
@@ -55,6 +64,8 @@ class AttendanceLoaded extends AttendanceState {
   const AttendanceLoaded({
     required super.records,
     required super.allRecords,
+    required super.filteredCount,
+    required super.hasMore,
     required super.stats,
     super.filter,
     super.shiftLabel,
@@ -67,6 +78,8 @@ class AttendanceFailureState extends AttendanceState {
     this.message, {
     super.records,
     super.allRecords,
+    super.filteredCount,
+    super.hasMore,
     super.stats,
     super.filter,
     super.shiftLabel,

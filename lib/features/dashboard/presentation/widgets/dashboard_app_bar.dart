@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:timelay_health/core/theme/app_logos.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
+import 'package:timelay_health/features/auth/data/auth_session.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
 
@@ -11,6 +12,8 @@ class DashboardAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = kForceAdminHome ||
+        (AuthSession.currentEmployee?.isAdmin ?? false);
     return Container(
       padding: const EdgeInsets.fromLTRB(22, 2, 18, 6),
       decoration: const BoxDecoration(
@@ -19,58 +22,53 @@ class DashboardAppBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // App icon — white background so it's always visible
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(38 * 0.28),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+          GestureDetector(
+            onTap: () => Scaffold.of(context).openDrawer(),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: PortalColors.brandTint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                'assets/icons/top_bar/ic_top_menu.svg',
+                width: 18,
+                height: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Timely Health',
+                  style: portalText(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.3,
+                    height: 1.1,
+                  ),
+                ),
+                Text(
+                  isAdmin ? 'ADMIN PORTAL' : 'EMPLOYEE PORTAL',
+                  style: portalText(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.72),
+                    letterSpacing: 1.4,
+                    height: 1.45,
+                  ),
                 ),
               ],
             ),
-            clipBehavior: Clip.antiAlias,
-            child: SvgPicture.asset(
-              AppLogos.appIcon,
-              fit: BoxFit.contain,
-              width: 38,
-              height: 38,
-            ),
           ),
-          const SizedBox(width: 8),
-          // App name + tagline — exactly like login screen _BrandRow
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Timely Health',
-                style: portalText(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.3,
-                  height: 1.1,
-                ),
-              ),
-              Text(
-                'HRMS PORTAL',
-                style: portalText(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.65),
-                  letterSpacing: 1.5,
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
           const TopNotificationButton(),
           const SizedBox(width: 14),
           const TopCalendarButton(),

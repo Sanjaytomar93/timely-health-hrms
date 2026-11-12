@@ -78,6 +78,16 @@ class PatientDetailUiMapper {
         heartRate: '',
         oxygen: '',
       ),
+      vitalTests: [
+        for (final test in patient.tests)
+          if (test.id.trim().isNotEmpty)
+            PatientVitalTest(
+              id: test.id,
+              type: test.type,
+              unit: test.unit,
+              date: test.date,
+            ),
+      ],
     );
   }
 

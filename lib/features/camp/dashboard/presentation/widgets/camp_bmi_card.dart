@@ -2,13 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/models/camp_dashboard_ui.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/utils/camp_distribution_export.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_chart_painters.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_export_button.dart';
 
-class CampBmiCard extends StatelessWidget {
+class CampBmiCard extends StatefulWidget {
   const CampBmiCard({super.key, required this.items});
 
   final List<CampBmiUi> items;
+
+  @override
+  State<CampBmiCard> createState() => _CampBmiCardState();
+}
+
+class _CampBmiCardState extends State<CampBmiCard> {
+  bool _isExporting = false;
+
+  Future<void> _onExport() => CampExportButton.run(
+        this,
+        isLoading: _isExporting,
+        setLoading: (v) => setState(() => _isExporting = v),
+        action: CampDistributionExport.exportBmiPdf,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +46,7 @@ class CampBmiCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const CampExportButton(),
+              CampExportButton(onTap: _onExport, isLoading: _isExporting),
             ],
           ),
           const SizedBox(height: 12),
@@ -51,7 +66,7 @@ class CampBmiCard extends StatelessWidget {
             height: 175,
             width: double.infinity,
             child: CustomPaint(
-              painter: CampStackedBarPainter(items: items, maxY: 5),
+              painter: CampStackedBarPainter(items: widget.items, maxY: 5),
             ),
           ),
         ],

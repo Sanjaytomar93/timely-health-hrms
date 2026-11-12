@@ -123,70 +123,81 @@ class _RecordsTab extends StatelessWidget {
           color: PortalColors.purple,
           onRefresh: () =>
               context.read<AttendanceCubit>().load(keepExisting: true),
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(child: AttendanceBanner(data: banner)),
-              SliverToBoxAdapter(child: AttendanceStatsRow(stats: stats)),
-              const SliverToBoxAdapter(child: OtInfoBox()),
-              const SliverToBoxAdapter(child: FiltersActionsCard()),
-              const SliverToBoxAdapter(child: OtAvailableBanner()),
-              if (error != null && state.allRecords.isEmpty)
-                SliverToBoxAdapter(
-                  child: DashboardCard(
-                    topSpacing: 22,
-                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: const BoxDecoration(
-                            color: PortalColors.redTint,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.cloud_off_rounded,
-                            size: 26,
-                            color: PortalColors.red,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          error,
-                          textAlign: TextAlign.center,
-                          style: portalText(
-                            fontSize: 12,
-                            color: PortalColors.muted,
-                            height: 16 / 12,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: PortalColors.brand,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (n) {
+              if (n.metrics.pixels >= n.metrics.maxScrollExtent - 240 &&
+                  state.hasMore) {
+                context.read<AttendanceCubit>().loadMore();
+              }
+              return false;
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(child: AttendanceBanner(data: banner)),
+                SliverToBoxAdapter(child: AttendanceStatsRow(stats: stats)),
+                const SliverToBoxAdapter(child: OtInfoBox()),
+                const SliverToBoxAdapter(child: FiltersActionsCard()),
+                const SliverToBoxAdapter(child: OtAvailableBanner()),
+                if (error != null && state.allRecords.isEmpty)
+                  SliverToBoxAdapter(
+                    child: DashboardCard(
+                      topSpacing: 22,
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: const BoxDecoration(
+                              color: PortalColors.redTint,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.cloud_off_rounded,
+                              size: 26,
+                              color: PortalColors.red,
                             ),
                           ),
-                          onPressed: () =>
-                              context.read<AttendanceCubit>().load(),
-                          icon: const Icon(Icons.refresh_rounded, size: 18),
-                          label: const Text('Retry'),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          Text(
+                            error,
+                            textAlign: TextAlign.center,
+                            style: portalText(
+                              fontSize: 12,
+                              color: PortalColors.muted,
+                              height: 16 / 12,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: PortalColors.brand,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () =>
+                                context.read<AttendanceCubit>().load(),
+                            icon: const Icon(Icons.refresh_rounded, size: 18),
+                            label: const Text('Retry'),
+                          ),
+                        ],
+                      ),
                     ),
+                  )
+                else
+                  AttendanceRecordsSection(
+                    records: records,
+                    filteredCount: state.filteredCount,
+                    hasMore: state.hasMore,
+                    selectedOtIds: state.selectedOtIds,
+                    onToggleOt: stats.hasOt
+                        ? context.read<AttendanceCubit>().toggleOtSelection
+                        : null,
                   ),
-                )
-              else
-                AttendanceRecordsSection(
-                  records: records,
-                  selectedOtIds: state.selectedOtIds,
-                  onToggleOt: stats.hasOt
-                      ? context.read<AttendanceCubit>().toggleOtSelection
-                      : null,
-                ),
-            ],
+              ],
+            ),
           ),
         );
       },

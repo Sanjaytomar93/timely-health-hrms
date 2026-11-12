@@ -4,6 +4,7 @@ import 'package:timelay_health/features/camp/camps/presentation/models/camp_list
 import 'package:timelay_health/features/camp/camps/presentation/widgets/assigned_partners_sheet.dart';
 import 'package:timelay_health/features/camp/camps/presentation/widgets/team_volunteers_sheet.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/utils/camp_distribution_export.dart';
 import 'package:timelay_health/features/camp/patients/presentation/screens/patient_detail_screen.dart';
 
 Future<void> showCampDetailSheet(
@@ -83,7 +84,7 @@ class CampDetailSheet extends StatelessWidget {
                 ],
               ),
             ),
-            _DetailFooter(patients: camp.patientItems),
+            _DetailFooter(camp: camp),
           ],
         ),
       ),
@@ -731,13 +732,49 @@ class _PatientDetailRow extends StatelessWidget {
   }
 }
 
-class _DetailFooter extends StatelessWidget {
-  const _DetailFooter({required this.patients});
+class _DetailFooter extends StatefulWidget {
+  const _DetailFooter({required this.camp});
 
-  final List<CampPatientUi> patients;
+  final CampItemUi camp;
+
+  @override
+  State<_DetailFooter> createState() => _DetailFooterState();
+}
+
+class _DetailFooterState extends State<_DetailFooter> {
+  bool _exporting = false;
+
+  Future<void> _downloadReport() async {
+    if (_exporting) return;
+    if (widget.camp.patientItems.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No patients found to export.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _exporting = true);
+    try {
+      await CampDistributionExport.exportCampReport(widget.camp);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Export failed: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final patients = widget.camp.patientItems;
     final screened = patients.where((p) => p.isScreened).length;
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -801,26 +838,29 @@ class _DetailFooter extends StatelessWidget {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Report download started'),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        },
+                        onTap: _exporting ? null : _downloadReport,
                         borderRadius: BorderRadius.circular(13),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
-                              Icons.description_outlined,
-                              size: 16,
-                              color: Colors.white,
-                            ),
+                            if (_exporting)
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            else
+                              const Icon(
+                                Icons.description_outlined,
+                                size: 16,
+                                color: Colors.white,
+                              ),
                             const SizedBox(width: 6),
                             Text(
-                              'Download Report',
+                              _exporting ? 'Preparing...' : 'Download Report',
                               style: portalText(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w800,

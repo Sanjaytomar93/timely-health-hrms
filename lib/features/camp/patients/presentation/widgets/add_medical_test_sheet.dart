@@ -197,15 +197,24 @@ class _AddMedicalTestSheetState extends State<AddMedicalTestSheet> {
     final now = DateTime.now();
     final campDay = DateTime.utc(now.year, now.month, now.day);
     final payload = _packagePayload;
+    final bmi = _bmi();
 
-    try {
-      await _addPatientTest(
+    Future<void> post({
+      required String type,
+      required num value,
+      required String unit,
+      num? value2,
+      String? sugarType,
+    }) {
+      return _addPatientTest(
         AddPatientTestParams(
           patientId: patientId,
-          type: payload.type,
-          value: payload.value,
-          unit: payload.unit,
-          bmi: _bmi(),
+          type: type,
+          value: value,
+          unit: unit,
+          value2: value2,
+          sugarType: sugarType,
+          bmi: bmi,
           campType: payload.campType,
           campDate: campDay,
           campId: widget.campId.trim(),
@@ -214,6 +223,46 @@ class _AddMedicalTestSheetState extends State<AddMedicalTestSheet> {
           date: now.toUtc(),
         ),
       );
+    }
+
+    num? read(String raw) => num.tryParse(raw.trim());
+
+    try {
+      await post(type: payload.type, value: payload.value, unit: payload.unit);
+      final weight = read(_weight.text);
+      final height = read(_height.text);
+      final sugar = read(_sugar.text);
+      final bpSys = read(_bpSys.text);
+      final bpDia = read(_bpDia.text);
+      final temp = read(_temp.text);
+      final heart = read(_heart.text);
+      final oxygen = read(_oxygen.text);
+      if (weight != null) {
+        await post(type: 'weight', value: weight, unit: 'kg');
+      }
+      if (height != null) {
+        await post(type: 'height', value: height, unit: 'cm');
+      }
+      if (sugar != null) {
+        await post(
+          type: 'sugar',
+          value: sugar,
+          unit: 'mg/dL',
+          sugarType: _sugarType,
+        );
+      }
+      if (bpSys != null) {
+        await post(type: 'bp', value: bpSys, unit: 'mmHg', value2: bpDia);
+      }
+      if (temp != null) {
+        await post(type: 'temp', value: temp, unit: '°F');
+      }
+      if (heart != null) {
+        await post(type: 'heart', value: heart, unit: 'bpm');
+      }
+      if (oxygen != null) {
+        await post(type: 'oxygen', value: oxygen, unit: '%');
+      }
       if (!mounted) return;
       if (widget.asFullScreen) {
         widget.onSaved?.call(result);

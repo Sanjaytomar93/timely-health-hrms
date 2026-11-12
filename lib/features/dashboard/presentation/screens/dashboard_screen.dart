@@ -11,7 +11,6 @@ import 'package:timelay_health/features/dashboard/presentation/widgets/absent_we
 import 'package:timelay_health/features/dashboard/presentation/widgets/attendance_banner.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/dashboard_app_bar.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/greeting_header.dart';
-import 'package:timelay_health/features/dashboard/presentation/widgets/management_cards_row.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/profile_card.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/quick_actions_section.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/recent_activity_card.dart';
@@ -96,7 +95,6 @@ class _DashboardView extends StatelessWidget {
                       SliverToBoxAdapter(
                         child: AttendanceBanner(data: ui.attendanceBanner),
                       ),
-                      const SliverToBoxAdapter(child: ManagementCardsRow()),
                       SliverToBoxAdapter(
                         child: StatCardsRow(cards: ui.statCards),
                       ),

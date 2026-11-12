@@ -4,6 +4,7 @@ import 'package:timelay_health/features/auth/presentation/screens/forgot_passwor
 import 'package:timelay_health/features/auth/presentation/screens/login_screen.dart';
 import 'package:timelay_health/features/auth/presentation/screens/splash_screen.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/screens/camp_management_shell.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/admin_dashboard_screen.dart';
 import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
 import 'package:timelay_health/features/events/presentation/screens/my_events_screen.dart';
 import 'package:timelay_health/features/expense/presentation/screens/expense_screen.dart';
@@ -12,6 +13,7 @@ import 'package:timelay_health/features/letters/presentation/models/employee_let
 import 'package:timelay_health/features/letters/presentation/screens/letter_viewer_screen.dart';
 import 'package:timelay_health/features/letters/presentation/screens/my_letters_screen.dart';
 import 'package:timelay_health/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:timelay_health/features/op/dashboard/presentation/screens/op_management_shell.dart';
 import 'package:timelay_health/features/permissions/presentation/screens/permissions_screen.dart';
 import 'package:timelay_health/features/profile/presentation/screens/employee_details_screen.dart';
 import 'package:timelay_health/features/profile/presentation/screens/holiday_calendar_screen.dart';
@@ -27,6 +29,7 @@ abstract final class AppRoutes {
   static const login = '/login';
   static const forgotPassword = '/forgot-password';
   static const home = '/home';
+  static const adminDashboard = '/admin-dashboard';
   static const permissions = '/permissions';
   static const notifications = '/notifications';
   static const profile = '/profile';
@@ -43,6 +46,7 @@ abstract final class AppRoutes {
   static const workRoster = '/profile/work-roster';
   static const placeholder = '/profile/placeholder';
   static const campManagement = '/camp-management';
+  static const opManagement = '/op-management';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -60,6 +64,12 @@ abstract final class AppRoutes {
 
       case home:
         return _fadeRoute(const EmployeeHomeShell(), settings);
+
+      case adminDashboard:
+        return MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: AdminDashboardScreen()),
+          settings: settings,
+        );
 
       case permissions:
         return MaterialPageRoute<void>(
@@ -163,6 +173,12 @@ abstract final class AppRoutes {
       case campManagement:
         return MaterialPageRoute<void>(
           builder: (_) => const CampManagementShell(),
+          settings: settings,
+        );
+
+      case opManagement:
+        return MaterialPageRoute<void>(
+          builder: (_) => const OpManagementShell(),
           settings: settings,
         );
 

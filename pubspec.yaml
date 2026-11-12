@@ -88,6 +88,7 @@ flutter:
     - assets/icons/leaves/
     - assets/icons/profile/
     - assets/icons/menu/
+    - assets/icons/social/
     - assets/icons/payslips/
     - assets/icons/expense/
     - assets/icons/issues/

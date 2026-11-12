@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timelay_health/core/location/location_helper.dart';
 import 'package:timelay_health/core/notifications/push_notification_service.dart';
@@ -35,6 +36,12 @@ class LoginCubit extends Cubit<LoginState> {
         AuthSession.save(employee),
         AuthSession.saveFcmToken(fcmToken),
       ]);
+      debugPrint(
+        'LOGIN role="${employee.role}" designation="${employee.designation}" '
+        'dept="${employee.department}" userType="${employee.userType}" '
+        'adminFlag=${employee.adminFlag} permissions=${employee.permissions} '
+        'isAdmin=${employee.isAdmin}',
+      );
       if (isClosed) return;
       emit(LoginSuccess(employee));
     } on LocationFailure catch (e) {

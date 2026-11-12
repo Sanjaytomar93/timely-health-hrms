@@ -84,6 +84,7 @@ class DashboardMapper {
             )
             .toList(),
       ),
+      campActivated: model.campActivated,
     );
   }
 

@@ -26,7 +26,7 @@ class _FiltersActionsCardState extends State<FiltersActionsCard> {
       builder: (context, state) {
         final filter = state.filter;
         final showing = state.records.length;
-        final total = state.allRecords.length;
+        final total = state.filteredCount;
         final cubit = context.read<AttendanceCubit>();
         final dateCount = [
           filter.exactDate,

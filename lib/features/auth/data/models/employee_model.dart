@@ -258,6 +258,8 @@ class EmployeeModel {
     this.salaryIncrements = const [],
     this.joinDate,
     this.permissions = const [],
+    this.adminFlag = false,
+    this.userType = '',
     this.latitude,
     this.longitude,
     this.address,
@@ -291,6 +293,8 @@ class EmployeeModel {
   final List<SalaryIncrementModel> salaryIncrements;
   final DateTime? joinDate;
   final List<String> permissions;
+  final bool adminFlag;
+  final String userType;
   final double? latitude;
   final double? longitude;
   final String? address;
@@ -316,8 +320,10 @@ class EmployeeModel {
       lastName: json['lastName']?.toString(),
       email: json['email']?.toString() ?? '',
       phone: json['phone']?.toString(),
-      role: json['role']?.toString() ?? '',
-      department: json['department']?.toString() ?? '',
+      role: EmployeeProfileInfoModel._text(
+        json['role'] ?? json['userRole'] ?? json['user_role'],
+      ),
+      department: EmployeeProfileInfoModel._text(json['department']),
       employeeId: json['employeeId']?.toString() ?? '',
       designation: EmployeeProfileInfoModel._text(json['designation']),
       employeeCode:
@@ -346,11 +352,13 @@ class EmployeeModel {
       joinDate: json['joinDate'] != null
           ? DateTime.tryParse(json['joinDate'].toString())
           : null,
-      permissions:
-          (json['permissions'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          const [],
+      permissions: _permissions(json['permissions']),
+      adminFlag: _asBool(
+        json['isAdmin'] ?? json['is_admin'] ?? json['admin'],
+      ),
+      userType: EmployeeProfileInfoModel._text(
+        json['userType'] ?? json['accountType'] ?? json['accessLevel'],
+      ),
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       address: json['address']?.toString(),
@@ -362,6 +370,21 @@ class EmployeeModel {
       ),
       info: EmployeeProfileInfoModel.fromJson(json),
     );
+  }
+
+  static List<String> _permissions(dynamic raw) {
+    if (raw is! List) return const [];
+    return raw
+        .map((e) {
+          if (e is Map) {
+            return EmployeeProfileInfoModel._text(
+              e['name'] ?? e['key'] ?? e['code'] ?? e['permission'] ?? e['role'],
+            );
+          }
+          return e.toString().trim();
+        })
+        .where((e) => e.isNotEmpty)
+        .toList();
   }
 
   static bool _asBool(dynamic value) {
@@ -403,6 +426,8 @@ class EmployeeModel {
           .toList(),
       if (joinDate != null) 'joinDate': joinDate!.toIso8601String(),
       'permissions': permissions,
+      'isAdmin': adminFlag,
+      if (userType.isNotEmpty) 'userType': userType,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
       if (address != null) 'address': address,
@@ -429,7 +454,11 @@ class LoginResponseModel {
   final EmployeeModel? employee;
 
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
-    final employeeJson = json['employee'];
+    final data = json['data'];
+    final employeeJson = json['employee'] ??
+        (data is Map<String, dynamic>
+            ? (data['employee'] ?? data['user'] ?? data)
+            : null);
     return LoginResponseModel(
       success: json['success'] as bool? ?? false,
       message: json['message'] as String? ?? '',

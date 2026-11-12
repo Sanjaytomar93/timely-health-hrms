@@ -98,6 +98,7 @@ class DashboardUiMapper {
       recentActivity: _recentActivity(data.attendance),
       updates: _updates(data),
       updatesMonthLabel: _monthYear(now),
+      campActivated: data.campActivated,
     );
   }
 

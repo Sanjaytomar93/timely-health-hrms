@@ -179,13 +179,13 @@ class DashboardShimmer extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Greeting
-              ShimmerBox(width: 200, height: 20, radius: 8),
+              ShimmerBox(width: 210, height: 22, radius: 8),
               SizedBox(height: 8),
-              ShimmerBox(width: 140, height: 12, radius: 6),
+              ShimmerBox(width: 150, height: 12, radius: 6),
               SizedBox(height: 12),
               // Profile card
               _ShimmerSurfaceCard(
-                height: 92,
+                height: 108,
                 child: Row(
                   children: [
                     ShimmerBox(height: 52, circle: true),
@@ -195,49 +195,43 @@ class DashboardShimmer extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          ShimmerBox(width: 130, height: 14, radius: 6),
+                          ShimmerBox(width: 140, height: 14, radius: 6),
                           SizedBox(height: 8),
-                          ShimmerBox(width: 90, height: 10, radius: 5),
+                          ShimmerBox(width: 100, height: 10, radius: 5),
                           SizedBox(height: 6),
-                          ShimmerBox(width: 160, height: 10, radius: 5),
+                          ShimmerBox(width: 170, height: 10, radius: 5),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 12),
+              SizedBox(height: 16),
               // Attendance banner
-              ShimmerBox(width: double.infinity, height: 88, radius: 18),
-              SizedBox(height: 14),
+              ShimmerBox(width: double.infinity, height: 148, radius: 18),
+              SizedBox(height: 16),
               // Stat cards 2x2
               Row(
                 children: [
-                  Expanded(child: ShimmerBox(height: 92, radius: 16)),
+                  Expanded(child: ShimmerBox(height: 78, radius: 16)),
                   SizedBox(width: 10),
-                  Expanded(child: ShimmerBox(height: 92, radius: 16)),
+                  Expanded(child: ShimmerBox(height: 78, radius: 16)),
                 ],
               ),
               SizedBox(height: 10),
               Row(
                 children: [
-                  Expanded(child: ShimmerBox(height: 92, radius: 16)),
+                  Expanded(child: ShimmerBox(height: 78, radius: 16)),
                   SizedBox(width: 10),
-                  Expanded(child: ShimmerBox(height: 92, radius: 16)),
-                ],
-              ),
-              SizedBox(height: 16),
-              // Quick actions
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _QuickActionBone(),
-                  _QuickActionBone(),
-                  _QuickActionBone(),
-                  _QuickActionBone(),
+                  Expanded(child: ShimmerBox(height: 78, radius: 16)),
                 ],
               ),
               SizedBox(height: 20),
+              // Quick actions (3)
+              ShimmerBox(width: 120, height: 12, radius: 5),
+              SizedBox(height: 10),
+              _QuickActionsBone(),
+              SizedBox(height: 24),
               // Late minutes chart
               ShimmerBox(width: double.infinity, height: 210, radius: 18),
               SizedBox(height: 14),
@@ -257,16 +251,40 @@ class DashboardShimmer extends StatelessWidget {
   }
 }
 
-class _QuickActionBone extends StatelessWidget {
-  const _QuickActionBone();
+class _QuickActionsBone extends StatelessWidget {
+  const _QuickActionsBone();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PortalColors.border),
+      ),
+      child: const Row(
+        children: [
+          Expanded(child: _QuickActionTileBone()),
+          Expanded(child: _QuickActionTileBone()),
+          Expanded(child: _QuickActionTileBone()),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickActionTileBone extends StatelessWidget {
+  const _QuickActionTileBone();
 
   @override
   Widget build(BuildContext context) {
     return const Column(
       children: [
-        ShimmerBox(width: 56, height: 56, radius: 16),
-        SizedBox(height: 8),
-        ShimmerBox(width: 48, height: 10, radius: 5),
+        ShimmerBox(width: 40, height: 40, circle: true),
+        SizedBox(height: 10),
+        ShimmerBox(width: 52, height: 10, radius: 5),
       ],
     );
   }

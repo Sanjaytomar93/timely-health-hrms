@@ -44,8 +44,11 @@ class DashboardRemoteDataSource {
       if (body['success'] == false) {
         throw DashboardFailure(_message(body, 'Failed to load dashboard.'));
       }
-      final raw = body['data'];
-      if (raw is! Map<String, dynamic>) {
+      // API returns { success, stats, charts } (no nested `data`).
+      final raw = body['data'] is Map<String, dynamic>
+          ? body['data'] as Map<String, dynamic>
+          : body;
+      if (raw['stats'] is! Map && raw['charts'] is! Map) {
         throw const FormatException('Unexpected dashboard response');
       }
       return VolunteerDashboardModel.fromJson(raw);

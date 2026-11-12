@@ -121,6 +121,8 @@ class Employee {
     this.salaryIncrements = const [],
     this.joinDate,
     this.permissions = const [],
+    this.adminFlag = false,
+    this.userType = '',
     this.latitude,
     this.longitude,
     this.address,
@@ -154,6 +156,8 @@ class Employee {
   final List<SalaryIncrement> salaryIncrements;
   final DateTime? joinDate;
   final List<String> permissions;
+  final bool adminFlag;
+  final String userType;
   final double? latitude;
   final double? longitude;
   final String? address;
@@ -256,4 +260,41 @@ class Employee {
   }
 
   bool get isActive => (status ?? 'active').toLowerCase() == 'active';
+
+  bool get isAdmin {
+    if (adminFlag) return true;
+
+    // Only role-like fields — not permissions (e.g. op_referral_management_view).
+    final fields = [role, designation, department, userType]
+        .map((e) => e.trim().toLowerCase())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (fields.any((f) => f == 'management')) return true;
+
+    final blob = fields.join(' ');
+    const needles = <String>[
+      'admin',
+      'administrator',
+      'superadmin',
+      'super admin',
+      'general manager',
+      'director',
+      'ceo',
+      'coo',
+      'owner',
+      'founder',
+      'root',
+      'hr head',
+      'hrhead',
+    ];
+    if (needles.any(blob.contains)) return true;
+
+    return permissions.any((p) {
+      final v = p.trim().toLowerCase();
+      return v == 'admin' ||
+          v.contains('is_admin') ||
+          v.startsWith('admin_') ||
+          v.endsWith('_admin');
+    });
+  }
 }

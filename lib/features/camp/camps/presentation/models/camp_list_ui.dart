@@ -53,6 +53,9 @@ class CampPatientUi {
     required this.genderLabel,
     required this.isScreened,
     this.initial = '?',
+    this.bmiLabel = '-',
+    this.bpLabel = '-',
+    this.sugarLabel = '-',
   });
 
   final String id;
@@ -62,6 +65,9 @@ class CampPatientUi {
   final String genderLabel;
   final bool isScreened;
   final String initial;
+  final String bmiLabel;
+  final String bpLabel;
+  final String sugarLabel;
 
   String get ageGenderLabel => '$age yrs / $genderLabel';
 
@@ -190,6 +196,13 @@ class CampListUiMapper {
       CampPatientGender.male => 'Male',
       CampPatientGender.other => 'Other',
     };
+    final vitals = patient.vitals;
+    final bmi = vitals?.bmi;
+    final sys = vitals?.bpSys;
+    final dia = vitals?.bpDia;
+    final sugar = vitals?.sugar;
+    final sugarType = vitals?.sugarType?.trim();
+
     return CampPatientUi(
       id: patient.id,
       name: name,
@@ -198,6 +211,13 @@ class CampListUiMapper {
       genderLabel: gender,
       isScreened: patient.isScreened,
       initial: name[0].toUpperCase(),
+      bmiLabel: bmi == null ? '-' : bmi.toStringAsFixed(1),
+      bpLabel: sys == null
+          ? '-'
+          : '${sys.toInt()}/${dia == null ? '?' : dia.toInt()}',
+      sugarLabel: sugar == null
+          ? '-'
+          : '${sugar.toInt()}${sugarType == null || sugarType.isEmpty ? '' : ' ($sugarType)'}',
     );
   }
 

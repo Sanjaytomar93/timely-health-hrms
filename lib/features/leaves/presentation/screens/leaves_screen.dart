@@ -354,18 +354,22 @@ class _LeavesAppBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: PortalColors.brandTint,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.center,
-            child: SvgPicture.asset(
-              'assets/icons/top_bar/ic_top_menu.svg',
-              width: 18,
-              height: 18,
+          GestureDetector(
+            onTap: () => Scaffold.of(context).openDrawer(),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: PortalColors.brandTint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                'assets/icons/top_bar/ic_top_menu.svg',
+                width: 18,
+                height: 18,
+              ),
             ),
           ),
           const SizedBox(width: 10),

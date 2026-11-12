@@ -143,6 +143,7 @@ class EmployeeDashboard {
     this.stats = const DashboardStats(),
     this.lateGraph = const [],
     this.absentGraph = const DashboardAbsentGraph(),
+    this.campActivated = false,
   });
 
   final String employeeId;
@@ -164,6 +165,7 @@ class EmployeeDashboard {
   final DashboardStats stats;
   final List<double> lateGraph;
   final DashboardAbsentGraph absentGraph;
+  final bool campActivated;
 
   String get displayFirstName {
     final f = firstName.trim();

@@ -410,6 +410,7 @@ class EmployeeDashboardModel {
     required this.stats,
     required this.lateGraph,
     required this.absentGraph,
+    this.campActivated = false,
   });
 
   final String employeeId;
@@ -430,6 +431,7 @@ class EmployeeDashboardModel {
   final DashboardStatsModel stats;
   final List<double> lateGraph;
   final DashboardAbsentGraphModel absentGraph;
+  final bool campActivated;
 
   factory EmployeeDashboardModel.fromJson(Map<String, dynamic> json) {
     final data = json['data'] is Map<String, dynamic>
@@ -482,6 +484,7 @@ class EmployeeDashboardModel {
         data['lateGraph'],
       ).map((e) => _asDouble(e['lateMinutes'])).toList(),
       absentGraph: DashboardAbsentGraphModel.fromJson(data['absentGraph']),
+      campActivated: _asBool(json['campActivated'] ?? data['campActivated']),
     );
   }
 }
@@ -501,6 +504,16 @@ double _asDouble(dynamic value) {
   if (value is num) return value.toDouble();
   if (value is String) return double.tryParse(value) ?? 0;
   return 0;
+}
+
+bool _asBool(dynamic value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  if (value is String) {
+    final v = value.trim().toLowerCase();
+    return v == 'true' || v == '1' || v == 'yes';
+  }
+  return false;
 }
 
 DashboardShiftModel _parseDashboardShift(Map<String, dynamic> data) {
