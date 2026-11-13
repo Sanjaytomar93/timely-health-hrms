@@ -268,7 +268,6 @@ class CheckInCubit extends Cubit<CheckInState> {
   bool needsReason() {
     final data = _data;
     if (data == null || !data.locationCaptured) return false;
-    if (data.mode == MarkAttendanceMode.checkOut) return false;
     return !data.withinRadius;
   }
 
@@ -299,11 +298,14 @@ class CheckInCubit extends Cubit<CheckInState> {
       return;
     }
 
-    if (data.mode == MarkAttendanceMode.checkIn &&
-        !data.withinRadius &&
-        (reason == null || reason.trim().isEmpty)) {
+    if (!data.withinRadius && (reason == null || reason.trim().isEmpty)) {
+      final action =
+          data.mode == MarkAttendanceMode.checkOut ? 'check-out' : 'check-in';
       emit(
-        CheckInFailureState('Please select a reason for check-in.', data: data),
+        CheckInFailureState(
+          'Please select a reason for $action.',
+          data: data,
+        ),
       );
       return;
     }

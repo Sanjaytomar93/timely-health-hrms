@@ -73,11 +73,15 @@ class MyAttendanceResult {
     required this.employeeName,
     required this.records,
     this.claimedAttendanceIds = const {},
+    this.otClaimStatuses = const {},
+    this.otClaimAmounts = const {},
     this.stats,
   });
 
   final String employeeName;
   final List<AttendanceRecord> records;
   final Set<String> claimedAttendanceIds;
+  final Map<String, String> otClaimStatuses;
+  final Map<String, double> otClaimAmounts;
   final AttendanceStats? stats;
 }

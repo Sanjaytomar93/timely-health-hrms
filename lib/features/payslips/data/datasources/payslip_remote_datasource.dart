@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:timelay_health/features/payslips/data/endpoints/payslip_endpoints.dart';
-import 'package:timelay_health/features/payslips/data/models/payslip_model.dart';
 import 'package:timelay_health/features/payslips/data/models/salary_summary_model.dart';
 import 'package:timelay_health/features/payslips/domain/failures/payslip_failure.dart';
 
@@ -11,54 +10,6 @@ class PayslipRemoteDataSource {
     : _client = client ?? http.Client();
 
   final http.Client _client;
-
-  Future<PayslipModel> getSalaryForDate({
-    required String employeeId,
-    required String date,
-  }) async {
-    final id = employeeId.trim();
-    if (id.isEmpty) {
-      throw const PayslipFailure('Employee ID missing. Please login again.');
-    }
-
-    late final http.Response response;
-    try {
-      response = await _client
-          .get(
-            Uri.parse(
-              PayslipEndpoints.salaryForDate(employeeId: id, date: date),
-            ),
-            headers: const {'Content-Type': 'application/json'},
-          )
-          .timeout(const Duration(seconds: 30));
-    } catch (_) {
-      throw const PayslipFailure(
-        'Unable to reach server. Check your internet connection.',
-      );
-    }
-
-    final body = _decode(response.body);
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw PayslipFailure(_message(body, 'Failed to load payslip.'));
-    }
-
-    try {
-      final data = body['data'];
-      if (data is Map<String, dynamic>) {
-        return PayslipModel.fromJson(data);
-      }
-      if (body['salaryPerMonth'] != null) {
-        return PayslipModel.fromJson(body);
-      }
-      throw const FormatException('Unexpected payslip response');
-    } on PayslipFailure {
-      rethrow;
-    } catch (_) {
-      throw const PayslipFailure(
-        'Unexpected server response. Please try again.',
-      );
-    }
-  }
 
   Future<SalarySummaryModel> getSalarySummary({
     required String employeeId,

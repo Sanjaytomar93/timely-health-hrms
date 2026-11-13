@@ -9,15 +9,26 @@ class AttendanceUiMapper {
   static List<AttendanceRecordUiModel> toUiList(
     List<AttendanceRecord> records, {
     Set<String> claimedIds = const {},
+    Map<String, String> otClaimStatuses = const {},
+    Map<String, double> otClaimAmounts = const {},
   }) {
     return records
-        .map((r) => toUi(r, otClaimed: claimedIds.contains(r.id)))
+        .map(
+          (r) => toUi(
+            r,
+            otClaimed: claimedIds.contains(r.id),
+            otClaimStatus: otClaimStatuses[r.id] ?? '',
+            otClaimAmount: otClaimAmounts[r.id],
+          ),
+        )
         .toList();
   }
 
   static AttendanceRecordUiModel toUi(
     AttendanceRecord record, {
     bool otClaimed = false,
+    String otClaimStatus = '',
+    double? otClaimAmount,
   }) {
     final hours = record.workingHours > 0
         ? record.workingHours
@@ -51,8 +62,11 @@ class AttendanceUiMapper {
       workingHours: hours,
       otHours: record.otHours,
       otClaimed: otClaimed,
+      otClaimStatus: otClaimStatus,
       claimableOtHours: _claimableOt(record),
-      otAmount: record.otAmount,
+      otAmount: (otClaimAmount != null && otClaimAmount > 0)
+          ? otClaimAmount
+          : record.otAmount,
       otMultiplier: record.otMultiplier,
       assignedShiftHours: record.assignedShiftHours,
       distanceMeters: record.distance,
