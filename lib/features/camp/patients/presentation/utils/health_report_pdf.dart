@@ -1,11 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:share_plus/share_plus.dart';
 import 'package:timelay_health/features/camp/camps/domain/entities/camp.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/utils/camp_pdf_delivery.dart';
 
 /// Exact website Timely Health Report PDF (single page).
 class HealthReportPdf {
@@ -27,7 +24,10 @@ class HealthReportPdf {
   static const _border = PdfColor.fromInt(0xFFD8DEE6);
   static const _arrow = PdfColor.fromInt(0xFF374151);
 
-  static Future<void> download(CampPatient patient) async {
+  static Future<String?> download(
+    CampPatient patient, {
+    CampPdfAction action = CampPdfAction.share,
+  }) async {
     final data = HealthReportData.fromPatient(patient);
     final logo = pw.MemoryImage(
       (await rootBundle.load(_logo)).buffer.asUint8List(),
@@ -310,14 +310,11 @@ class HealthReportPdf {
     final fileName =
         '${safeName.isEmpty ? 'Health' : safeName}_Health_Report.pdf'
             .replaceAll(' ', '_');
-    final bytes = await doc.save();
-    final file = File('${(await getTemporaryDirectory()).path}/$fileName');
-    await file.writeAsBytes(bytes, flush: true);
-    await SharePlus.instance.share(
-      ShareParams(
-        files: [XFile(file.path, mimeType: 'application/pdf', name: fileName)],
-        subject: 'Health Report - ${data.name}',
-      ),
+    return CampPdfDelivery.deliver(
+      bytes: await doc.save(),
+      fileName: fileName,
+      action: action,
+      subject: 'Health Report - ${data.name}',
     );
   }
 

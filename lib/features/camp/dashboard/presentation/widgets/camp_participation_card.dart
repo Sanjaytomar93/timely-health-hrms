@@ -22,7 +22,8 @@ class _CampParticipationCardState extends State<CampParticipationCard> {
         this,
         isLoading: _isExporting,
         setLoading: (v) => setState(() => _isExporting = v),
-        action: CampDistributionExport.exportParticipationPdf,
+        action: (a) =>
+            CampDistributionExport.exportParticipationPdf(action: a),
       );
 
   @override

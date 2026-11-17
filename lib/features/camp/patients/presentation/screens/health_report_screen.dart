@@ -5,6 +5,7 @@ import 'package:timelay_health/core/widgets/portal_back_button.dart';
 import 'package:timelay_health/features/camp/camps/domain/entities/camp.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_ui_scope.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/utils/camp_pdf_delivery.dart';
 import 'package:timelay_health/features/camp/patients/presentation/bloc/patient_detail_cubit.dart';
 import 'package:timelay_health/features/camp/patients/presentation/bloc/patient_detail_state.dart';
 import 'package:timelay_health/features/camp/patients/presentation/utils/health_report_pdf.dart';
@@ -418,6 +419,9 @@ class _HealthReportBodyState extends State<_HealthReportBody> {
 
   Future<void> _download(CampPatient patient) async {
     if (_downloading) return;
+    final chosen = await showCampPdfActionSheet(context);
+    if (chosen == null || !mounted) return;
+
     setState(() => _downloading = true);
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
@@ -428,7 +432,20 @@ class _HealthReportBodyState extends State<_HealthReportBody> {
       ),
     );
     try {
-      await HealthReportPdf.download(patient);
+      final path = await HealthReportPdf.download(patient, action: chosen);
+      if (!mounted) return;
+      if (chosen == CampPdfAction.download) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              path == null
+                  ? 'Nothing to download.'
+                  : 'Downloaded: ${path.split('/').last}',
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (_) {
       if (!mounted) return;
       messenger.showSnackBar(

@@ -1,15 +1,15 @@
-import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:share_plus/share_plus.dart';
 import 'package:timelay_health/features/auth/data/auth_session.dart';
 import 'package:timelay_health/features/camp/camps/data/repositories_impl/camp_repository_impl.dart';
 import 'package:timelay_health/features/camp/camps/domain/entities/camp.dart';
 import 'package:timelay_health/features/camp/camps/domain/usecases/get_assigned_camps_usecase.dart';
 import 'package:timelay_health/features/camp/camps/presentation/models/camp_list_ui.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/utils/camp_pdf_delivery.dart';
 import 'package:timelay_health/features/camp/shared/camp_memory_cache.dart';
+
+export 'package:timelay_health/features/camp/dashboard/presentation/utils/camp_pdf_delivery.dart';
 
 class CampDistributionExport {
   const CampDistributionExport._();
@@ -80,21 +80,9 @@ class CampDistributionExport {
     );
   }
 
-  static Future<void> _sharePdf(pw.Document doc, String fileName) async {
-    final bytes = await doc.save();
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/$fileName');
-    await file.writeAsBytes(bytes, flush: true);
-    await SharePlus.instance.share(
-      ShareParams(
-        files: [XFile(file.path, mimeType: 'application/pdf', name: fileName)],
-        subject: fileName.replaceAll('.pdf', ''),
-      ),
-    );
-  }
-
-  static Future<void> _buildAndShare({
+  static Future<String?> _buildAndDeliver({
     required String fileName,
+    required CampPdfAction action,
     required Map<int, pw.TableColumnWidth> columnWidths,
     required List<pw.Widget> headers,
     required List<List<pw.Widget>> rows,
@@ -141,7 +129,11 @@ class CampDistributionExport {
       ),
     );
 
-    await _sharePdf(doc, fileName);
+    return CampPdfDelivery.deliver(
+      bytes: await doc.save(),
+      fileName: fileName,
+      action: action,
+    );
   }
 
   static Future<List<Camp>> _fetchRawCamps() async {
@@ -208,15 +200,17 @@ class CampDistributionExport {
   }
 
   /// Camp Distribution PDF.
-  static Future<void> exportPdf({
+  static Future<String?> exportPdf({
     DateTime? from,
     DateTime? to,
     List<CampItemUi>? preloadedCamps,
+    CampPdfAction action = CampPdfAction.share,
   }) async {
     final camps = preloadedCamps ?? await fetchCamps(from: from, to: to);
-    if (camps.isEmpty) return;
+    if (camps.isEmpty) return null;
 
-    await _buildAndShare(
+    return _buildAndDeliver(
+      action: action,
       fileName: _fileName('detailed_camp_distribution'),
       columnWidths: const {
         0: pw.FlexColumnWidth(2.2),
@@ -256,9 +250,11 @@ class CampDistributionExport {
   }
 
   /// Patient-level participation PDF.
-  static Future<void> exportParticipationPdf() async {
+  static Future<String?> exportParticipationPdf({
+    CampPdfAction action = CampPdfAction.share,
+  }) async {
     final camps = await fetchCamps();
-    if (camps.isEmpty) return;
+    if (camps.isEmpty) return null;
 
     final rows = <List<pw.Widget>>[];
     for (final camp in camps) {
@@ -273,9 +269,10 @@ class CampDistributionExport {
         ]);
       }
     }
-    if (rows.isEmpty) return;
+    if (rows.isEmpty) return null;
 
-    await _buildAndShare(
+    return _buildAndDeliver(
+      action: action,
       fileName: _fileName('detailed_camp_participation'),
       columnWidths: const {
         0: pw.FlexColumnWidth(2.5),
@@ -296,9 +293,11 @@ class CampDistributionExport {
   }
 
   /// Patient-level BMI PDF.
-  static Future<void> exportBmiPdf() async {
+  static Future<String?> exportBmiPdf({
+    CampPdfAction action = CampPdfAction.share,
+  }) async {
     final camps = await _fetchRawCamps();
-    if (camps.isEmpty) return;
+    if (camps.isEmpty) return null;
 
     final rows = <List<pw.Widget>>[];
     for (final camp in camps) {
@@ -318,9 +317,10 @@ class CampDistributionExport {
         ]);
       }
     }
-    if (rows.isEmpty) return;
+    if (rows.isEmpty) return null;
 
-    await _buildAndShare(
+    return _buildAndDeliver(
+      action: action,
       fileName: _fileName('detailed_bmi_distribution'),
       columnWidths: const {
         0: pw.FlexColumnWidth(1.3),
@@ -341,7 +341,9 @@ class CampDistributionExport {
   }
 
   /// Patient-level BP / Sugar PDF.
-  static Future<void> exportBpSugarPdf() async {
+  static Future<String?> exportBpSugarPdf({
+    CampPdfAction action = CampPdfAction.share,
+  }) async {
     final camps = await _fetchRawCamps();
 
     final bpRows = <List<pw.Widget>>[];
@@ -392,7 +394,7 @@ class CampDistributionExport {
       }
     }
 
-    if (bpRows.isEmpty && sugarRows.isEmpty) return;
+    if (bpRows.isEmpty && sugarRows.isEmpty) return null;
 
     const widths = {
       0: pw.FlexColumnWidth(1.3),
@@ -444,7 +446,8 @@ class CampDistributionExport {
       );
     }
 
-    await _buildAndShare(
+    return _buildAndDeliver(
+      action: action,
       fileName: _fileName('bp_sugar_analysis'),
       columnWidths: widths,
       headers: headers,
@@ -460,7 +463,10 @@ class CampDistributionExport {
   }
 
   /// Single-camp patient table report (Download Report on camp detail).
-  static Future<void> exportCampReport(CampItemUi camp) async {
+  static Future<String?> exportCampReport(
+    CampItemUi camp, {
+    CampPdfAction action = CampPdfAction.download,
+  }) async {
     final safeName = camp.name
         .trim()
         .replaceAll(RegExp(r'[^\w\s-]'), '')
@@ -473,7 +479,8 @@ class CampDistributionExport {
     final campName = _dash(camp.name);
     final location = _dash(camp.location);
 
-    await _buildAndShare(
+    return _buildAndDeliver(
+      action: action,
       fileName: fileName,
       columnWidths: const {
         0: pw.FlexColumnWidth(2.0),

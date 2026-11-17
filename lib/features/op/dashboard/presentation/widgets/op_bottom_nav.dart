@@ -13,12 +13,28 @@ class OpBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  static const _labels = ['Dashboard', 'Walk-in', 'Doctors', 'Service'];
-  static const _icons = [
-    Icons.home_rounded,
-    Icons.directions_walk_rounded,
-    Icons.medical_services_rounded,
-    Icons.miscellaneous_services_rounded,
+  static const _items = <({IconData icon, IconData activeIcon, String label})>[
+    (icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
+    (
+      icon: Icons.calendar_month_outlined,
+      activeIcon: Icons.calendar_month_rounded,
+      label: 'Walk-in OP',
+    ),
+    (
+      icon: Icons.medical_services_outlined,
+      activeIcon: Icons.medical_services_rounded,
+      label: 'Doctors',
+    ),
+    (
+      icon: Icons.medical_information_outlined,
+      activeIcon: Icons.medical_information_rounded,
+      label: 'Services',
+    ),
+    (
+      icon: Icons.event_available_outlined,
+      activeIcon: Icons.event_available_rounded,
+      label: 'Online Booking',
+    ),
   ];
 
   @override
@@ -43,11 +59,12 @@ class OpBottomNav extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
           child: Row(
             children: [
-              for (var i = 0; i < _labels.length; i++)
+              for (var i = 0; i < _items.length; i++)
                 Expanded(
                   child: _OpNavItem(
-                    icon: _icons[i],
-                    label: _labels[i],
+                    icon: _items[i].icon,
+                    activeIcon: _items[i].activeIcon,
+                    label: _items[i].label,
                     selected: currentIndex == i,
                     onTap: () => onTap(i),
                   ),
@@ -63,12 +80,14 @@ class OpBottomNav extends StatelessWidget {
 class _OpNavItem extends StatelessWidget {
   const _OpNavItem({
     required this.icon,
+    required this.activeIcon,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
   final IconData icon;
+  final IconData activeIcon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -99,9 +118,9 @@ class _OpNavItem extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: Icon(
-              icon,
+              selected ? activeIcon : icon,
               size: iconSize,
-              color: selected ? NavIcons.active : NavIcons.inactive,
+              color: labelColor,
             ),
           ),
           const SizedBox(height: 2),

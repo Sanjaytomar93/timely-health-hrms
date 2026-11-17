@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
+import 'package:timelay_health/features/camp/dashboard/presentation/utils/camp_pdf_delivery.dart';
 
 class CampExportButton extends StatelessWidget {
   const CampExportButton({
@@ -12,17 +13,32 @@ class CampExportButton extends StatelessWidget {
   final VoidCallback? onTap;
   final bool isLoading;
 
-  /// Shared loading + snackbar wrapper for dashboard export actions.
   static Future<void> run(
     State state, {
     required bool isLoading,
     required void Function(bool loading) setLoading,
-    required Future<void> Function() action,
+    required Future<String?> Function(CampPdfAction action) action,
   }) async {
     if (isLoading) return;
+    final chosen = await showCampPdfActionSheet(state.context);
+    if (chosen == null || !state.mounted) return;
+
     setLoading(true);
     try {
-      await action();
+      final savedPath = await action(chosen);
+      if (!state.mounted) return;
+      if (chosen == CampPdfAction.download) {
+        ScaffoldMessenger.of(state.context).showSnackBar(
+          SnackBar(
+            content: Text(
+              savedPath == null
+                  ? 'Nothing to download.'
+                  : 'Downloaded: ${savedPath.split('/').last}',
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e) {
       if (!state.mounted) return;
       ScaffoldMessenger.of(state.context).showSnackBar(

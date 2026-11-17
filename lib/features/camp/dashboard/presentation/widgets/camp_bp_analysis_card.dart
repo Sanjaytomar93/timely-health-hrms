@@ -30,7 +30,7 @@ class _CampBpAnalysisCardState extends State<CampBpAnalysisCard> {
         this,
         isLoading: _isExporting,
         setLoading: (v) => setState(() => _isExporting = v),
-        action: CampDistributionExport.exportBpSugarPdf,
+        action: (a) => CampDistributionExport.exportBpSugarPdf(action: a),
       );
 
   @override

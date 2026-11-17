@@ -58,30 +58,36 @@ class _CampManagementShellState extends State<CampManagementShell> {
         value: SystemUiOverlayStyle.dark.copyWith(
           statusBarColor: Colors.transparent,
         ),
-        child: Scaffold(
-          backgroundColor: CampColors.background,
-          body: PortalSafeArea(
-            bottom: false,
-            statusBarColor: CampColors.surface,
-            child: IndexedStack(
-              index: _index,
-              children: [
-                const CampDashboardScreen(),
-                _visited.contains(1)
-                    ? const CampListScreen()
-                    : const SizedBox.shrink(),
-                _visited.contains(2)
-                    ? const PatientsScreen()
-                    : const SizedBox.shrink(),
-                _visited.contains(3)
-                    ? const CampProfileScreen()
-                    : const SizedBox.shrink(),
-              ],
+        child: PopScope(
+          canPop: _index == 0,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _openTab(0);
+          },
+          child: Scaffold(
+            backgroundColor: CampColors.background,
+            body: PortalSafeArea(
+              bottom: false,
+              statusBarColor: CampColors.surface,
+              child: IndexedStack(
+                index: _index,
+                children: [
+                  const CampDashboardScreen(),
+                  _visited.contains(1)
+                      ? const CampListScreen()
+                      : const SizedBox.shrink(),
+                  _visited.contains(2)
+                      ? const PatientsScreen()
+                      : const SizedBox.shrink(),
+                  _visited.contains(3)
+                      ? const CampProfileScreen()
+                      : const SizedBox.shrink(),
+                ],
+              ),
             ),
-          ),
-          bottomNavigationBar: CampBottomNav(
-            currentIndex: _index,
-            onTap: _openTab,
+            bottomNavigationBar: CampBottomNav(
+              currentIndex: _index,
+              onTap: _openTab,
+            ),
           ),
         ),
       ),

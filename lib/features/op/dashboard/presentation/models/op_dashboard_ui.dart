@@ -149,6 +149,20 @@ class OpRevenueChannelUi {
   final bool isTotal;
 }
 
+class OpCollectedUi {
+  const OpCollectedUi({required this.amount, required this.breakdown});
+
+  final String amount;
+  final List<({String label, String value, Color color})> breakdown;
+}
+
+class OpDueInvoiceUi {
+  const OpDueInvoiceUi({required this.count, required this.amount});
+
+  final int count;
+  final String amount;
+}
+
 class OpDashboardUi {
   const OpDashboardUi({
     required this.greeting,
@@ -156,7 +170,9 @@ class OpDashboardUi {
     required this.periodFilters,
     required this.selectedPeriod,
     required this.quickActions,
+    required this.collected,
     required this.metrics,
+    required this.dueInvoices,
     required this.trend,
     required this.summaryRows,
     required this.paymentStatus,
@@ -175,7 +191,9 @@ class OpDashboardUi {
   final List<String> periodFilters;
   final String selectedPeriod;
   final List<OpQuickActionUi> quickActions;
+  final OpCollectedUi collected;
   final List<OpMetricUi> metrics;
+  final OpDueInvoiceUi dueInvoices;
   final List<OpMonthRevenueUi> trend;
   final List<OpSummaryRowUi> summaryRows;
   final List<OpSliceUi> paymentStatus;
@@ -193,8 +211,8 @@ class OpDashboardUi {
     final greet = hour < 12
         ? 'Good Morning'
         : hour < 17
-            ? 'Good Afternoon'
-            : 'Good Evening';
+        ? 'Good Afternoon'
+        : 'Good Evening';
 
     return OpDashboardUi(
       greeting: '$greet 👋',
@@ -212,158 +230,222 @@ class OpDashboardUi {
       quickActions: const [
         OpQuickActionUi(
           label: 'Doctors',
-          subtitle: '12 active doctors',
+          subtitle: 'Quick Action',
           icon: Icons.medical_services_outlined,
-          accent: Color(0xFF3B82F6),
-          tint: Color(0xFFEAF2FF),
-          tabIndex: 4,
+          accent: Color(0xFF2563EB),
+          tint: Color(0xFFEFF6FF),
+          tabIndex: 2,
         ),
         OpQuickActionUi(
           label: 'Slots',
-          subtitle: '48 slots today',
+          subtitle: 'Quick Action',
           icon: Icons.calendar_month_outlined,
-          accent: Color(0xFFA855F7),
-          tint: Color(0xFFF3E8FF),
-          tabIndex: 4,
+          accent: Color(0xFF7C3AED),
+          tint: Color(0xFFF5F3FF),
         ),
         OpQuickActionUi(
-          label: 'Walkin',
-          subtitle: '46 outpatient visits',
-          icon: Icons.directions_walk_rounded,
-          accent: Color(0xFF22C55E),
-          tint: Color(0xFFE8F8EF),
+          label: 'OP',
+          subtitle: 'Quick Action',
+          icon: Icons.person_add_alt_1_rounded,
+          accent: Color(0xFF26204A),
+          tint: Color(0xFFEEEDF0),
           tabIndex: 1,
         ),
         OpQuickActionUi(
           label: 'Bookings',
-          subtitle: '64 appointments',
+          subtitle: 'Quick Action',
           icon: Icons.menu_book_outlined,
-          accent: Color(0xFFF59E0B),
-          tint: Color(0xFFFFF6E5),
-          tabIndex: 2,
+          accent: Color(0xFFB45309),
+          tint: Color(0xFFFFFBEB),
+          tabIndex: 4,
         ),
       ],
+      collected: const OpCollectedUi(
+        amount: '₹8,12,565',
+        breakdown: [
+          (label: 'Clinic', value: '₹1,98,750', color: Color(0xFF93C5FD)),
+          (label: 'Lab', value: '₹5,02,212', color: Color(0xFFC4B5FD)),
+          (label: 'Pharmacy', value: '₹1,11,603', color: Color(0xFF6EE7B7)),
+        ],
+      ),
       metrics: const [
         OpMetricUi(
-          title: 'TOTAL CLINIC PATIENTS',
-          value: '800',
-          accent: Color(0xFF3B82F6),
-          icon: Icons.groups_rounded,
-          tint: Color(0xFFE8F1FF),
-          activeLabel: 'Active: 800',
+          title: 'Total Patients',
+          value: '852',
+          accent: Color(0xFF26204A),
+          icon: Icons.groups_2_outlined,
+          tint: Color(0x1A26204A),
+          activeLabel: 'Active: 852',
           inactiveLabel: 'Inactive: 0',
         ),
         OpMetricUi(
-          title: 'PAID',
-          value: '780',
-          subtitle: 'Completed payments',
-          accent: Color(0xFF22C55E),
-          icon: Icons.check_circle_rounded,
-          tint: Color(0xFFE8F8EF),
+          title: 'Paid',
+          value: '830',
+          subtitle: 'completed payments',
+          accent: Color(0xFF059669),
+          icon: Icons.check_rounded,
+          tint: Color(0xFFECFDF5),
         ),
         OpMetricUi(
-          title: 'PARTIAL',
-          value: '1',
-          subtitle: 'Partially paid',
-          accent: Color(0xFF3B82F6),
+          title: 'Partial',
+          value: '3',
+          subtitle: 'partially paid',
+          accent: Color(0xFFD97706),
           icon: Icons.schedule_rounded,
-          tint: Color(0xFFE8F1FF),
+          tint: Color(0xFFFFFBEB),
         ),
         OpMetricUi(
-          title: 'PENDING',
+          title: 'Pending',
           value: '0',
-          subtitle: 'Awaiting payment',
-          accent: Color(0xFFF59E0B),
-          icon: Icons.access_time_rounded,
-          tint: Color(0xFFFFF4E5),
-        ),
-        OpMetricUi(
-          title: 'DUE',
-          value: '19',
-          subtitle: 'Overdue payments',
-          accent: Color(0xFFEF4444),
+          subtitle: 'awaiting payment',
+          accent: Color(0xFFB45309),
           icon: Icons.error_rounded,
-          tint: Color(0xFFFEECEC),
-        ),
-        OpMetricUi(
-          title: 'TOTAL COLLECTED',
-          value: '₹7,65,670',
-          accent: Color(0xFF22C55E),
-          icon: Icons.currency_rupee_rounded,
-          tint: Color(0xFFE8F8EF),
-          breakdown: [
-            (label: 'Clinic', value: '₹1,88,500', color: Color(0xFF3B82F6)),
-            (label: 'Lab', value: '₹4,75,377', color: Color(0xFFA855F7)),
-            (label: 'Pharmacy', value: '₹1,01,793', color: Color(0xFF22C55E)),
-          ],
+          tint: Color(0xFFFFFBEB),
         ),
       ],
+      dueInvoices: const OpDueInvoiceUi(count: 19, amount: '₹12,063'),
       trend: const [
         OpMonthRevenueUi(label: 'Apr', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'May', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'Jun', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'Jul', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'Aug', opd: 0, lab: 0, pharmacy: 0),
-        OpMonthRevenueUi(label: 'Sep', opd: 130000, lab: 250000, pharmacy: 20000),
-        OpMonthRevenueUi(label: 'Oct', opd: 120000, lab: 200000, pharmacy: 110000),
-        OpMonthRevenueUi(label: 'Nov', opd: 0, lab: 0, pharmacy: 0),
-        OpMonthRevenueUi(label: 'Dec', opd: 40000, lab: 70000, pharmacy: 35000),
+        OpMonthRevenueUi(
+          label: 'Sep',
+          opd: 130000,
+          lab: 250000,
+          pharmacy: 20000,
+        ),
+        OpMonthRevenueUi(
+          label: 'Oct',
+          opd: 120000,
+          lab: 200000,
+          pharmacy: 110000,
+        ),
+        OpMonthRevenueUi(label: 'Nov', opd: 36000, lab: 73000, pharmacy: 31000),
+        OpMonthRevenueUi(label: 'Dec', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'Jan', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'Feb', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'Mar', opd: 0, lab: 0, pharmacy: 0),
       ],
       summaryRows: const [
-        OpSummaryRowUi(label: 'Total Patients', value: '800', color: OpColors.blue),
         OpSummaryRowUi(
-          label: 'Total Collective',
-          value: '₹7,65,670',
-          color: OpColors.green,
+          label: 'Total Patients',
+          value: '852',
+          color: Color(0xFF26204A),
         ),
-        OpSummaryRowUi(label: 'Total Due', value: '₹11,463', color: OpColors.red),
-        OpSummaryRowUi(label: 'Refund', value: '0', color: OpColors.purple),
-        OpSummaryRowUi(label: 'Offers Applied', value: '1', color: OpColors.orange),
+        OpSummaryRowUi(
+          label: 'Total Collected',
+          value: '₹8,12,565',
+          color: Color(0xFF059669),
+        ),
+        OpSummaryRowUi(
+          label: 'Total Due',
+          value: '₹12,063',
+          color: Color(0xFFE11D48),
+        ),
+        OpSummaryRowUi(
+          label: 'Reviews',
+          value: '0',
+          color: Color(0xFF7C3AED),
+        ),
+        OpSummaryRowUi(
+          label: 'Offers Applied',
+          value: '1',
+          color: Color(0xFFD97706),
+        ),
       ],
       paymentStatus: const [
-        OpSliceUi(label: 'Paid', count: 780, percent: 97.5, color: OpColors.green),
-        OpSliceUi(label: 'Partial', count: 1, percent: 0.1, color: OpColors.orange),
-        OpSliceUi(label: 'Pending', count: 19, percent: 2.4, color: OpColors.red),
+        OpSliceUi(
+          label: 'Paid',
+          count: 830,
+          percent: 97.4,
+          color: Color(0xFF10B981),
+        ),
+        OpSliceUi(
+          label: 'Partial',
+          count: 3,
+          percent: 0.4,
+          color: Color(0xFFF59E0B),
+        ),
+        OpSliceUi(
+          label: 'Pending',
+          count: 19,
+          percent: 2.2,
+          color: Color(0xFFF43F5E),
+        ),
       ],
       paymentModes: const [
-        OpSliceUi(label: 'Cash', count: 236, percent: 30.3, color: OpColors.green),
-        OpSliceUi(label: 'Online', count: 542, percent: 69.5, color: OpColors.purple),
-        OpSliceUi(label: 'Insurance', count: 1, percent: 0.1, color: OpColors.blue),
-        OpSliceUi(label: 'Card', count: 1, percent: 0.1, color: OpColors.cyan),
+        OpSliceUi(
+          label: 'Online UPI / Netbanking',
+          count: 552,
+          percent: 66.5,
+          color: Color(0xFF26204A),
+        ),
+        OpSliceUi(
+          label: 'Cash Counter',
+          count: 276,
+          percent: 33.2,
+          color: Color(0xFF10B981),
+        ),
+        OpSliceUi(
+          label: 'Insurance TPA',
+          count: 1,
+          percent: 0.1,
+          color: Color(0xFF8B5CF6),
+        ),
+        OpSliceUi(
+          label: 'Credit / Debit Card',
+          count: 1,
+          percent: 0.1,
+          color: Color(0xFF0EA5E9),
+        ),
       ],
       gender: const [
         OpSliceUi(
           label: 'Male',
-          count: 426,
-          percent: 62,
-          color: Color(0xFF3B82F6),
+          count: 443,
+          percent: 61,
+          color: Color(0xFF26204A),
         ),
         OpSliceUi(
           label: 'Female',
-          count: 258,
-          percent: 38,
+          count: 284,
+          percent: 39,
           color: Color(0xFFEC4899),
         ),
         OpSliceUi(
           label: 'Other',
           count: 0,
           percent: 0,
-          color: Color(0xFFA855F7),
+          color: Color(0xFFCBD5E1),
         ),
       ],
-      genderTotal: 804,
+      genderTotal: 727,
       fyTrend: const [
         OpMonthRevenueUi(label: 'Apr', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'May', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'Jun', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'Jul', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'Aug', opd: 0, lab: 0, pharmacy: 0),
-        OpMonthRevenueUi(label: 'Sep', opd: 130000, lab: 250000, pharmacy: 20000),
-        OpMonthRevenueUi(label: 'Oct', opd: 120000, lab: 200000, pharmacy: 110000),
-        OpMonthRevenueUi(label: 'Nov', opd: 90000, lab: 160000, pharmacy: 50000),
+        OpMonthRevenueUi(
+          label: 'Sep',
+          opd: 130000,
+          lab: 250000,
+          pharmacy: 20000,
+        ),
+        OpMonthRevenueUi(
+          label: 'Oct',
+          opd: 120000,
+          lab: 200000,
+          pharmacy: 110000,
+        ),
+        OpMonthRevenueUi(
+          label: 'Nov',
+          opd: 90000,
+          lab: 160000,
+          pharmacy: 50000,
+        ),
         OpMonthRevenueUi(label: 'Dec', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'Jan', opd: 0, lab: 0, pharmacy: 0),
         OpMonthRevenueUi(label: 'Feb', opd: 0, lab: 0, pharmacy: 0),
@@ -371,24 +453,19 @@ class OpDashboardUi {
       ],
       fyFooter: const [
         OpSummaryRowUi(
-          label: 'YEAR',
-          value: 'FY 2025-26',
-          color: Color(0xFF6B6880),
+          label: 'Total Revenue',
+          value: '₹8,04,811',
+          color: Color(0xFF26204A),
         ),
         OpSummaryRowUi(
-          label: 'TOTAL REVENUE',
-          value: '₹7,58,516',
-          color: Color(0xFF3B82F6),
-        ),
-        OpSummaryRowUi(
-          label: 'PEAK MONTH',
+          label: 'Peak Month',
           value: 'Oct',
-          color: Color(0xFF22C55E),
+          color: Color(0xFF047857),
         ),
         OpSummaryRowUi(
-          label: 'CATEGORIES',
-          value: 'Clinic, Lab, Pharmacy',
-          color: Color(0xFF8B5CF6),
+          label: 'FY Range',
+          value: '2025-26',
+          color: Color(0xFF7C3AED),
         ),
       ],
       patients: const [
@@ -512,55 +589,55 @@ class OpDashboardUi {
       revenueChannels: const [
         OpRevenueChannelUi(
           title: 'CLINIC REVENUE',
-          icon: Icons.local_hospital_outlined,
-          footfall: 592,
-          amount: '₹1,89,100',
-          bg: Color(0xFFEAF2FF),
-          accent: Color(0xFF2563EB),
+          icon: Icons.favorite_rounded,
+          footfall: 625,
+          amount: '₹1,98,750',
+          bg: Color(0xFFEFF6FF),
+          accent: Color(0xFF1D4ED8),
           lines: [
-            (label: 'Cash', value: '₹26,400', color: Color(0xFF16A34A)),
-            (label: 'Online', value: '₹1,62,700', color: Color(0xFF2563EB)),
-            (label: 'Due', value: '₹0', color: Color(0xFFDC2626)),
+            (label: 'Cash', value: '₹26,750', color: Color(0xFF047857)),
+            (label: 'Online', value: '₹1,71,400', color: Color(0xFF4338CA)),
+            (label: 'Due', value: '₹600', color: Color(0xFFE11D48)),
           ],
         ),
         OpRevenueChannelUi(
           title: 'LAB REVENUE',
-          icon: Icons.biotech_outlined,
-          footfall: 280,
-          amount: '₹4,80,887',
-          bg: Color(0xFFF3EEFF),
-          accent: Color(0xFF7C3AED),
+          icon: Icons.science_outlined,
+          footfall: 296,
+          amount: '₹5,02,212',
+          bg: Color(0xFFF5F3FF),
+          accent: Color(0xFF6D28D9),
           lines: [
-            (label: 'Cash', value: '₹62,062', color: Color(0xFF16A34A)),
-            (label: 'Online', value: '₹4,06,931', color: Color(0xFF2563EB)),
-            (label: 'Due', value: '₹11,463', color: Color(0xFFDC2626)),
+            (label: 'Cash', value: '₹63,661', color: Color(0xFF047857)),
+            (label: 'Online', value: '₹4,26,657', color: Color(0xFF4338CA)),
+            (label: 'Due', value: '₹11,463', color: Color(0xFFE11D48)),
           ],
         ),
         OpRevenueChannelUi(
           title: 'PHARMACY REVENUE',
           icon: Icons.local_pharmacy_outlined,
-          footfall: 180,
-          amount: '₹1,01,793',
-          bg: Color(0xFFE8F8F0),
-          accent: Color(0xFF15803D),
+          footfall: 202,
+          amount: '₹1,11,603',
+          bg: Color(0xFFECFDF5),
+          accent: Color(0xFF047857),
           lines: [
-            (label: 'Cash', value: '₹2,883', color: Color(0xFF16A34A)),
-            (label: 'Online', value: '₹98,910', color: Color(0xFF2563EB)),
-            (label: 'Due', value: '₹0', color: Color(0xFFDC2626)),
+            (label: 'Cash', value: '₹2,883', color: Color(0xFF047857)),
+            (label: 'Online', value: '₹1,08,720', color: Color(0xFF4338CA)),
+            (label: 'Due', value: '₹0', color: Color(0xFF64748B)),
           ],
         ),
         OpRevenueChannelUi(
           title: 'TOTAL COLLECTED',
-          icon: Icons.payments_outlined,
-          footfall: 1052,
-          amount: '₹7,71,780',
-          bg: Color(0xFFFFFFFF),
-          accent: Color(0xFF1C1B29),
+          icon: Icons.currency_rupee_rounded,
+          footfall: 1123,
+          amount: '₹8,12,565',
+          bg: Color(0xFFF8FAFC),
+          accent: Color(0xFF1E293B),
           isTotal: true,
           lines: [
-            (label: 'Clinic', value: '₹1,89,100', color: Color(0xFF2563EB)),
-            (label: 'Lab', value: '₹4,80,887', color: Color(0xFF7C3AED)),
-            (label: 'Pharmacy', value: '₹1,01,793', color: Color(0xFF15803D)),
+            (label: 'Clinic', value: '₹1,98,750', color: Color(0xFF1D4ED8)),
+            (label: 'Lab', value: '₹5,02,212', color: Color(0xFF6D28D9)),
+            (label: 'Pharmacy', value: '₹1,11,603', color: Color(0xFF047857)),
           ],
         ),
       ],

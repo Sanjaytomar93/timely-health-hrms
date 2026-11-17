@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
-import 'package:timelay_health/features/auth/data/auth_session.dart';
+import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
 
 class OpTopBar extends StatelessWidget {
   const OpTopBar({
@@ -12,12 +12,14 @@ class OpTopBar extends StatelessWidget {
     this.onMenuTap,
     this.light = true,
     this.showBack = false,
+    this.bottom,
   });
 
   final String title;
   final VoidCallback? onMenuTap;
   final bool light;
   final bool showBack;
+  final Widget? bottom;
 
   void _goToHrms(BuildContext context) {
     Navigator.of(context).popUntil(
@@ -27,129 +29,64 @@ class OpTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final employee = AuthSession.currentEmployee;
-    final initial = (employee?.displayName.trim().isNotEmpty ?? false)
-        ? employee!.displayName.trim()[0].toUpperCase()
-        : 'U';
-
     return Container(
-      height: 58,
-      color: PortalColors.brand,
-      padding: const EdgeInsets.fromLTRB(16, 0, 12, 0),
-      child: Row(
+      padding: EdgeInsets.fromLTRB(22, 2, 18, bottom == null ? 6 : 12),
+      decoration: const BoxDecoration(
+        color: PortalColors.brand,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          GestureDetector(
-            onTap: onMenuTap ?? () => _goToHrms(context),
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: PortalColors.brandTint,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              alignment: Alignment.center,
-              child: showBack
-                  ? const Icon(
-                      Icons.arrow_back_rounded,
-                      size: 18,
-                      color: PortalColors.brand,
-                    )
-                  : SvgPicture.asset(
-                      'assets/icons/top_bar/ic_top_menu.svg',
-                      width: 18,
-                      height: 18,
-                    ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: portalText(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          Stack(
-            clipBehavior: Clip.none,
+          Row(
             children: [
-              _RoundIcon(
-                bg: Colors.white.withValues(alpha: 0.14),
-                onTap: () => AppRoutes.push(context, AppRoutes.notifications),
-                child: const Icon(
-                  Icons.notifications_none_rounded,
-                  size: 22,
-                  color: Colors.white,
+              GestureDetector(
+                onTap: onMenuTap ?? () => _goToHrms(context),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: PortalColors.brandTint,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignment: Alignment.center,
+                  child: showBack
+                      ? SvgPicture.asset(
+                          'assets/icons/payslips/ic_back.svg',
+                          width: 20,
+                          height: 20,
+                        )
+                      : SvgPicture.asset(
+                          'assets/icons/top_bar/ic_top_menu.svg',
+                          width: 18,
+                          height: 18,
+                        ),
                 ),
               ),
-              Positioned(
-                right: 6,
-                top: 6,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: PortalColors.red,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.2),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.3,
+                    height: 1.1,
                   ),
                 ),
               ),
+              const TopNotificationButton(),
             ],
           ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () => _goToHrms(context),
-            child: Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: PortalColors.brandLight,
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-              child: Text(
-                initial,
-                style: portalText(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
+          if (bottom != null) ...[
+            const SizedBox(height: 10),
+            bottom!,
+          ],
         ],
-      ),
-    );
-  }
-}
-
-class _RoundIcon extends StatelessWidget {
-  const _RoundIcon({
-    required this.bg,
-    required this.onTap,
-    required this.child,
-  });
-
-  final Color bg;
-  final VoidCallback onTap;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: bg,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: SizedBox(width: 42, height: 42, child: Center(child: child)),
       ),
     );
   }

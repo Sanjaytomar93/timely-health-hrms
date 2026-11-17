@@ -76,18 +76,8 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
 
   String _joinedNow() {
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
     final now = DateTime.now();
     final dd = now.day.toString().padLeft(2, '0');
@@ -167,11 +157,17 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
     Navigator.of(context).pop(doctor);
   }
 
-  InputDecoration _hint(String text) => InputDecoration(
+  TextStyle get _fieldStyle => portalText(
+        fontSize: 13.5,
+        fontWeight: FontWeight.w600,
+        color: OpColors.heading,
+      );
+
+  InputDecoration _deco(String hint) => InputDecoration(
         isDense: true,
         border: InputBorder.none,
-        hintText: text,
-        hintStyle: portalText(fontSize: 13, color: OpColors.muted),
+        hintText: hint,
+        hintStyle: portalText(fontSize: 12.5, color: const Color(0xFF94A3B8)),
       );
 
   @override
@@ -189,65 +185,42 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
           Expanded(
             child: ListView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 20),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
               children: [
-                _HeroHeader(isEdit: _isEdit),
-                const SizedBox(height: 12),
-                _SectionCard(
+                _TopBanner(isEdit: _isEdit),
+                const SizedBox(height: 10),
+                _Section(
+                  title: 'Basic Details',
                   children: [
-                    const _FieldLabel(
-                      icon: Icons.person_outline,
-                      text: 'Doctor Name *',
-                    ),
-                    _InputShell(
+                    _Label('Doctor Name *'),
+                    _Box(
                       child: TextField(
                         controller: _name,
                         textCapitalization: TextCapitalization.words,
-                        style: portalText(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: OpColors.heading,
-                        ),
-                        decoration: _hint('Dr. John Doe'),
+                        style: _fieldStyle,
+                        decoration: _deco('Dr. John Doe'),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    const _FieldLabel(
-                      icon: Icons.mail_outline,
-                      text: 'Email',
-                    ),
-                    _InputShell(
+                    const SizedBox(height: 10),
+                    _Label('Email'),
+                    _Box(
                       child: TextField(
                         controller: _email,
                         keyboardType: TextInputType.emailAddress,
-                        style: portalText(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: OpColors.heading,
-                        ),
-                        decoration: _hint('doctor@email.com'),
+                        style: _fieldStyle,
+                        decoration: _deco('doctor@email.com'),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    const _FieldLabel(
-                      icon: Icons.phone_outlined,
-                      text: 'Phone Number *',
-                    ),
-                    _InputShell(
+                    const SizedBox(height: 10),
+                    _Label('Phone Number *'),
+                    _Box(
                       child: Row(
                         children: [
-                          Text(
-                            '+91',
-                            style: portalText(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: OpColors.heading,
-                            ),
-                          ),
+                          Text('+91', style: _fieldStyle.copyWith(fontWeight: FontWeight.w800)),
                           Container(
                             width: 1,
-                            height: 22,
-                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            height: 18,
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
                             color: OpColors.border,
                           ),
                           Expanded(
@@ -258,50 +231,38 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
                                 FilteringTextInputFormatter.digitsOnly,
                                 LengthLimitingTextInputFormatter(10),
                               ],
-                              style: portalText(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: OpColors.heading,
-                              ),
-                              decoration: _hint('9876543210'),
+                              style: _fieldStyle,
+                              decoration: _deco('9876543210'),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    const _FieldLabel(
-                      icon: Icons.workspace_premium_outlined,
-                      text: 'Specialization *',
-                    ),
-                    _SelectShell(
-                      value: _specialization ?? 'Select Specialization',
-                      muted: _specialization == null,
-                      onTap: () => _pickOption(
-                        label: 'Specialization',
-                        options: widget.specializations,
-                        current: _specialization,
-                        onSelect: (v) => setState(() => _specialization = v),
+                    const SizedBox(height: 10),
+                    _Label('Specialization *'),
+                    _Box(
+                      child: _SelectRow(
+                        value: _specialization ?? 'Select Specialization',
+                        muted: _specialization == null,
+                        onTap: () => _pickOption(
+                          label: 'Specialization',
+                          options: widget.specializations,
+                          current: _specialization,
+                          onSelect: (v) => setState(() => _specialization = v),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    _FieldLabel(
-                      icon: Icons.lock_outline,
-                      text: _isEdit ? 'Password' : 'Password *',
-                    ),
-                    _InputShell(
+                    const SizedBox(height: 10),
+                    _Label(_isEdit ? 'Password' : 'Password *'),
+                    _Box(
                       child: Row(
                         children: [
                           Expanded(
                             child: TextField(
                               controller: _password,
                               obscureText: _obscure,
-                              style: portalText(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: OpColors.heading,
-                              ),
-                              decoration: _hint(
+                              style: _fieldStyle,
+                              decoration: _deco(
                                 _isEdit
                                     ? 'Leave blank to keep current'
                                     : 'Min 6 characters',
@@ -309,32 +270,26 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
                             ),
                           ),
                           IconButton(
-                            onPressed: () =>
-                                setState(() => _obscure = !_obscure),
+                            onPressed: () => setState(() => _obscure = !_obscure),
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                             icon: Icon(
                               _obscure
                                   ? Icons.visibility_outlined
                                   : Icons.visibility_off_outlined,
-                              size: 18,
+                              size: 17,
                               color: OpColors.muted,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Password must be at least 6 characters long',
-                      style: portalText(
-                        fontSize: 11.5,
-                        color: OpColors.muted,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                _SectionCard(
+                const SizedBox(height: 10),
+                _Section(
+                  title: 'Professional Info',
                   children: [
                     Row(
                       children: [
@@ -342,35 +297,25 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const _FieldLabel(
-                                icon: Icons.school_outlined,
-                                text: 'Qualification',
-                              ),
-                              _InputShell(
+                              _Label('Qualification'),
+                              _Box(
                                 child: TextField(
                                   controller: _qualification,
-                                  style: portalText(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: OpColors.heading,
-                                  ),
-                                  decoration: _hint('MBBS, MD...'),
+                                  style: _fieldStyle,
+                                  decoration: _deco('MBBS, MD...'),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         SizedBox(
-                          width: 110,
+                          width: 96,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const _FieldLabel(
-                                icon: Icons.work_outline,
-                                text: 'Exp (Yrs)',
-                              ),
-                              _InputShell(
+                              _Label('Exp (Yrs)'),
+                              _Box(
                                 child: TextField(
                                   controller: _experience,
                                   keyboardType: TextInputType.number,
@@ -378,12 +323,8 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
                                     FilteringTextInputFormatter.digitsOnly,
                                     LengthLimitingTextInputFormatter(2),
                                   ],
-                                  style: portalText(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: OpColors.heading,
-                                  ),
-                                  decoration: _hint('5'),
+                                  style: _fieldStyle,
+                                  decoration: _deco('5'),
                                 ),
                               ),
                             ],
@@ -391,42 +332,34 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const _FieldLabel(
-                                icon: Icons.currency_rupee_rounded,
-                                text: 'Fee (₹)',
-                              ),
-                              _InputShell(
+                              _Label('Fee (₹)'),
+                              _Box(
                                 child: TextField(
                                   controller: _fee,
                                   keyboardType: TextInputType.number,
                                   inputFormatters: [
                                     FilteringTextInputFormatter.digitsOnly,
                                   ],
-                                  style: portalText(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: OpColors.heading,
-                                  ),
-                                  decoration: _hint('500'),
+                                  style: _fieldStyle,
+                                  decoration: _deco('500'),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const _FieldLabel(text: 'Status'),
+                              _Label('Status'),
                               Row(
                                 children: [
                                   Expanded(
@@ -434,22 +367,16 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
                                       label: 'Active',
                                       selected: _active,
                                       color: OpColors.green,
-                                      tint: OpColors.greenTint,
-                                      icon: Icons.check_circle_rounded,
-                                      onTap: () =>
-                                          setState(() => _active = true),
+                                      onTap: () => setState(() => _active = true),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 6),
                                   Expanded(
                                     child: _StatusChip(
-                                      label: 'Off',
+                                      label: 'Inactive',
                                       selected: !_active,
-                                      color: OpColors.red,
-                                      tint: OpColors.redTint,
-                                      icon: Icons.cancel_rounded,
-                                      onTap: () =>
-                                          setState(() => _active = false),
+                                      color: OpColors.orange,
+                                      onTap: () => setState(() => _active = false),
                                     ),
                                   ),
                                 ],
@@ -459,36 +386,28 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    const _FieldLabel(
-                      icon: Icons.location_on_outlined,
-                      text: 'Clinic / Hospital Address',
-                    ),
-                    _InputShell(
-                      minHeight: 78,
+                    const SizedBox(height: 10),
+                    _Label('Clinic / Hospital Address'),
+                    _Box(
+                      minHeight: 68,
                       child: TextField(
                         controller: _address,
                         maxLines: 3,
-                        style: portalText(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: OpColors.heading,
-                        ),
-                        decoration: _hint('Clinic address or Hospital room #'),
+                        style: _fieldStyle,
+                        decoration: _deco('Clinic address or Hospital room #'),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                _SectionCard(
+                const SizedBox(height: 10),
+                _Section(
+                  title: 'Availability',
                   children: [
-                    const _FieldLabel(
-                      icon: Icons.calendar_month_outlined,
-                      text: 'Available Days',
-                    ),
+                    _Label('Available Days'),
+                    const SizedBox(height: 2),
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                      spacing: 6,
+                      runSpacing: 6,
                       children: OpDoctorsUi.weekDays.map((d) {
                         final selected = _days.contains(d);
                         return GestureDetector(
@@ -499,39 +418,31 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
                               _days.add(d);
                             }
                           }),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 160),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
+                          child: Container(
+                            width: 40,
+                            height: 34,
+                            alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: selected ? OpColors.blue : OpColors.surface,
-                              borderRadius: BorderRadius.circular(12),
+                              color: selected ? OpColors.primary : Colors.white,
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color:
-                                    selected ? OpColors.blue : OpColors.border,
+                                color: selected ? OpColors.primary : OpColors.border,
                               ),
                             ),
                             child: Text(
                               d,
                               style: portalText(
-                                fontSize: 12.5,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w800,
-                                color: selected
-                                    ? Colors.white
-                                    : OpColors.secondary,
+                                color: selected ? Colors.white : OpColors.secondary,
                               ),
                             ),
                           ),
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 14),
-                    const _FieldLabel(
-                      icon: Icons.schedule_rounded,
-                      text: 'Available Time Schedule',
-                    ),
+                    const SizedBox(height: 10),
+                    _Label('Available Time'),
                     Row(
                       children: [
                         Expanded(
@@ -542,27 +453,27 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
                                 'START',
                                 style: portalText(
                                   fontSize: 10,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w700,
                                   color: OpColors.muted,
-                                  letterSpacing: 0.4,
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              _SelectShell(
-                                value: _startTime ?? 'Start Time',
-                                muted: _startTime == null,
-                                onTap: () => _pickOption(
-                                  label: 'Start Time',
-                                  options: OpDoctorsUi.timeSlots,
-                                  current: _startTime,
-                                  onSelect: (v) =>
-                                      setState(() => _startTime = v),
+                              const SizedBox(height: 4),
+                              _Box(
+                                child: _SelectRow(
+                                  value: _startTime ?? 'Start Time',
+                                  muted: _startTime == null,
+                                  onTap: () => _pickOption(
+                                    label: 'Start Time',
+                                    options: OpDoctorsUi.timeSlots,
+                                    current: _startTime,
+                                    onSelect: (v) => setState(() => _startTime = v),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -571,21 +482,21 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
                                 'END',
                                 style: portalText(
                                   fontSize: 10,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w700,
                                   color: OpColors.muted,
-                                  letterSpacing: 0.4,
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              _SelectShell(
-                                value: _endTime ?? 'End Time',
-                                muted: _endTime == null,
-                                onTap: () => _pickOption(
-                                  label: 'End Time',
-                                  options: OpDoctorsUi.timeSlots,
-                                  current: _endTime,
-                                  onSelect: (v) =>
-                                      setState(() => _endTime = v),
+                              const SizedBox(height: 4),
+                              _Box(
+                                child: _SelectRow(
+                                  value: _endTime ?? 'End Time',
+                                  muted: _endTime == null,
+                                  onTap: () => _pickOption(
+                                    label: 'End Time',
+                                    options: OpDoctorsUi.timeSlots,
+                                    current: _endTime,
+                                    onSelect: (v) => setState(() => _endTime = v),
+                                  ),
                                 ),
                               ),
                             ],
@@ -596,21 +507,19 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
                   ],
                 ),
                 if (_error != null) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: OpColors.redTint,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: OpColors.red.withValues(alpha: 0.25),
-                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: OpColors.red.withValues(alpha: 0.2)),
                     ),
                     child: Text(
                       _error!,
                       style: portalText(
-                        fontSize: 12.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: OpColors.red,
                       ),
@@ -623,61 +532,52 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
           SafeArea(
             top: false,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-              decoration: BoxDecoration(
-                color: OpColors.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: OpColors.primary.withValues(alpha: 0.08),
-                    blurRadius: 18,
-                    offset: const Offset(0, -6),
-                  ),
-                ],
-              ),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              color: Colors.white,
               child: Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).maybePop(),
                       style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(48),
+                        minimumSize: const Size.fromHeight(36),
+                        padding: EdgeInsets.zero,
                         side: const BorderSide(color: OpColors.border),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       child: Text(
                         'Cancel',
                         style: portalText(
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w700,
                           color: OpColors.secondary,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     flex: 2,
-                    child: ElevatedButton.icon(
+                    child: ElevatedButton(
                       onPressed: _submit,
-                      icon: Icon(
-                        _isEdit ? Icons.check_rounded : Icons.add_rounded,
-                        size: 20,
-                      ),
-                      label: Text(
-                        _isEdit ? 'Update Doctor' : 'Add Doctor',
-                        style: portalText(
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: OpColors.blue,
+                        backgroundColor: OpColors.primary,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        minimumSize: const Size.fromHeight(48),
+                        minimumSize: const Size.fromHeight(36),
+                        padding: EdgeInsets.zero,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        _isEdit ? 'Update Doctor' : 'Add Doctor',
+                        style: portalText(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -692,51 +592,77 @@ class _OpAddDoctorScreenState extends State<OpAddDoctorScreen> {
   }
 }
 
-class _HeroHeader extends StatelessWidget {
-  const _HeroHeader({required this.isEdit});
+class _TopBanner extends StatelessWidget {
+  const _TopBanner({required this.isEdit});
 
   final bool isEdit;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: OpColors.card(radius: 18),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            OpColors.primary,
+            OpColors.primary.withValues(alpha: 0.82),
+            const Color(0xFF0EA5E9),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: OpColors.primary.withValues(alpha: 0.22),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF60A5FA)],
-              ),
-              borderRadius: BorderRadius.circular(14),
+              color: Colors.white.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
             ),
+            alignment: Alignment.center,
             child: Icon(
-              isEdit
-                  ? Icons.edit_rounded
-                  : Icons.medical_services_rounded,
+              isEdit ? Icons.edit_outlined : Icons.person_add_alt_1_rounded,
+              size: 20,
               color: Colors.white,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isEdit ? 'Edit Doctor Profile' : 'Add New Doctor',
+                  isEdit ? 'Update Doctor Profile' : 'New Doctor Profile',
                   style: portalText(
-                    fontSize: 16,
+                    fontSize: 13.5,
                     fontWeight: FontWeight.w800,
-                    color: OpColors.heading,
+                    color: Colors.white,
+                    height: 1.15,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Fill in the doctor profile information',
-                  style: portalText(fontSize: 12, color: OpColors.muted),
+                  isEdit
+                      ? 'Edit details and keep the roster in sync'
+                      : 'Add doctor details to manage OPD bookings',
+                  style: portalText(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(alpha: 0.88),
+                    height: 1.25,
+                  ),
                 ),
               ],
             ),
@@ -747,71 +673,63 @@ class _HeroHeader extends StatelessWidget {
   }
 }
 
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.children});
+class _Section extends StatelessWidget {
+  const _Section({required this.title, required this.children});
 
+  final String title;
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       decoration: BoxDecoration(
-        color: OpColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: OpColors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A2A2456),
-            blurRadius: 14,
-            offset: Offset(0, 4),
-          ),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE8ECF2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
+        children: [
+          Text(
+            title,
+            style: portalText(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: OpColors.heading,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...children,
+        ],
       ),
     );
   }
 }
 
-class _FieldLabel extends StatelessWidget {
-  const _FieldLabel({this.icon, required this.text});
-
-  final IconData? icon;
+class _Label extends StatelessWidget {
+  const _Label(this.text);
   final String text;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 14, color: OpColors.muted),
-            const SizedBox(width: 4),
-          ],
-          Flexible(
-            child: Text(
-              text.toUpperCase(),
-              style: portalText(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: OpColors.secondary,
-                letterSpacing: 0.4,
-              ),
-            ),
-          ),
-        ],
+      padding: const EdgeInsets.only(bottom: 5),
+      child: Text(
+        text,
+        style: portalText(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+          color: OpColors.secondary,
+        ),
       ),
     );
   }
 }
 
-class _InputShell extends StatelessWidget {
-  const _InputShell({required this.child, this.minHeight = 46});
+class _Box extends StatelessWidget {
+  const _Box({required this.child, this.minHeight = 42});
 
   final Widget child;
   final double minHeight;
@@ -820,11 +738,11 @@ class _InputShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: BoxConstraints(minHeight: minHeight),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: OpColors.border),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       alignment: Alignment.centerLeft,
       child: child,
@@ -832,8 +750,8 @@ class _InputShell extends StatelessWidget {
   }
 }
 
-class _SelectShell extends StatelessWidget {
-  const _SelectShell({
+class _SelectRow extends StatelessWidget {
+  const _SelectRow({
     required this.value,
     required this.onTap,
     this.muted = false,
@@ -845,39 +763,26 @@ class _SelectShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: const Color(0xFFF8FAFC),
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          height: 46,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: OpColors.border),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: portalText(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: muted ? OpColors.muted : OpColors.heading,
-                  ),
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: portalText(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: muted ? const Color(0xFF94A3B8) : OpColors.heading,
                 ),
               ),
-              const Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: OpColors.muted,
-              ),
-            ],
-          ),
+            ),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF94A3B8)),
+          ],
         ),
       ),
     );
@@ -889,49 +794,36 @@ class _StatusChip extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.color,
-    required this.tint,
-    required this.icon,
     required this.onTap,
   });
 
   final String label;
   final bool selected;
   final Color color;
-  final Color tint;
-  final IconData icon;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? tint : OpColors.surface,
-      borderRadius: BorderRadius.circular(14),
+      color: selected ? color.withValues(alpha: 0.12) : Colors.white,
+      borderRadius: BorderRadius.circular(11),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(11),
         child: Container(
-          height: 46,
+          height: 42,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: selected ? color : OpColors.border,
-              width: selected ? 1.4 : 1,
-            ),
+            borderRadius: BorderRadius.circular(11),
+            border: Border.all(color: selected ? color : OpColors.border),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 15, color: selected ? color : OpColors.muted),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: portalText(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: selected ? color : OpColors.secondary,
-                ),
-              ),
-            ],
+          child: Text(
+            label,
+            style: portalText(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: selected ? color : OpColors.secondary,
+            ),
           ),
         ),
       ),
@@ -956,85 +848,58 @@ class _PickerSheet extends StatelessWidget {
       top: false,
       child: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.55,
+          maxHeight: MediaQuery.sizeOf(context).height * 0.5,
         ),
         decoration: const BoxDecoration(
-          color: OpColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
         ),
         child: Column(
           children: [
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Container(
-              width: 42,
+              width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: OpColors.border,
+                color: const Color(0xFFE2E8F0),
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 14, 8, 8),
+              padding: const EdgeInsets.fromLTRB(16, 10, 8, 6),
               child: Row(
                 children: [
-                  Text(
-                    label,
-                    style: portalText(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
+                  Text(label, style: portalText(fontSize: 15, fontWeight: FontWeight.w800)),
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const Icon(Icons.close_rounded, size: 20),
                   ),
                 ],
               ),
             ),
+            const Divider(height: 1),
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
                 itemCount: options.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 6),
+                separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, i) {
-                  final item = options[i];
-                  final active = item == selected;
-                  return Material(
-                    color: active ? OpColors.blueTint : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(14),
-                    child: InkWell(
-                      onTap: () => Navigator.pop(context, item),
-                      borderRadius: BorderRadius.circular(14),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 14,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                item,
-                                style: portalText(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: active
-                                      ? OpColors.blue
-                                      : OpColors.heading,
-                                ),
-                              ),
-                            ),
-                            if (active)
-                              const Icon(
-                                Icons.check_circle_rounded,
-                                size: 18,
-                                color: OpColors.blue,
-                              ),
-                          ],
-                        ),
+                  final opt = options[i];
+                  final isSelected = opt == selected;
+                  return ListTile(
+                    dense: true,
+                    onTap: () => Navigator.pop(context, opt),
+                    title: Text(
+                      opt,
+                      style: portalText(
+                        fontSize: 13.5,
+                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                        color: isSelected ? OpColors.primary : OpColors.heading,
                       ),
                     ),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_rounded, color: OpColors.primary, size: 18)
+                        : null,
                   );
                 },
               ),

@@ -756,9 +756,28 @@ class _DetailFooterState extends State<_DetailFooter> {
       return;
     }
 
+    final chosen = await showCampPdfActionSheet(context);
+    if (chosen == null || !mounted) return;
+
     setState(() => _exporting = true);
     try {
-      await CampDistributionExport.exportCampReport(widget.camp);
+      final path = await CampDistributionExport.exportCampReport(
+        widget.camp,
+        action: chosen,
+      );
+      if (!mounted) return;
+      if (chosen == CampPdfAction.download) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              path == null
+                  ? 'Nothing to download.'
+                  : 'Downloaded: ${path.split('/').last}',
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

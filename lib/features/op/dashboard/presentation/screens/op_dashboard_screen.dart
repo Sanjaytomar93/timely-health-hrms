@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/models/op_dashboard_ui.dart';
+import 'package:timelay_health/features/op/dashboard/presentation/screens/op_appointment_slots_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/screens/op_register_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
+import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_dashboard_analytics.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_dashboard_sections.dart';
 
 class OpDashboardScreen extends StatefulWidget {
@@ -36,80 +38,112 @@ class _OpDashboardScreenState extends State<OpDashboardScreen> {
     super.dispose();
   }
 
+  void _openRegister() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (ctx) => Scaffold(
+          backgroundColor: const Color(0xFFF6F8FC),
+          body: PortalSafeArea(
+            bottom: false,
+            statusBarColor: Colors.white,
+            child: OpRegisterScreen(
+              onMenuTap: () => Navigator.of(ctx).pop(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openSlots() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (ctx) => Scaffold(
+          backgroundColor: OpColors.background,
+          body: PortalSafeArea(
+            bottom: false,
+            statusBarColor: OpColors.primary,
+            child: OpAppointmentSlotsScreen(
+              onMenuTap: () => Navigator.of(ctx).pop(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final data = OpDashboardUi.demo;
 
     return ColoredBox(
-      color: OpColors.background,
-      child: RefreshIndicator(
-        color: OpColors.primary,
-        onRefresh: () async {},
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 28),
-          children: [
-            OpHeroHeader(
-              greeting: data.greeting,
-              fyLabel: data.fyLabel,
-              onMenuTap: widget.onMenuTap,
-              onFyTap: () => _showFySheet(context, data.fyLabel),
-            ),
-            OpSearchBar(controller: _search),
-            OpPeriodFilters(
-              filters: data.periodFilters,
-              selected: _period,
-              onSelected: (v) => setState(() => _period = v),
-              onRegister: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (ctx) => Scaffold(
-                      backgroundColor: OpColors.background,
-                      body: PortalSafeArea(
-                        bottom: false,
-                        statusBarColor: OpColors.primary,
-                        child: OpRegisterScreen(
-                          onMenuTap: () => Navigator.of(ctx).pop(),
-                        ),
-                      ),
-                    ),
+      color: const Color(0xFFF6F8FC),
+      child: Column(
+        children: [
+          OpStickyHeader(onMenuTap: widget.onMenuTap),
+          Expanded(
+            child: RefreshIndicator(
+              color: OpColors.primary,
+              onRefresh: () async {},
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 28),
+                children: [
+                  OpSearchFiltersBar(
+                    searchController: _search,
+                    filters: data.periodFilters,
+                    selectedPeriod: _period,
+                    onPeriodSelected: (v) => setState(() => _period = v),
                   ),
-                );
-              },
+                  const SizedBox(height: 14),
+                  OpRegisterBanner(onTap: _openRegister),
+                  const SizedBox(height: 14),
+                  OpQuickActionsRow(
+                    actions: data.quickActions,
+                    onTap: (action) {
+                      if (action.label == 'Slots') {
+                        _openSlots();
+                        return;
+                      }
+                      final tab = action.tabIndex;
+                      if (tab != null) widget.onOpenTab?.call(tab);
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  OpTotalCollectedCard(data: data.collected),
+                  const SizedBox(height: 14),
+                  OpMetricsGrid(
+                    metrics: data.metrics,
+                    dueInvoices: data.dueInvoices,
+                  ),
+                  const SizedBox(height: 14),
+                  OpRevenueBreakdownHeader(
+                    patientsLabel: '${data.metrics.first.value} patients',
+                    channels: data.revenueChannels,
+                    onPatientsTap: () => widget.onOpenTab?.call(1),
+                  ),
+                  const SizedBox(height: 14),
+                  OpPaymentStatusCard(slices: data.paymentStatus),
+                  const SizedBox(height: 14),
+                  OpPaymentModeCard(slices: data.paymentModes),
+                  const SizedBox(height: 14),
+                  OpGenderCard(
+                    slices: data.gender,
+                    total: data.genderTotal,
+                  ),
+                  const SizedBox(height: 14),
+                  OpTrendWithFooterCard(
+                    trend: data.trend,
+                    footer: data.fyFooter,
+                    fyLabel: data.fyLabel,
+                    onFyTap: () => _showFySheet(context, data.fyLabel),
+                  ),
+                ],
+              ),
             ),
-            OpQuickActionsRow(
-              actions: data.quickActions,
-              onTap: (action) {
-                final tab = action.tabIndex;
-                if (tab != null) widget.onOpenTab?.call(tab);
-              },
-            ),
-            OpMetricsGrid(metrics: data.metrics),
-            OpRevenueBreakdownHeader(
-              patientsLabel: '${data.genderTotal} patients',
-              channels: data.revenueChannels,
-              onPatientsTap: () => widget.onOpenTab?.call(1),
-            ),
-            OpRevenueTrendCard(
-              trend: data.trend,
-              fyLabel: data.fyLabel,
-              onFyTap: () => _showFySheet(context, data.fyLabel),
-            ),
-            OpSummaryCard(rows: data.summaryRows),
-            OpPaymentStatusCard(slices: data.paymentStatus),
-            OpPaymentModeCard(slices: data.paymentModes),
-            OpGenderCard(
-              slices: data.gender,
-              total: data.genderTotal,
-            ),
-            OpFinancialYearTrendCard(
-              trend: data.fyTrend,
-              footer: data.fyFooter,
-              fyLabel: data.fyLabel,
-              onFyTap: () => _showFySheet(context, data.fyLabel),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -140,7 +174,10 @@ class _OpDashboardScreenState extends State<OpDashboardScreen> {
                       ),
                     ),
                     trailing: y == current
-                        ? const Icon(Icons.check_rounded, color: OpColors.primary)
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: OpColors.primary,
+                          )
                         : null,
                     onTap: () => Navigator.pop(context),
                   ),

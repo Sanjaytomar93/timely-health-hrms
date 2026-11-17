@@ -22,7 +22,7 @@ class _CampBmiCardState extends State<CampBmiCard> {
         this,
         isLoading: _isExporting,
         setLoading: (v) => setState(() => _isExporting = v),
-        action: CampDistributionExport.exportBmiPdf,
+        action: (a) => CampDistributionExport.exportBmiPdf(action: a),
       );
 
   @override

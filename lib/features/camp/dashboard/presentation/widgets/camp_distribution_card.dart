@@ -30,12 +30,12 @@ class _CampDistributionCardState extends State<CampDistributionCard> {
         this,
         isLoading: _isExporting,
         setLoading: (v) => setState(() => _isExporting = v),
-        action: () async {
+        action: (pdfAction) async {
           final camps = await CampDistributionExport.fetchCamps(
             from: widget.from,
             to: widget.to,
           );
-          if (!mounted) return;
+          if (!mounted) return null;
           if (camps.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -43,9 +43,12 @@ class _CampDistributionCardState extends State<CampDistributionCard> {
                 behavior: SnackBarBehavior.floating,
               ),
             );
-            return;
+            return null;
           }
-          await CampDistributionExport.exportPdf(preloadedCamps: camps);
+          return CampDistributionExport.exportPdf(
+            preloadedCamps: camps,
+            action: pdfAction,
+          );
         },
       );
 

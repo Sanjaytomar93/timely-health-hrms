@@ -92,6 +92,7 @@ flutter:
     - assets/icons/payslips/
     - assets/icons/expense/
     - assets/icons/issues/
+    - assets/icons/op/
     - assets/icons/holiday/
     - assets/icons/visits/
     - assets/icons/visits/target/

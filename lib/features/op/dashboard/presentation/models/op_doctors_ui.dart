@@ -166,12 +166,22 @@ class OpDoctorsUi {
     const daysMonFri = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
     return const OpDoctorsUi(
       specializations: [
+        'Cardiologist',
+        'Dermatologist',
+        'Endocrinologist',
+        'Gastroenterologist',
+        'General Medicine',
         'General Physician',
         'Gynecologist',
+        'Neurologist',
+        'Ophthalmologist',
         'Orthopedic',
-        'Cardiologist',
         'Pediatrician',
-        'Dermatologist',
+        'Psychiatrist',
+        'Pulmonologist',
+        'Radiologist',
+        'Surgeon',
+        'Urologist',
       ],
       doctors: [
         OpDoctorUi(
@@ -185,7 +195,7 @@ class OpDoctorsUi {
           fee: 300,
           scheduleDays: daysMonSat,
           startTime: '09:00 AM',
-          endTime: '08:30 PM',
+          endTime: '06:30 PM',
           active: true,
           joinedAt: '02 Oct 2026 01:04 pm',
           avatarColor: Color(0xFF3B82F6),

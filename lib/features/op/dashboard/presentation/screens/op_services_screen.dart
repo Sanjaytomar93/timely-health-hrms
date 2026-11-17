@@ -631,117 +631,112 @@ class _StatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(
-                title: 'Total',
-                value: '$total',
-                subtitle: 'services',
-                icon: Icons.layers_rounded,
-                accent: OpColors.blue,
-                tint: OpColors.blueTint,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _StatCard(
-                title: 'Avg Fee',
-                value: '₹$avg',
-                subtitle: 'average',
-                icon: Icons.currency_rupee_rounded,
-                accent: OpColors.green,
-                tint: OpColors.greenTint,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _StatCard(
-                title: 'Min Fee',
-                value: '₹$min',
-                subtitle: 'lowest',
-                icon: Icons.trending_down_rounded,
-                accent: OpColors.cyan,
-                tint: const Color(0xFFE0F7FA),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(
-                title: 'Max Fee',
-                value: '₹$max',
-                subtitle: 'highest',
-                icon: Icons.trending_up_rounded,
-                accent: OpColors.orange,
-                tint: OpColors.orangeTint,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _StatCard(
-                title: 'Filtered',
-                value: '$filtered',
-                subtitle: 'matching',
-                icon: Icons.filter_alt_rounded,
-                accent: OpColors.primary,
-                tint: OpColors.primaryTint,
-              ),
-            ),
-          ],
-        ),
-      ],
+    final width = MediaQuery.sizeOf(context).width;
+    final cardWidth = ((width - 36 - 16) / 3).clamp(100.0, 140.0);
+
+    final items = [
+      _StatCard(
+        width: cardWidth,
+        title: 'Total',
+        value: '$total',
+        subtitle: 'services',
+        valueColor: OpColors.heading,
+        icon: Icons.layers_rounded,
+        iconColor: OpColors.blue,
+        iconBg: OpColors.blueTint,
+      ),
+      _StatCard(
+        width: cardWidth,
+        title: 'Avg Fee',
+        value: '₹$avg',
+        subtitle: 'average',
+        valueColor: OpColors.green,
+        icon: Icons.currency_rupee_rounded,
+        iconColor: OpColors.green,
+        iconBg: OpColors.greenTint,
+      ),
+      _StatCard(
+        width: cardWidth,
+        title: 'Min Fee',
+        value: '₹$min',
+        subtitle: 'lowest',
+        valueColor: OpColors.cyan,
+        icon: Icons.trending_down_rounded,
+        iconColor: OpColors.cyan,
+        iconBg: const Color(0xFFE0F7FA),
+      ),
+      _StatCard(
+        width: cardWidth,
+        title: 'Max Fee',
+        value: '₹$max',
+        subtitle: 'highest',
+        valueColor: OpColors.orange,
+        icon: Icons.trending_up_rounded,
+        iconColor: OpColors.orange,
+        iconBg: OpColors.orangeTint,
+      ),
+      _StatCard(
+        width: cardWidth,
+        title: 'Filtered',
+        value: '$filtered',
+        subtitle: 'matching',
+        valueColor: OpColors.heading,
+        icon: Icons.filter_alt_rounded,
+        iconColor: OpColors.green,
+        iconBg: OpColors.greenTint,
+      ),
+    ];
+
+    return SizedBox(
+      height: 78,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: items.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (_, i) => items[i],
+      ),
     );
   }
 }
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
+    required this.width,
     required this.title,
     required this.value,
     required this.subtitle,
+    required this.valueColor,
     required this.icon,
-    required this.accent,
-    required this.tint,
+    required this.iconColor,
+    required this.iconBg,
   });
 
+  final double width;
   final String title;
   final String value;
   final String subtitle;
+  final Color valueColor;
   final IconData icon;
-  final Color accent;
-  final Color tint;
+  final Color iconColor;
+  final Color iconBg;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      width: width,
+      padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
       decoration: BoxDecoration(
-        color: OpColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: OpColors.border),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE8ECF2)),
       ),
       child: Row(
         children: [
-          Container(
-            width: 32,
-            height: 32,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: tint,
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: Icon(icon, size: 16, color: accent),
-          ),
-          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   title,
@@ -749,17 +744,18 @@ class _StatCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: portalText(
                     fontSize: 10,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: OpColors.muted,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   value,
                   style: portalText(
-                    fontSize: 15,
+                    fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: accent,
-                    height: 1.15,
+                    color: valueColor,
+                    height: 1.05,
                   ),
                 ),
                 Text(
@@ -774,6 +770,16 @@ class _StatCard extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          Container(
+            width: 28,
+            height: 28,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 15, color: iconColor),
           ),
         ],
       ),
