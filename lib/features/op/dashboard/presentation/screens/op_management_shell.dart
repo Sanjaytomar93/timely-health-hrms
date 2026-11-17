@@ -4,10 +4,10 @@ import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/screens/op_dashboard_screen.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/screens/op_doctors_screen.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/screens/op_online_booking_screen.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/screens/op_services_screen.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/screens/op_walkin_screen.dart';
+import 'package:timelay_health/features/op/doctors/presentation/screens/op_doctors_screen.dart';
+import 'package:timelay_health/features/op/online_booking/presentation/screens/op_online_booking_screen.dart';
+import 'package:timelay_health/features/op/services/presentation/screens/op_services_screen.dart';
+import 'package:timelay_health/features/op/walkin/presentation/screens/op_walkin_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_bottom_nav.dart';
 

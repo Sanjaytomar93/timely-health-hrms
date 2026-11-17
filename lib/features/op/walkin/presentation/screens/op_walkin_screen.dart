@@ -3,14 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/models/op_walkin_ui.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/screens/op_register_screen.dart';
+import 'package:timelay_health/features/op/walkin/presentation/models/op_walkin_ui.dart';
+import 'package:timelay_health/features/op/walkin/presentation/screens/op_register_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/models/op_dashboard_ui.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_amount_items_sheet.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_patient_actions_sheet.dart';
+import 'package:timelay_health/features/op/walkin/presentation/widgets/op_amount_items_sheet.dart';
+import 'package:timelay_health/features/op/walkin/presentation/widgets/op_patient_actions_sheet.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_dashboard_sections.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_vitals_sheet.dart';
+import 'package:timelay_health/features/op/walkin/presentation/widgets/op_vitals_sheet.dart';
 
 class OpWalkinScreen extends StatefulWidget {
   const OpWalkinScreen({super.key, this.onMenuTap});

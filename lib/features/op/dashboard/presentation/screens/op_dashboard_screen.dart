@@ -3,12 +3,13 @@ import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/models/op_dashboard_ui.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/screens/op_appointment_slots_screen.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/screens/op_register_screen.dart';
+import 'package:timelay_health/features/op/appointments/presentation/screens/op_appointment_slots_screen.dart';
+import 'package:timelay_health/features/op/referral/presentation/screens/op_referral_management_screen.dart';
+import 'package:timelay_health/features/op/walkin/presentation/screens/op_register_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_dashboard_analytics.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_dashboard_sections.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_top_bar.dart';
+import 'package:timelay_health/features/op/shared/widgets/op_top_bar.dart';
 
 class OpDashboardScreen extends StatefulWidget {
   const OpDashboardScreen({
@@ -71,6 +72,14 @@ class _OpDashboardScreenState extends State<OpDashboardScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _openReferralManagement() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const OpReferralManagementScreen(),
       ),
     );
   }
@@ -171,8 +180,11 @@ class _OpDashboardScreenState extends State<OpDashboardScreen> {
                         _openSlots();
                         return;
                       }
-                      if (action.label == 'Referral Management' ||
-                          action.label == 'Referral Booking' ||
+                      if (action.label == 'Referral Management') {
+                        _openReferralManagement();
+                        return;
+                      }
+                      if (action.label == 'Referral Booking' ||
                           action.label == 'Revenue Analytics') {
                         _openComingSoon(action.label);
                         return;

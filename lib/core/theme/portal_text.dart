@@ -10,6 +10,7 @@ TextStyle portalText({
   Color color = PortalColors.heading,
   double? height,
   double? letterSpacing,
+  FontStyle? fontStyle,
 }) {
   final base = _interByWeight.putIfAbsent(
     fontWeight,
@@ -20,5 +21,6 @@ TextStyle portalText({
     color: color,
     height: height,
     letterSpacing: letterSpacing,
+    fontStyle: fontStyle,
   );
 }

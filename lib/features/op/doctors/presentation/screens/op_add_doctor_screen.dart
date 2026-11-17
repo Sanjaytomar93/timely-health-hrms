@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/models/op_doctors_ui.dart';
+import 'package:timelay_health/features/op/doctors/presentation/models/op_doctors_ui.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_top_bar.dart';
+import 'package:timelay_health/features/op/shared/widgets/op_top_bar.dart';
 
 class OpAddDoctorScreen extends StatefulWidget {
   const OpAddDoctorScreen({

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/models/op_walkin_ui.dart';
+import 'package:timelay_health/features/op/walkin/presentation/models/op_walkin_ui.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
 
 enum OpAmountItemKind { clinic, lab, pharmacy }

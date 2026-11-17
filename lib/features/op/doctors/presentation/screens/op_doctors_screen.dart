@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/models/op_doctors_ui.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/screens/op_add_doctor_screen.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/screens/op_appointment_slots_screen.dart';
+import 'package:timelay_health/features/op/doctors/presentation/models/op_doctors_ui.dart';
+import 'package:timelay_health/features/op/doctors/presentation/screens/op_add_doctor_screen.dart';
+import 'package:timelay_health/features/op/appointments/presentation/screens/op_appointment_slots_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_top_bar.dart';
+import 'package:timelay_health/features/op/shared/widgets/op_top_bar.dart';
 
 class OpDoctorsScreen extends StatefulWidget {
   const OpDoctorsScreen({super.key, this.onMenuTap});
