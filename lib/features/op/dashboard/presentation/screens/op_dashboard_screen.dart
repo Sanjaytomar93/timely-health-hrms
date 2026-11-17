@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/models/op_dashboard_ui.dart';
@@ -7,6 +8,7 @@ import 'package:timelay_health/features/op/dashboard/presentation/screens/op_reg
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_dashboard_analytics.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_dashboard_sections.dart';
+import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_top_bar.dart';
 
 class OpDashboardScreen extends StatefulWidget {
   const OpDashboardScreen({
@@ -73,6 +75,69 @@ class _OpDashboardScreenState extends State<OpDashboardScreen> {
     );
   }
 
+  void _openComingSoon(String title) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (ctx) => Scaffold(
+          backgroundColor: OpColors.background,
+          body: PortalSafeArea(
+            bottom: false,
+            statusBarColor: OpColors.primary,
+            child: Column(
+              children: [
+                OpTopBar(
+                  title: title,
+                  showBack: true,
+                  onMenuTap: () => Navigator.of(ctx).pop(),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 54,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            color: PortalColors.brand.withValues(alpha: 0.08),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.hourglass_empty_rounded,
+                            color: PortalColors.brand,
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Coming Soon',
+                          style: portalText(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: PortalColors.heading,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$title is coming soon',
+                          style: portalText(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: PortalColors.muted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final data = OpDashboardUi.demo;
@@ -104,6 +169,12 @@ class _OpDashboardScreenState extends State<OpDashboardScreen> {
                     onTap: (action) {
                       if (action.label == 'Slots') {
                         _openSlots();
+                        return;
+                      }
+                      if (action.label == 'Referral Management' ||
+                          action.label == 'Referral Booking' ||
+                          action.label == 'Revenue Analytics') {
+                        _openComingSoon(action.label);
                         return;
                       }
                       final tab = action.tabIndex;

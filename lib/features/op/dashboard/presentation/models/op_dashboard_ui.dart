@@ -259,6 +259,27 @@ class OpDashboardUi {
           tint: Color(0xFFFFFBEB),
           tabIndex: 4,
         ),
+        OpQuickActionUi(
+          label: 'Referral Management',
+          subtitle: 'Quick Action',
+          icon: Icons.group_add_outlined,
+          accent: Color(0xFF0D9488),
+          tint: Color(0xFFF0FDFA),
+        ),
+        OpQuickActionUi(
+          label: 'Referral Booking',
+          subtitle: 'Quick Action',
+          icon: Icons.how_to_reg_outlined,
+          accent: Color(0xFFEA580C),
+          tint: Color(0xFFFFF7ED),
+        ),
+        OpQuickActionUi(
+          label: 'Revenue Analytics',
+          subtitle: 'Quick Action',
+          icon: Icons.insights_rounded,
+          accent: Color(0xFF059669),
+          tint: Color(0xFFECFDF5),
+        ),
       ],
       collected: const OpCollectedUi(
         amount: '₹8,12,565',

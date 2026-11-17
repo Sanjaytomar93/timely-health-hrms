@@ -180,49 +180,63 @@ class OpPeriodFiltersRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 32,
-      width: double.infinity,
-      child: ScrollConfiguration(
-        behavior: const ScrollBehavior().copyWith(
-          scrollbars: false,
-          overscroll: false,
-          physics: const ClampingScrollPhysics(),
-        ),
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: filters.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 6),
-          itemBuilder: (_, i) {
-            final isSelected = filters[i] == selected;
-            return GestureDetector(
-              onTap: () => onSelected(filters[i]),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF26204A) : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFF26204A)
-                        : const Color(0xFFE2E8F0),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Exactly 4 filter items fit across the visible width
+        final itemWidth = (constraints.maxWidth - (3 * 6)) / 4;
+
+        return SizedBox(
+          height: 32,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                for (var i = 0; i < filters.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: () => onSelected(filters[i]),
+                    child: Container(
+                      width: itemWidth,
+                      height: 32,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: filters[i] == selected
+                            ? const Color(0xFF26204A)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: filters[i] == selected
+                              ? const Color(0xFF26204A)
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          filters[i],
+                          maxLines: 1,
+                          style: portalText(
+                            fontSize: 12,
+                            fontWeight: filters[i] == selected
+                                ? FontWeight.w800
+                                : FontWeight.w500,
+                            color: filters[i] == selected
+                                ? Colors.white
+                                : const Color(0xFF475569),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Text(
-                  filters[i],
-                  style: portalText(
-                    fontSize: 12,
-                    fontWeight:
-                        isSelected ? FontWeight.w800 : FontWeight.w500,
-                    color: isSelected ? Colors.white : const Color(0xFF475569),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -384,66 +398,79 @@ class OpQuickActionsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        for (var i = 0; i < actions.length; i++) ...[
-          if (i > 0) const SizedBox(width: 8),
-          Expanded(
-            child: GestureDetector(
-              onTap: onTap == null ? null : () => onTap!(actions[i]),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE9E7F2)),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x0C0F172A),
-                      blurRadius: 10,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: actions[i].tint,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: actions[i].accent.withValues(alpha: 0.18),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Exactly 4 items fit across the visible width just like before
+        final itemWidth = (constraints.maxWidth - (3 * 8)) / 4;
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          clipBehavior: Clip.none,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              for (var i = 0; i < actions.length; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: onTap == null ? null : () => onTap!(actions[i]),
+                  child: Container(
+                    width: itemWidth,
+                    padding: const EdgeInsets.fromLTRB(4, 10, 4, 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE9E7F2)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x0C0F172A),
+                          blurRadius: 10,
+                          offset: Offset(0, 3),
                         ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        actions[i].icon,
-                        size: 16,
-                        color: actions[i].accent,
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      actions[i].label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: portalText(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1E293B),
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: actions[i].tint,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: actions[i].accent.withValues(alpha: 0.18),
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            actions[i].icon,
+                            size: 16,
+                            color: actions[i].accent,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            actions[i].label,
+                            maxLines: 1,
+                            textAlign: TextAlign.center,
+                            style: portalText(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF1E293B),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              ],
+            ],
           ),
-        ],
-      ],
+        );
+      },
     );
   }
 }
