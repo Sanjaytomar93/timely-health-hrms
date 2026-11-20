@@ -264,38 +264,39 @@ class _DartIndicator extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          width: 28,
-          height: 4,
+          width: 40,
+          height: 3,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
                 PortalColors.brand.withValues(alpha: 0.0),
-                PortalColors.brand.withValues(alpha: 0.18),
+                PortalColors.brandLight.withValues(alpha: 0.55),
               ],
             ),
             borderRadius: const BorderRadius.horizontal(
-              left: Radius.circular(4),
+              left: Radius.circular(3),
             ),
           ),
         ),
         CustomPaint(
-          size: const Size(14, 8),
+          size: const Size(16, 10),
           painter: _DartPainter(
-            color: PortalColors.brand.withValues(alpha: 0.35),
+            fill: PortalColors.brandLight.withValues(alpha: 0.85),
+            glow: PortalColors.brandLight.withValues(alpha: 0.22),
           ),
         ),
         Container(
-          width: 28,
-          height: 4,
+          width: 40,
+          height: 3,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                PortalColors.brand.withValues(alpha: 0.18),
+                PortalColors.brandLight.withValues(alpha: 0.55),
                 PortalColors.brand.withValues(alpha: 0.0),
               ],
             ),
             borderRadius: const BorderRadius.horizontal(
-              right: Radius.circular(4),
+              right: Radius.circular(3),
             ),
           ),
         ),
@@ -305,25 +306,34 @@ class _DartIndicator extends StatelessWidget {
 }
 
 class _DartPainter extends CustomPainter {
-  const _DartPainter({required this.color});
+  const _DartPainter({required this.fill, required this.glow});
 
-  final Color color;
+  final Color fill;
+  final Color glow;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
     final path = Path()
       ..moveTo(0, 0)
       ..lineTo(size.width / 2, size.height)
       ..lineTo(size.width, 0)
       ..close();
 
-    canvas.drawPath(path, paint);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = glow
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = fill
+        ..style = PaintingStyle.fill,
+    );
   }
 
   @override
-  bool shouldRepaint(_DartPainter old) => old.color != color;
+  bool shouldRepaint(_DartPainter old) =>
+      old.fill != fill || old.glow != glow;
 }

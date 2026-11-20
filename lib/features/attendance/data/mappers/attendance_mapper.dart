@@ -36,6 +36,8 @@ class AttendanceMapper {
       employeeName: model.employeeName,
       records: model.records.map(toEntity).toList(),
       claimedAttendanceIds: model.claimedAttendanceIds,
+      otClaimStatuses: model.otClaimStatuses,
+      otClaimAmounts: model.otClaimAmounts,
       stats: stats == null
           ? null
           : AttendanceStats(

@@ -179,6 +179,100 @@ class EmployeeLeavesResponseModel {
   }
 }
 
+class ExtraWorkedDayModel {
+  const ExtraWorkedDayModel({
+    required this.date,
+    required this.dayLabel,
+    required this.workType,
+    required this.totalHours,
+    required this.requestStatus,
+    required this.isExpired,
+    this.validTillFormatted,
+  });
+
+  final DateTime? date;
+  final String dayLabel;
+  final String workType;
+  final double totalHours;
+  final String requestStatus;
+  final bool isExpired;
+  final String? validTillFormatted;
+
+  factory ExtraWorkedDayModel.fromJson(Map<String, dynamic> json) {
+    return ExtraWorkedDayModel(
+      date: _parseDate(json['date']),
+      dayLabel: json['day']?.toString() ?? '',
+      workType: json['workType']?.toString() ?? '',
+      totalHours: _asDouble(json['totalHours']),
+      requestStatus: json['requestStatus']?.toString() ?? '',
+      isExpired: json['isExpired'] as bool? ?? false,
+      validTillFormatted: json['validTillFormatted']?.toString(),
+    );
+  }
+}
+
+class ExtraWorkedDaysResponseModel {
+  const ExtraWorkedDaysResponseModel({
+    required this.success,
+    required this.extraDays,
+  });
+
+  final bool success;
+  final List<ExtraWorkedDayModel> extraDays;
+
+  factory ExtraWorkedDaysResponseModel.fromJson(Map<String, dynamic> json) {
+    final raw = json['extraDays'] ?? json['data'];
+    return ExtraWorkedDaysResponseModel(
+      success: json['success'] as bool? ?? true,
+      extraDays: raw is List
+          ? raw
+                .whereType<Map<String, dynamic>>()
+                .map(ExtraWorkedDayModel.fromJson)
+                .toList()
+          : const [],
+    );
+  }
+}
+
+class AddCompOffRequestModel {
+  const AddCompOffRequestModel({
+    required this.employeeId,
+    required this.employeeName,
+    required this.workDate,
+    required this.leaveDate,
+    required this.count,
+    required this.reason,
+    this.workType,
+    this.totalHours,
+  });
+
+  final String employeeId;
+  final String employeeName;
+  final String workDate;
+  final String leaveDate;
+  final int count;
+  final String reason;
+  final String? workType;
+  final double? totalHours;
+
+  Map<String, dynamic> toJson() => {
+    'employeeId': employeeId,
+    'employeeName': employeeName,
+    'workDate': workDate,
+    'leaveDate': leaveDate,
+    'extraDayDate': workDate,
+    'leaveDetails': {'startDate': leaveDate},
+    'count': count,
+    'reason': reason,
+    if (workType != null)
+      'extraDayDetails': {
+        'date': workDate,
+        'workType': workType,
+        if (totalHours != null) 'totalHours': totalHours,
+      },
+  };
+}
+
 class CompOffRequestModel {
   const CompOffRequestModel({
     required this.id,

@@ -238,10 +238,10 @@ class _Title extends StatelessWidget {
           child: Text(
             'TIMELY HEALTH',
             style: GoogleFonts.montserrat(
-              fontSize: 28,
+              fontSize: 22,
               fontWeight: FontWeight.w800,
               color: Colors.white,
-              letterSpacing: 4,
+              letterSpacing: 2,
             ),
           ),
         ),

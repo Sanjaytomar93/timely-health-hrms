@@ -5,9 +5,11 @@ import 'package:timelay_health/features/leaves/domain/entities/employee_leaves.d
 import 'package:timelay_health/features/leaves/domain/entities/leave_record.dart';
 import 'package:timelay_health/features/leaves/domain/entities/comp_off_request.dart';
 import 'package:timelay_health/features/leaves/domain/failures/leave_failure.dart';
+import 'package:timelay_health/features/leaves/domain/usecases/add_comp_off_usecase.dart';
 import 'package:timelay_health/features/leaves/domain/usecases/add_leave_usecase.dart';
 import 'package:timelay_health/features/leaves/domain/usecases/get_employee_leaves_usecase.dart';
 import 'package:timelay_health/features/leaves/domain/usecases/get_comp_off_requests_usecase.dart';
+import 'package:timelay_health/features/leaves/domain/usecases/get_extra_worked_days_usecase.dart';
 import 'package:timelay_health/features/leaves/presentation/bloc/leaves_state.dart';
 import 'package:timelay_health/features/leaves/presentation/models/leave_ui_model.dart';
 
@@ -15,19 +17,28 @@ class LeavesCubit extends Cubit<LeavesState> {
   LeavesCubit({
     GetEmployeeLeavesUseCase? getEmployeeLeavesUseCase,
     GetCompOffRequestsUseCase? getCompOffRequestsUseCase,
+    GetExtraWorkedDaysUseCase? getExtraWorkedDaysUseCase,
     AddLeaveUseCase? addLeaveUseCase,
+    AddCompOffUseCase? addCompOffUseCase,
   }) : _getLeaves =
            getEmployeeLeavesUseCase ??
            GetEmployeeLeavesUseCase(LeaveRepositoryImpl()),
        _getCompOffRequests =
            getCompOffRequestsUseCase ??
            GetCompOffRequestsUseCase(LeaveRepositoryImpl()),
+       _getExtraWorkedDays =
+           getExtraWorkedDaysUseCase ??
+           GetExtraWorkedDaysUseCase(LeaveRepositoryImpl()),
        _addLeave = addLeaveUseCase ?? AddLeaveUseCase(LeaveRepositoryImpl()),
+       _addCompOff =
+           addCompOffUseCase ?? AddCompOffUseCase(LeaveRepositoryImpl()),
        super(const LeavesInitial());
 
   final GetEmployeeLeavesUseCase _getLeaves;
   final GetCompOffRequestsUseCase _getCompOffRequests;
+  final GetExtraWorkedDaysUseCase _getExtraWorkedDays;
   final AddLeaveUseCase _addLeave;
+  final AddCompOffUseCase _addCompOff;
 
   List<LeaveHistoryUiModel> _all = const [];
   LeaveStatsUiModel _stats = LeaveStatsUiModel.empty;
@@ -140,6 +151,17 @@ class LeavesCubit extends Cubit<LeavesState> {
     load(keepExisting: true);
   }
 
+  Future<List<ExtraWorkedDay>> loadExtraWorkedDays() async {
+    final employeeId =
+        AuthSession.currentEmployee?.employeeId ??
+        (await AuthSession.load())?.employeeId ??
+        '';
+    if (employeeId.isEmpty) {
+      throw const LeaveFailure('Employee ID missing. Please login again.');
+    }
+    return _getExtraWorkedDays(employeeId);
+  }
+
   Future<void> applyLeave({
     required String leaveType,
     required DateTime startDate,
@@ -174,6 +196,41 @@ class LeavesCubit extends Cubit<LeavesState> {
     );
 
     await load(keepExisting: true);
+  }
+
+  Future<void> applyCompOff({
+    required DateTime workDate,
+    required DateTime leaveDate,
+    required int days,
+    required String reason,
+    String? workType,
+    double? totalHours,
+  }) async {
+    final employee = AuthSession.currentEmployee ?? await AuthSession.load();
+    final employeeId = employee?.employeeId ?? '';
+    if (employeeId.isEmpty) {
+      throw const LeaveFailure('Employee ID missing. Please login again.');
+    }
+    if (days <= 0) {
+      throw const LeaveFailure('Please enter valid total days.');
+    }
+
+    await _addCompOff(
+      AddCompOffParams(
+        employeeId: employeeId,
+        employeeName: employee?.displayName ?? employeeId,
+        workDate: DateTime(workDate.year, workDate.month, workDate.day),
+        leaveDate: DateTime(leaveDate.year, leaveDate.month, leaveDate.day),
+        days: days,
+        reason: reason.trim(),
+        workType: workType,
+        totalHours: totalHours,
+      ),
+    );
+
+    try {
+      await load(keepExisting: true);
+    } catch (_) {}
   }
 
   void _emitFiltered() {

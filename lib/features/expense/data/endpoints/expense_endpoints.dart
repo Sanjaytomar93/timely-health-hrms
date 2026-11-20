@@ -7,4 +7,10 @@ class ExpenseEndpoints {
 
   static String myExpenses(String employeeId) =>
       '$_base/expense/my?employeeId=${Uri.encodeQueryComponent(employeeId)}';
+
+  static String update(String id) =>
+      '$_base/expense/updateexpense/${Uri.encodeComponent(id)}';
+
+  static String delete(String id) =>
+      '$_base/expense/deleteexpense/${Uri.encodeComponent(id)}';
 }

@@ -62,8 +62,7 @@ class _MarkAttendanceFlowBodyState extends State<MarkAttendanceFlowBody> {
   bool get isCheckout => data.mode == MarkAttendanceMode.checkOut;
   bool get outside => captured && !data.withinRadius;
   bool get busy => widget.capturing || widget.submitting;
-  bool get canSubmit =>
-      !busy && (isCheckout || !outside || _reason != null);
+  bool get canSubmit => !busy && (!outside || _reason != null);
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +94,8 @@ class _MarkAttendanceFlowBodyState extends State<MarkAttendanceFlowBody> {
                   current: captured ? 1 : 0,
                 ),
                 const SizedBox(height: 14),
+                _AttendanceStatusCard(isActive: isCheckout),
+                const SizedBox(height: 12),
                 _LocationCard(
                   data: data,
                   building: widget.building,
@@ -104,13 +105,12 @@ class _MarkAttendanceFlowBodyState extends State<MarkAttendanceFlowBody> {
                   onChange: busy ? null : widget.onChangeLocation,
                   onRefresh: busy ? null : widget.onGetLocation,
                 ),
-                const SizedBox(height: 12),
-                _AttendanceStatusCard(isActive: isCheckout),
-                if (captured && outside && !isCheckout) ...[
+                if (captured && outside) ...[
                   const SizedBox(height: 12),
                   _ReasonCard(
                     distanceMeters: data.distanceMeters,
                     reason: _reason,
+                    isCheckout: isCheckout,
                     onChanged: busy
                         ? null
                         : (v) => setState(() => _reason = v),
@@ -143,13 +143,11 @@ class _MarkAttendanceFlowBodyState extends State<MarkAttendanceFlowBody> {
                   badge: data.requirePhoto ? 'Selfie' : null,
                   enabled: canSubmit,
                   loading: widget.submitting,
-                  onTap: () => widget.onCheckIn(
-                    outside && !isCheckout ? _reason : null,
-                  ),
+                  onTap: () => widget.onCheckIn(outside ? _reason : null),
                 ),
           hint: !captured
               ? 'Verify your location to continue'
-              : (outside && !isCheckout && _reason == null
+              : (outside && _reason == null
                     ? 'Select a reason to continue'
                     : (data.requirePhoto
                           ? 'A selfie will be captured for verification'
@@ -1072,11 +1070,13 @@ class _ReasonCard extends StatelessWidget {
   const _ReasonCard({
     required this.distanceMeters,
     required this.reason,
+    required this.isCheckout,
     required this.onChanged,
   });
 
   final int distanceMeters;
   final String? reason;
+  final bool isCheckout;
   final ValueChanged<String?>? onChanged;
 
   static const _icons = <String, IconData>{
@@ -1086,63 +1086,244 @@ class _ReasonCard extends StatelessWidget {
     'Other': Icons.edit_note_rounded,
   };
 
+  Future<void> _openPicker(BuildContext context) async {
+    if (onChanged == null) return;
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _ReasonPickerSheet(
+        selected: reason,
+        isCheckout: isCheckout,
+        icons: _icons,
+      ),
+    );
+    if (selected != null) onChanged!(selected);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasReason = reason != null;
+    final icon = hasReason
+        ? (_icons[reason!] ?? Icons.label_rounded)
+        : Icons.list_alt_rounded;
+
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _cardDecoration(
-        color: const Color(0xFFFFFBF0),
-        border: const Color(0xFFFDE68A),
-      ),
+      decoration: _cardDecoration(),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.warning_amber_rounded,
-                size: 18,
-                color: Color(0xFFF59E0B),
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFF7ED), Color(0xFFFFFBEB), Colors.white],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Reason Required',
-                  style: _t(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFFFFD54F), Color(0xFFFF9800)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFF9800).withValues(alpha: 0.28),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
-              ),
-              Text(
-                'Outside: ${_formatDistance(distanceMeters)}',
-                style: _t(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: _red,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Reason Required',
+                        style: _t(fontSize: 15, fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        isCheckout
+                            ? 'Choose a reason before check-out'
+                            : 'Choose a reason before check-in',
+                        style: _t(fontSize: 12, color: _muted, height: 1.3),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Select why you are checking in from outside the office',
-            style: _t(fontSize: 12, color: _muted),
-          ),
-          const SizedBox(height: 12),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 3.1,
-            children: [
-              for (final r in kMarkAttendanceReasons)
-                _ReasonOption(
-                  label: r,
-                  icon: _icons[r] ?? Icons.label_rounded,
-                  selected: reason == r,
-                  onTap: onChanged == null ? null : () => onChanged!(r),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _redTint,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _red.withValues(alpha: 0.12),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.near_me_disabled_rounded,
+                        size: 16,
+                        color: _red,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Outside office range by ${_formatDistance(distanceMeters)}',
+                          style: _t(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: _red,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-            ],
+                const SizedBox(height: 12),
+                Text(
+                  'SELECT REASON',
+                  style: _t(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: _muted,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onChanged == null ? null : () => _openPicker(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Ink(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFAF9FD),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: hasReason
+                              ? PortalColors.brand.withValues(alpha: 0.35)
+                              : _border,
+                          width: hasReason ? 1.4 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: hasReason
+                                  ? PortalColors.brandTint
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: hasReason
+                                    ? PortalColors.brand.withValues(alpha: 0.2)
+                                    : _border,
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              icon,
+                              size: 19,
+                              color: hasReason
+                                  ? PortalColors.brand
+                                  : _muted,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  hasReason ? reason! : 'Tap to select reason',
+                                  style: _t(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: hasReason
+                                        ? PortalColors.heading
+                                        : _muted,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  hasReason
+                                      ? 'Reason selected'
+                                      : 'Required for outside attendance',
+                                  style: _t(
+                                    fontSize: 11.5,
+                                    color: hasReason
+                                        ? _green
+                                        : _muted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: hasReason
+                                  ? PortalColors.brand
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: hasReason
+                                    ? PortalColors.brand
+                                    : _border,
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              hasReason
+                                  ? Icons.check_rounded
+                                  : Icons.keyboard_arrow_down_rounded,
+                              size: 18,
+                              color: hasReason ? Colors.white : _muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1150,8 +1331,105 @@ class _ReasonCard extends StatelessWidget {
   }
 }
 
-class _ReasonOption extends StatelessWidget {
-  const _ReasonOption({
+class _ReasonPickerSheet extends StatelessWidget {
+  const _ReasonPickerSheet({
+    required this.selected,
+    required this.isCheckout,
+    required this.icons,
+  });
+
+  final String? selected;
+  final bool isCheckout;
+  final Map<String, IconData> icons;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: _border,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          PortalColors.brand.withValues(alpha: 0.12),
+                          PortalColors.brandLight.withValues(alpha: 0.2),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.fact_check_rounded,
+                      color: PortalColors.brand,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Select Reason',
+                          style: _t(fontSize: 16, fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          isCheckout
+                              ? 'Why are you checking out outside?'
+                              : 'Why are you checking in outside?',
+                          style: _t(fontSize: 12.5, color: _muted),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              for (final r in kMarkAttendanceReasons) ...[
+                _ReasonPickerTile(
+                  label: r,
+                  icon: icons[r] ?? Icons.label_rounded,
+                  selected: selected == r,
+                  onTap: () => Navigator.pop(context, r),
+                ),
+                if (r != kMarkAttendanceReasons.last) const SizedBox(height: 8),
+              ],
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReasonPickerTile extends StatelessWidget {
+  const _ReasonPickerTile({
     required this.label,
     required this.icon,
     required this.selected,
@@ -1161,44 +1439,66 @@ class _ReasonOption extends StatelessWidget {
   final String label;
   final IconData icon;
   final bool selected;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? PortalColors.brand : Colors.white,
-      borderRadius: BorderRadius.circular(12),
+      color: selected ? PortalColors.brandTint : const Color(0xFFFAF9FD),
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: selected ? PortalColors.brand : _border,
+              color: selected
+                  ? PortalColors.brand.withValues(alpha: 0.45)
+                  : _border,
+              width: selected ? 1.4 : 1,
             ),
           ),
           child: Row(
             children: [
-              Icon(
-                icon,
-                size: 17,
-                color: selected ? Colors.white : PortalColors.brandLight,
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: selected ? PortalColors.brand : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: selected
+                        ? PortalColors.brand
+                        : _border,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  icon,
+                  size: 18,
+                  color: selected ? Colors.white : PortalColors.brandLight,
+                ),
               ),
-              const SizedBox(width: 7),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: _t(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: selected ? Colors.white : PortalColors.heading,
+                    fontSize: 14,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                    color: PortalColors.heading,
                   ),
                 ),
+              ),
+              Icon(
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_off_rounded,
+                size: 20,
+                color: selected ? PortalColors.brand : _muted,
               ),
             ],
           ),
@@ -1359,27 +1659,37 @@ class _GradientButton extends StatelessWidget {
 }
 
 class _IconTile extends StatelessWidget {
-  const _IconTile({required this.icon});
+  const _IconTile({
+    required this.icon,
+    this.color,
+    this.tint,
+  });
 
   final IconData icon;
+  final Color? color;
+  final Color? tint;
 
   @override
   Widget build(BuildContext context) {
+    final iconColor = color ?? PortalColors.brand;
     return Container(
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            PortalColors.brand.withValues(alpha: 0.1),
-            PortalColors.brandLight.withValues(alpha: 0.18),
-          ],
-        ),
+        color: tint,
+        gradient: tint == null
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  PortalColors.brand.withValues(alpha: 0.1),
+                  PortalColors.brandLight.withValues(alpha: 0.18),
+                ],
+              )
+            : null,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Icon(icon, color: PortalColors.brand, size: 21),
+      child: Icon(icon, color: iconColor, size: 21),
     );
   }
 }

@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:timelay_health/core/logging/app_log.dart';
 import 'package:timelay_health/features/attendance/data/endpoints/attendance_endpoints.dart';
 import 'package:timelay_health/features/attendance/data/models/attendance_record_model.dart';
 import 'package:timelay_health/features/attendance/data/models/employee_location_model.dart';
@@ -384,7 +384,7 @@ class AttendanceRemoteDataSource {
       ),
     );
 
-    debugPrint(
+    AppLog.d(
       '[multipart] $url file=$filename '
       'mime=${media.type.mimeType} bytes=${bytes.length}',
     );

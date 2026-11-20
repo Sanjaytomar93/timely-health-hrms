@@ -58,9 +58,11 @@ class AttendanceRecordModel {
       totalHours: _asDouble(json['totalHours']),
       workingHours: _asDouble(json['workingHours']),
       assignedShiftHours: _asDouble(json['assignedShiftHours']),
-      otHours: _asDouble(json['otHours']),
-      otAmount: _asDouble(json['otAmount']),
-      otMultiplier: _asDouble(json['otMultiplier']),
+      otHours: _asDouble(json['otHours'] ?? json['OTHours']),
+      otAmount: _asDouble(
+        json['otAmount'] ?? json['OTAmount'] ?? json['ot_amount'],
+      ),
+      otMultiplier: _asDouble(json['otMultiplier'] ?? json['OTMultiplier']),
       latitude: _asDouble(json['latitude']),
       longitude: _asDouble(json['longitude']),
       distance: _asDouble(json['distance']),
@@ -110,6 +112,8 @@ class MyAttendanceResponseModel {
     required this.employeeName,
     required this.records,
     this.claimedAttendanceIds = const {},
+    this.otClaimStatuses = const {},
+    this.otClaimAmounts = const {},
     this.stats,
   });
 
@@ -117,6 +121,8 @@ class MyAttendanceResponseModel {
   final String employeeName;
   final List<AttendanceRecordModel> records;
   final Set<String> claimedAttendanceIds;
+  final Map<String, String> otClaimStatuses;
+  final Map<String, double> otClaimAmounts;
   final AttendanceStatsModel? stats;
 
   factory MyAttendanceResponseModel.fromJson(Map<String, dynamic> json) {
@@ -133,16 +139,39 @@ class MyAttendanceResponseModel {
         : <AttendanceRecordModel>[];
     final rawStats = json['stats'];
     final rawClaims = json['claims'];
-    final claimedIds = <String>{
-      if (rawClaims is List)
-        for (final claim in rawClaims.whereType<Map>())
-          if (_claimAttendanceId(claim) case final id? when id.isNotEmpty) id,
-    };
+    final otClaimStatuses = <String, String>{};
+    final otClaimAmounts = <String, double>{};
+    if (rawClaims is List) {
+      for (final claim in rawClaims.whereType<Map>()) {
+        final id = _claimAttendanceId(claim);
+        if (id == null || id.isEmpty) continue;
+        final status = (claim['status'] ?? claim['claimStatus'])
+                ?.toString()
+                .trim() ??
+            '';
+        otClaimStatuses[id] = status.isEmpty ? 'Pending' : status;
+        final nested = claim['attendanceId'];
+        final nestedMap = nested is Map
+            ? Map<String, dynamic>.from(nested)
+            : const <String, dynamic>{};
+        final amount = _asDouble(
+          claim['otAmount'] ??
+              claim['OTAmount'] ??
+              claim['amount'] ??
+              claim['ot_amount'] ??
+              nestedMap['otAmount'] ??
+              nestedMap['OTAmount'],
+        );
+        if (amount > 0) otClaimAmounts[id] = amount;
+      }
+    }
     return MyAttendanceResponseModel(
       message: json['message']?.toString() ?? '',
       employeeName: json['employeeName'] as String? ?? '',
       records: list,
-      claimedAttendanceIds: claimedIds,
+      claimedAttendanceIds: otClaimStatuses.keys.toSet(),
+      otClaimStatuses: otClaimStatuses,
+      otClaimAmounts: otClaimAmounts,
       stats: rawStats is Map
           ? AttendanceStatsModel.fromJson(Map<String, dynamic>.from(rawStats))
           : null,

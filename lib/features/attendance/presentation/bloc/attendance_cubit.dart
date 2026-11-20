@@ -86,6 +86,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       _allRecords = AttendanceUiMapper.toUiList(
         result.records,
         claimedIds: result.claimedAttendanceIds,
+        otClaimStatuses: result.otClaimStatuses,
+        otClaimAmounts: result.otClaimAmounts,
       );
       final claimableIds = {
         for (final r in _allRecords)

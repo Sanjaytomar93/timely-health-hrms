@@ -34,8 +34,21 @@ class LeaveRepositoryImpl implements LeaveRepository {
   }
 
   @override
+  Future<List<ExtraWorkedDay>> getExtraWorkedDays({
+    required String employeeId,
+  }) async {
+    final model = await _remote.getExtraWorkedDays(employeeId: employeeId);
+    return LeaveMapper.extraWorkedDaysToEntity(model);
+  }
+
+  @override
   Future<LeaveRecord> addLeave(AddLeaveParams params) async {
     final model = await _remote.addLeave(params);
     return LeaveMapper.toEntity(model);
+  }
+
+  @override
+  Future<void> addCompOff(AddCompOffParams params) {
+    return _remote.addCompOff(params);
   }
 }

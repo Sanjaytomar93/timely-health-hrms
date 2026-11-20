@@ -18,6 +18,7 @@ class AttendanceRecordUiModel {
     required this.workingHours,
     required this.otHours,
     required this.otClaimed,
+    this.otClaimStatus = '',
     required this.claimableOtHours,
     required this.otAmount,
     required this.otMultiplier,
@@ -45,6 +46,7 @@ class AttendanceRecordUiModel {
   final double workingHours;
   final double otHours;
   final bool otClaimed;
+  final String otClaimStatus;
   final double claimableOtHours;
   final double otAmount;
 

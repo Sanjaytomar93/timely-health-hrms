@@ -50,8 +50,15 @@ class _RaiseIssueSheetState extends State<RaiseIssueSheet> {
   String _priority = 'Medium';
   bool _submitting = false;
 
-  static const _types = ['HR', 'Technical', 'Payroll', 'Other'];
-  static const _priorities = ['Low', 'Medium', 'High'];
+  static const _types = [
+    'Technical',
+    'HR',
+    'Facility',
+    'IT Support',
+    'Finance',
+    'Other',
+  ];
+  static const _priorities = ['Critical', 'High', 'Medium', 'Low'];
 
   @override
   void initState() {

@@ -4,15 +4,21 @@ import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/features/leaves/domain/failures/leave_failure.dart';
 import 'package:timelay_health/features/leaves/presentation/bloc/leaves_cubit.dart';
+import 'package:timelay_health/features/leaves/presentation/widgets/apply_comp_off_sheet.dart';
 
-Future<bool?> showApplyLeaveSheet(BuildContext context) {
+Future<bool?> showApplyLeaveSheet(BuildContext context) async {
   final cubit = context.read<LeavesCubit>();
-  return showDialog<bool>(
+  final result = await showDialog<Object?>(
     context: context,
     barrierColor: const Color(0x70000000),
     builder: (context) =>
         BlocProvider.value(value: cubit, child: const ApplyLeaveSheet()),
   );
+  if (result == 'comp-off') {
+    if (!context.mounted) return null;
+    return showApplyCompOffSheet(context);
+  }
+  return result is bool ? result : null;
 }
 
 class ApplyLeaveSheet extends StatefulWidget {
@@ -23,13 +29,27 @@ class ApplyLeaveSheet extends StatefulWidget {
 }
 
 class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
-  static const _leaveTypes = ['Casual', 'Sick', 'Earned'];
+  static const _leaveTypes = [
+    'Casual Leave',
+    'Sick Leave',
+    'Earned Leave',
+    'Comp Off (Compensatory Off)',
+  ];
+  static const _compOffType = 'Comp Off (Compensatory Off)';
 
   late final TextEditingController _reason;
-  String _leaveType = 'Sick';
+  String _leaveType = 'Sick Leave';
   DateTime? _startDate;
   DateTime? _endDate;
   bool _submitting = false;
+
+  void _onLeaveTypeSelected(String value) {
+    if (value == _compOffType) {
+      Navigator.of(context).pop('comp-off');
+      return;
+    }
+    setState(() => _leaveType = value);
+  }
 
   @override
   void initState() {
@@ -185,7 +205,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
               const SizedBox(height: 8),
               PopupMenuButton<String>(
                 enabled: !_submitting,
-                onSelected: (v) => setState(() => _leaveType = v),
+                onSelected: _onLeaveTypeSelected,
                 offset: const Offset(0, 42),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),

@@ -63,6 +63,10 @@ class _DashboardView extends StatelessWidget {
                 final firstLoad =
                     state is DashboardLoading &&
                     state.ui == DashboardHomeUi.empty;
+                final refreshing =
+                    state is DashboardLoading &&
+                    state.ui != null &&
+                    state.ui != DashboardHomeUi.empty;
 
                 if (firstLoad) {
                   return const DashboardShimmer();
@@ -95,60 +99,71 @@ class _DashboardView extends StatelessWidget {
                       SliverToBoxAdapter(
                         child: AttendanceBanner(data: ui.attendanceBanner),
                       ),
-                      SliverToBoxAdapter(
-                        child: StatCardsRow(cards: ui.statCards),
-                      ),
-                      SliverToBoxAdapter(
-                        child: QuickActionsSection(
-                          onHistory: onOpenAttendance,
-                          onLeaves: onOpenLeaves,
-                          onPermission: () =>
-                              AppRoutes.push(context, AppRoutes.permissions),
+                      if (refreshing)
+                        const SliverToBoxAdapter(
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 8),
+                            child: DashboardContentShimmer(),
+                          ),
+                        )
+                      else ...[
+                        SliverToBoxAdapter(
+                          child: StatCardsRow(cards: ui.statCards),
                         ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: RepaintBoundary(
-                          child: WeeklyBarChartCard(
-                            title: 'Late Minutes',
-                            titleIcon: Icons.access_time,
-                            barColor: PortalColors.orange,
-                            barColors: const [
-                              Color(0xFFF0A72E),
-                              Color(0xFFFF7043),
-                              Color(0xFFAB47BC),
-                              Color(0xFF42A5F5),
-                              Color(0xFF26A69A),
-                            ],
-                            values: ui.lateMinutes,
-                            monthLabel: monthYearLabel(cubit.month),
-                            onMonthTap: () => _pickMonth(context),
-                            topSpacing: 24,
+                        SliverToBoxAdapter(
+                          child: QuickActionsSection(
+                            onHistory: onOpenAttendance,
+                            onLeaves: onOpenLeaves,
+                            onPermission: () => AppRoutes.push(
+                              context,
+                              AppRoutes.permissions,
+                            ),
                           ),
                         ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: RepaintBoundary(
-                          child: AbsentWeekWiseCard(
-                            data: ui.absentDays,
-                            monthLabel: monthYearLabel(cubit.month),
-                            onMonthTap: () => _pickMonth(context),
+                        SliverToBoxAdapter(
+                          child: RepaintBoundary(
+                            child: WeeklyBarChartCard(
+                              title: 'Late Minutes',
+                              titleIcon: Icons.access_time,
+                              barColor: PortalColors.orange,
+                              barColors: const [
+                                Color(0xFFF0A72E),
+                                Color(0xFFFF7043),
+                                Color(0xFFAB47BC),
+                                Color(0xFF42A5F5),
+                                Color(0xFF26A69A),
+                              ],
+                              values: ui.lateMinutes,
+                              monthLabel: monthYearLabel(cubit.month),
+                              onMonthTap: () => _pickMonth(context),
+                              topSpacing: 24,
+                            ),
                           ),
                         ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: RecentActivityCard(
-                          items: ui.recentActivity,
-                          onSeeAll: onOpenAttendance,
+                        SliverToBoxAdapter(
+                          child: RepaintBoundary(
+                            child: AbsentWeekWiseCard(
+                              data: ui.absentDays,
+                              monthLabel: monthYearLabel(cubit.month),
+                              onMonthTap: () => _pickMonth(context),
+                            ),
+                          ),
                         ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: UpdatesCelebrationsCard(
-                          monthLabel: ui.updatesMonthLabel,
-                          items: ui.updates,
-                          onDetails: (item) =>
-                              showUpdateDetailDialog(context, item: item),
+                        SliverToBoxAdapter(
+                          child: RecentActivityCard(
+                            items: ui.recentActivity,
+                            onSeeAll: onOpenAttendance,
+                          ),
                         ),
-                      ),
+                        SliverToBoxAdapter(
+                          child: UpdatesCelebrationsCard(
+                            monthLabel: ui.updatesMonthLabel,
+                            items: ui.updates,
+                            onDetails: (item) =>
+                                showUpdateDetailDialog(context, item: item),
+                          ),
+                        ),
+                      ],
                       const SliverToBoxAdapter(child: SizedBox(height: 24)),
                     ],
                   ),

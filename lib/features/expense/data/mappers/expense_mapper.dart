@@ -17,6 +17,7 @@ class ExpenseMapper {
       upsellValue: model.upsellValue,
       remark: model.remark,
       stops: model.stops.map(_stopToEntity).toList(),
+      status: model.status,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     );

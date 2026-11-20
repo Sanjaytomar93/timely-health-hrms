@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
-import 'package:timelay_health/features/payslips/domain/entities/payslip.dart';
 import 'package:timelay_health/features/payslips/domain/entities/salary_summary.dart';
 
 class PayslipStatsUiModel extends Equatable {
@@ -257,87 +256,6 @@ class PayslipUiMapper {
 
   static const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  static PayslipUiModel toUi(Payslip payslip, DateTime date, {String? role}) {
-    final daysInMonth = DateTime(date.year, date.month + 1, 0).day;
-    final salary = payslip.salaryPerMonth;
-    final daily = daysInMonth == 0 ? 0.0 : salary / daysInMonth;
-    final name = payslip.name.trim().isEmpty ? '—' : payslip.name.trim();
-    final code = payslip.employeeId.trim().isEmpty
-        ? '—'
-        : payslip.employeeId.trim();
-    final resolvedRole = (role ?? '').trim().isEmpty
-        ? 'Employee'
-        : role!.trim();
-
-    return PayslipUiModel(
-      monthLabel: '${_months[date.month - 1]} ${date.year}',
-      daysMeta: '$daysInMonth days',
-      salaryLabel: _money(salary),
-      dailyRateLabel: '${_money(daily)}/day',
-      name: name,
-      employeeCode: code,
-      initials: _initials(name),
-      role: resolvedRole,
-      monthMeta:
-          'Month: ${date.year}-${date.month.toString().padLeft(2, '0')} ($daysInMonth days)',
-      headerDateLabel: _headerDate(date),
-      monthFilterLabel: '${_months[date.month - 1]} ${date.year}',
-      detailRows: [
-        PayslipDetailRowUiModel(
-          label: 'Monthly Salary',
-          value: _money(salary),
-          valueColor: const Color(0xFF26204A),
-        ),
-        PayslipDetailRowUiModel(
-          label: 'Basic Pay',
-          value: _money(payslip.basicPay),
-          valueColor: PortalColors.heading,
-        ),
-        PayslipDetailRowUiModel(
-          label: 'HRA',
-          value: _money(payslip.hra),
-          valueColor: PortalColors.heading,
-        ),
-        PayslipDetailRowUiModel(
-          label: 'Conveyance',
-          value: _money(payslip.conveyanceAllowance),
-          valueColor: PortalColors.heading,
-        ),
-        PayslipDetailRowUiModel(
-          label: 'Medical',
-          value: _money(payslip.medicalAllowance),
-          valueColor: PortalColors.heading,
-        ),
-        PayslipDetailRowUiModel(
-          label: 'Performance',
-          value: _money(payslip.performanceAllowance),
-          valueColor: PortalColors.heading,
-        ),
-        PayslipDetailRowUiModel(
-          label: 'Special Allowance',
-          value: _money(payslip.specialAllowance),
-          valueColor: PortalColors.heading,
-        ),
-        PayslipDetailRowUiModel(
-          label: 'CTC',
-          value: _money(payslip.ctc),
-          valueColor: PortalColors.heading,
-        ),
-        PayslipDetailRowUiModel(
-          label: 'Daily Rate',
-          value: '${_money(daily)}/day',
-          valueColor: PortalColors.heading,
-        ),
-        PayslipDetailRowUiModel(
-          label: 'Calculated Salary',
-          value: _money(salary),
-          valueColor: const Color(0xFF26204A),
-          topBorder: true,
-        ),
-      ],
-    );
-  }
-
   static PayslipUiModel empty(DateTime date) {
     final daysInMonth = DateTime(date.year, date.month + 1, 0).day;
     return PayslipUiModel(
@@ -502,17 +420,6 @@ class PayslipUiMapper {
       totalSalaryLabel: _money(summary.totalNetPay),
       payslipsCount: '${summary.payslipsAvailable}',
       avgSalaryLabel: _money(summary.avgSalary),
-    );
-  }
-
-  static PayslipStatsUiModel toStats(Payslip? payslip) {
-    if (payslip == null) return PayslipStatsUiModel.empty;
-    final salary = _money(payslip.salaryPerMonth);
-    return PayslipStatsUiModel(
-      totalRecords: '1',
-      totalSalaryLabel: salary,
-      payslipsCount: '1',
-      avgSalaryLabel: salary,
     );
   }
 

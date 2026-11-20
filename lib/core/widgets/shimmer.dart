@@ -312,6 +312,56 @@ class _ShimmerSurfaceCard extends StatelessWidget {
   }
 }
 
+/// Lower home sections shimmer (kept header/profile/banner during refresh).
+class DashboardContentShimmer extends StatelessWidget {
+  const DashboardContentShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Shimmer(
+      baseColor: Color(0xFFE4E1EF),
+      highlightColor: Color(0xFFF8F7FC),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(child: ShimmerBox(height: 78, radius: 16)),
+                SizedBox(width: 10),
+                Expanded(child: ShimmerBox(height: 78, radius: 16)),
+              ],
+            ),
+            SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: ShimmerBox(height: 78, radius: 16)),
+                SizedBox(width: 10),
+                Expanded(child: ShimmerBox(height: 78, radius: 16)),
+              ],
+            ),
+            SizedBox(height: 10),
+            ShimmerBox(width: double.infinity, height: 78, radius: 16),
+            SizedBox(height: 20),
+            ShimmerBox(width: 110, height: 14, radius: 6),
+            SizedBox(height: 10),
+            ShimmerBox(width: double.infinity, height: 78, radius: 18),
+            SizedBox(height: 24),
+            ShimmerBox(width: double.infinity, height: 210, radius: 18),
+            SizedBox(height: 14),
+            ShimmerBox(width: double.infinity, height: 180, radius: 18),
+            SizedBox(height: 14),
+            ShimmerBox(width: double.infinity, height: 156, radius: 18),
+            SizedBox(height: 14),
+            ShimmerBox(width: double.infinity, height: 140, radius: 18),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Mirrors the My Leaves screen layout.
 class LeavesShimmer extends StatelessWidget {
   const LeavesShimmer({super.key});

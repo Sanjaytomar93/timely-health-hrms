@@ -181,21 +181,20 @@ class _RecordExpenseSheetState extends State<RecordExpenseSheet> {
       },
       child: Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 28),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
         child: Container(
           width: dialogWidth,
           constraints: BoxConstraints(maxHeight: maxHeight),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
           ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(22, 20, 18, 22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 12, 0),
+                child: Row(
                   children: [
                     Expanded(
                       child: Column(
@@ -205,213 +204,235 @@ class _RecordExpenseSheetState extends State<RecordExpenseSheet> {
                             'Record Expense',
                             style: portalText(
                               fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                               color: PortalColors.heading,
-                              height: 16 / 13.5,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 2),
                           Text(
-                            'Add trip purpose, stops, and reimbursable distance.',
+                            'Add purpose, stops, and distance.',
                             style: portalText(
-                              fontSize: 10.5,
+                              fontSize: 10,
                               color: PortalColors.muted,
-                              height: 13 / 10.5,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
                     InkWell(
                       onTap: submitting
                           ? null
                           : () => Navigator.of(context).pop(false),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       child: Container(
-                        width: 45,
-                        height: 42,
+                        width: 34,
+                        height: 34,
                         decoration: BoxDecoration(
-                          color: PortalColors.border,
-                          borderRadius: BorderRadius.circular(16),
+                          color: PortalColors.background,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: PortalColors.border),
                         ),
-                        child: const Icon(Icons.close, size: 20),
+                        child: const Icon(Icons.close, size: 16),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                const _Label('Purpose of Travel'),
-                const SizedBox(height: 8),
-                _InputField(
-                  controller: _purposeController,
-                  hint: 'e.g. Client meeting or sample collection',
-                  enabled: !submitting,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const _Label('Travel Date'),
-                          const SizedBox(height: 8),
-                          GestureDetector(
-                            onTap: submitting ? null : _pickDate,
-                            child: _ReadOnlyBox(
-                              text: _dateLabel.isEmpty
-                                  ? 'Select Date'
-                                  : _dateLabel,
-                              isHint: _dateLabel.isEmpty,
-                              centered: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const _Label('Total KM Traveled'),
-                          const SizedBox(height: 8),
-                          _ReadOnlyBox(
-                            text:
-                                '${_totalKm.toStringAsFixed(_totalKm % 1 == 0 ? 0 : 1)} KM',
-                            bold: true,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const _Label('Estimated reimbursement'),
-                const SizedBox(height: 8),
-                _ReadOnlyBox(
-                  text: '₹ ${_estimatedAmount.toStringAsFixed(0)}',
-                  bold: true,
-                ),
-                const SizedBox(height: 16),
-                const _Label('Rate applied'),
-                const SizedBox(height: 8),
-                const _ReadOnlyBox(text: '₹ 4 / KM', bold: true),
-                const SizedBox(height: 18),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(14, 12, 12, 14),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: PortalColors.border),
-                  ),
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const _Label('Purpose of Travel'),
+                      const SizedBox(height: 5),
+                      _InputField(
+                        controller: _purposeController,
+                        hint: 'e.g. Client meeting or sample collection',
+                        enabled: !submitting,
+                      ),
+                      const SizedBox(height: 10),
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              'Stops / Samples',
-                              style: portalText(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: PortalColors.heading,
-                                height: 13 / 11,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const _Label('Travel Date'),
+                                const SizedBox(height: 5),
+                                GestureDetector(
+                                  onTap: submitting ? null : _pickDate,
+                                  child: _ReadOnlyBox(
+                                    text: _dateLabel.isEmpty
+                                        ? 'Select Date'
+                                        : _dateLabel,
+                                    isHint: _dateLabel.isEmpty,
+                                    centered: true,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          GestureDetector(
-                            onTap: submitting ? null : _addStop,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: PortalColors.purple,
-                                borderRadius: BorderRadius.circular(11),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.add,
-                                    size: 14,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Add Stop',
-                                    style: portalText(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                      height: 1.2,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const _Label('Total KM'),
+                                const SizedBox(height: 5),
+                                _ReadOnlyBox(
+                                  text:
+                                      '${_totalKm.toStringAsFixed(_totalKm % 1 == 0 ? 0 : 1)} KM',
+                                  bold: true,
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Text(
-                        'Add each visit so the record matches your travel route',
-                        style: portalText(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          color: PortalColors.muted,
-                          height: 1.2,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const _Label('Estimated'),
+                                const SizedBox(height: 5),
+                                _ReadOnlyBox(
+                                  text:
+                                      '₹ ${_estimatedAmount.toStringAsFixed(0)}',
+                                  bold: true,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const _Label('Rate'),
+                                const SizedBox(height: 5),
+                                const _ReadOnlyBox(
+                                  text: '₹ 4 / KM',
+                                  bold: true,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      for (var i = 0; i < _stops.length; i++) ...[
-                        const SizedBox(height: 12),
-                        _StopCard(
-                          index: i,
-                          controllers: _stops[i],
-                          canRemove: _stops.length > 1 && !submitting,
-                          enabled: !submitting,
-                          onRemove: () => _removeStop(i),
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(11, 10, 10, 11),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: PortalColors.border),
+                          color: PortalColors.background.withValues(alpha: 0.45),
                         ),
-                      ],
-                      const SizedBox(height: 14),
-                      const _StopLabel('Remark'),
-                      const SizedBox(height: 8),
-                      _InputField(
-                        controller: _remarkController,
-                        height: 105,
-                        maxLines: 4,
-                        enabled: !submitting,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Stops / Samples',
+                                    style: portalText(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: PortalColors.heading,
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: submitting ? null : _addStop,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 7,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: PortalColors.purple,
+                                      borderRadius: BorderRadius.circular(9),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.add,
+                                          size: 13,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          'Add Stop',
+                                          style: portalText(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Add each visit to match your travel route',
+                              style: portalText(
+                                fontSize: 9.5,
+                                color: PortalColors.muted,
+                              ),
+                            ),
+                            for (var i = 0; i < _stops.length; i++) ...[
+                              const SizedBox(height: 8),
+                              _StopCard(
+                                index: i,
+                                controllers: _stops[i],
+                                canRemove: _stops.length > 1 && !submitting,
+                                enabled: !submitting,
+                                onRemove: () => _removeStop(i),
+                              ),
+                            ],
+                            const SizedBox(height: 10),
+                            const _StopLabel('Remark'),
+                            const SizedBox(height: 5),
+                            _GrowingRemarkField(
+                              controller: _remarkController,
+                              enabled: !submitting,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                Row(
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+                child: Row(
                   children: [
                     Expanded(
-                      flex: 5,
                       child: GestureDetector(
                         onTap: submitting
                             ? null
                             : () => Navigator.of(context).pop(false),
                         child: Container(
-                          height: 32,
+                          height: 36,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: PortalColors.muted,
-                              width: 0.5,
-                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: PortalColors.border),
                           ),
                           child: Text(
                             'Cancel',
                             style: portalText(
-                              fontSize: 10,
+                              fontSize: 11,
                               fontWeight: FontWeight.w700,
                               color: PortalColors.heading,
                             ),
@@ -419,21 +440,17 @@ class _RecordExpenseSheetState extends State<RecordExpenseSheet> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 25),
+                    const SizedBox(width: 10),
                     Expanded(
-                      flex: 6,
+                      flex: 2,
                       child: GestureDetector(
                         onTap: submitting ? null : _submit,
                         child: Container(
-                          height: 32,
+                          height: 36,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: PortalColors.brand,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: PortalColors.brand,
-                              width: 0.5,
-                            ),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: submitting
                               ? const SizedBox(
@@ -447,7 +464,7 @@ class _RecordExpenseSheetState extends State<RecordExpenseSheet> {
                               : Text(
                                   'Submit Record',
                                   style: portalText(
-                                    fontSize: 10,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w700,
                                     color: Colors.white,
                                   ),
@@ -457,8 +474,8 @@ class _RecordExpenseSheetState extends State<RecordExpenseSheet> {
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -485,9 +502,10 @@ class _StopCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(9),
         border: Border.all(color: PortalColors.border),
       ),
       child: Column(
@@ -499,8 +517,8 @@ class _StopCard extends StatelessWidget {
                 child: Text(
                   'Stop ${index + 1}',
                   style: portalText(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
                     color: PortalColors.heading,
                   ),
                 ),
@@ -513,23 +531,23 @@ class _StopCard extends StatelessWidget {
                     style: portalText(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: PortalColors.purple,
+                      color: PortalColors.red,
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 7),
           const _StopLabel('Location / Sample Name'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           _InputField(controller: controllers.location, enabled: enabled),
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
           const _StopLabel('Meeting Outcome'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           _InputField(controller: controllers.outcome, enabled: enabled),
-          const SizedBox(height: 14),
-          const _StopLabel('Distance (KM)'),
           const SizedBox(height: 8),
+          const _StopLabel('Distance (KM)'),
+          const SizedBox(height: 4),
           _InputField(
             controller: controllers.km,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -538,27 +556,49 @@ class _StopCard extends StatelessWidget {
             ],
             enabled: enabled,
           ),
-          const SizedBox(height: 14),
-          const _StopLabel('Order Value (₹)'),
           const SizedBox(height: 8),
-          _InputField(
-            controller: controllers.orderValue,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _StopLabel('Order (₹)'),
+                    const SizedBox(height: 4),
+                    _InputField(
+                      controller: controllers.orderValue,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                      ],
+                      enabled: enabled,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _StopLabel('Upsell (₹)'),
+                    const SizedBox(height: 4),
+                    _InputField(
+                      controller: controllers.upsellValue,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                      ],
+                      enabled: enabled,
+                    ),
+                  ],
+                ),
+              ),
             ],
-            enabled: enabled,
-          ),
-          const SizedBox(height: 14),
-          const _StopLabel('Upsell Value (₹)'),
-          const SizedBox(height: 8),
-          _InputField(
-            controller: controllers.upsellValue,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-            ],
-            enabled: enabled,
           ),
         ],
       ),
@@ -602,12 +642,58 @@ class _StopLabel extends StatelessWidget {
   }
 }
 
+class _GrowingRemarkField extends StatelessWidget {
+  const _GrowingRemarkField({
+    required this.controller,
+    this.enabled = true,
+  });
+
+  final TextEditingController controller;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: PortalColors.border),
+      ),
+      child: TextField(
+        controller: controller,
+        enabled: enabled,
+        minLines: 2,
+        maxLines: null,
+        keyboardType: TextInputType.multiline,
+        textInputAction: TextInputAction.newline,
+        style: portalText(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: PortalColors.heading,
+          height: 1.35,
+        ),
+        decoration: InputDecoration(
+          isDense: true,
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
+          hintText: 'Add any extra notes…',
+          hintStyle: portalText(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w400,
+            color: const Color(0xFF7E7E7E),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _InputField extends StatelessWidget {
   const _InputField({
     required this.controller,
     this.hint,
-    this.height = 40,
-    this.maxLines = 1,
     this.keyboardType,
     this.inputFormatters,
     this.enabled = true,
@@ -615,8 +701,6 @@ class _InputField extends StatelessWidget {
 
   final TextEditingController controller;
   final String? hint;
-  final double height;
-  final int maxLines;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final bool enabled;
@@ -625,21 +709,22 @@ class _InputField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: maxLines > 1 ? height : height,
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      alignment: maxLines > 1 ? Alignment.topLeft : Alignment.centerLeft,
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 11),
+      alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(9),
         border: Border.all(color: PortalColors.border),
       ),
       child: TextField(
         controller: controller,
         enabled: enabled,
-        maxLines: maxLines,
+        maxLines: 1,
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         style: portalText(
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: FontWeight.w500,
           color: PortalColors.heading,
         ),
@@ -648,8 +733,8 @@ class _InputField extends StatelessWidget {
           border: InputBorder.none,
           hintText: hint,
           hintStyle: portalText(
-            fontSize: 8,
-            fontWeight: FontWeight.w300,
+            fontSize: 10,
+            fontWeight: FontWeight.w400,
             color: const Color(0xFF7E7E7E),
           ),
         ),
@@ -675,19 +760,20 @@ class _ReadOnlyBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 15),
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 11),
       alignment: centered ? Alignment.center : Alignment.centerLeft,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(9),
         border: Border.all(color: PortalColors.border),
       ),
       child: Text(
         text,
         style: portalText(
-          fontSize: isHint ? 8 : (bold ? 11 : 10),
+          fontSize: isHint ? 10 : (bold ? 11.5 : 11),
           fontWeight: isHint
-              ? FontWeight.w300
+              ? FontWeight.w400
               : (bold ? FontWeight.w700 : FontWeight.w500),
           color: isHint ? const Color(0xFF7E7E7E) : PortalColors.heading,
         ),

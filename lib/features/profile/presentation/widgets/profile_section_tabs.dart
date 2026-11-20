@@ -71,30 +71,41 @@ class _ProfileSectionTabsState extends State<ProfileSectionTabs> {
         ),
         MediaQuery.withClampedTextScaling(
           maxScaleFactor: 1.2,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-            child: Row(
-              children: [
-                for (var index = 0;
-                    index < ProfileSectionTabs.tabs.length;
-                    index++)
-                  Padding(
-                    padding: EdgeInsets.only(
-                      right: index == ProfileSectionTabs.tabs.length - 1
-                          ? 0
-                          : 8,
-                    ),
-                    child: _TabChip(
-                      key: _itemKeys[index],
-                      icon: ProfileSectionTabs.tabs[index].$1,
-                      label: ProfileSectionTabs.tabs[index].$2,
-                      selected: index == widget.selectedIndex,
-                      onTap: () => widget.onChanged(index),
-                    ),
-                  ),
-              ],
-            ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const gap = 6.0;
+              const hPad = 16.0;
+              final chipWidth =
+                  (constraints.maxWidth - (hPad * 2) - (gap * 2)) / 3;
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.fromLTRB(hPad, 0, hPad, 4),
+                child: Row(
+                  children: [
+                    for (var index = 0;
+                        index < ProfileSectionTabs.tabs.length;
+                        index++)
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: index == ProfileSectionTabs.tabs.length - 1
+                              ? 0
+                              : gap,
+                        ),
+                        child: SizedBox(
+                          width: chipWidth,
+                          child: _TabChip(
+                            key: _itemKeys[index],
+                            icon: ProfileSectionTabs.tabs[index].$1,
+                            label: ProfileSectionTabs.tabs[index].$2,
+                            selected: index == widget.selectedIndex,
+                            onTap: () => widget.onChanged(index),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       ],
@@ -127,7 +138,8 @@ class _TabChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
@@ -135,22 +147,27 @@ class _TabChip extends StatelessWidget {
             ),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 icon,
-                size: 14,
+                size: 12,
                 color: selected ? Colors.white : PortalColors.muted,
               ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                maxLines: 1,
-                style: portalText(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  color: selected ? Colors.white : PortalColors.secondaryText,
-                  height: 1.2,
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: selected
+                        ? Colors.white
+                        : PortalColors.secondaryText,
+                    height: 1.2,
+                  ),
                 ),
               ),
             ],

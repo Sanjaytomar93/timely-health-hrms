@@ -535,35 +535,58 @@ class AttendanceRecordCard extends StatelessWidget {
             const SizedBox(height: 9),
             _HoursProgress(data: data),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 5,
-              runSpacing: 5,
-              children: [
-                _Tag(
-                  icon: Icons.schedule_rounded,
-                  text: data.shiftTag,
-                  bg: _shiftTint,
-                  color: _shiftViolet,
-                ),
-                _Tag(
-                  icon: Icons.near_me_rounded,
-                  text: data.distanceTag,
-                  bg: PortalColors.background,
-                  color: PortalColors.muted,
-                  bordered: true,
-                ),
-                if (data.claimableOtHours > 0)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
                   _Tag(
-                    icon: data.otClaimed
-                        ? Icons.task_alt_rounded
-                        : Icons.timer_rounded,
-                    text: data.otClaimed
-                        ? 'OT ${AttendanceUiMapper.hoursLabel(data.claimableOtHours)} claimed'
-                        : '+${AttendanceUiMapper.hoursLabel(data.claimableOtHours)} OT',
-                    bg: data.otClaimed ? PortalColors.greenTint : OtColors.tint,
-                    color: data.otClaimed ? PortalColors.green : OtColors.text,
+                    icon: Icons.schedule_rounded,
+                    text: data.shiftTag,
+                    bg: _shiftTint,
+                    color: _shiftViolet,
                   ),
-              ],
+                  const SizedBox(width: 5),
+                  _Tag(
+                    icon: Icons.near_me_rounded,
+                    text: data.distanceTag,
+                    bg: PortalColors.background,
+                    color: PortalColors.muted,
+                    bordered: true,
+                  ),
+                  if (data.otHours > 0 || data.claimableOtHours > 0) ...[
+                    const SizedBox(width: 5),
+                    _Tag(
+                      icon: Icons.timer_rounded,
+                      text:
+                          'OT Hours ${AttendanceUiMapper.hoursLabel(data.otHours > 0 ? data.otHours : data.claimableOtHours)}',
+                      bg: OtColors.tint,
+                      color: OtColors.text,
+                    ),
+                  ],
+                  if (data.otClaimed && data.otClaimStatus.isNotEmpty) ...[
+                    const SizedBox(width: 5),
+                    _Tag(
+                      icon: Icons.task_alt_rounded,
+                      text: data.otClaimStatus,
+                      bg: PortalColors.greenTint,
+                      color: PortalColors.green,
+                    ),
+                  ],
+                  if (data.otHours > 0 ||
+                      data.claimableOtHours > 0 ||
+                      data.otAmount > 0 ||
+                      data.otClaimed) ...[
+                    const SizedBox(width: 5),
+                    _Tag(
+                      icon: Icons.currency_rupee_rounded,
+                      text:
+                          'OT Amount ${data.otAmount > 0 ? data.otAmount.toStringAsFixed(2) : '-'}',
+                      bg: PortalColors.greenTint,
+                      color: PortalColors.green,
+                    ),
+                  ],
+                ],
+              ),
             ),
             if (data.note.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
