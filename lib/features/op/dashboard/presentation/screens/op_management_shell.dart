@@ -3,16 +3,26 @@ import 'package:flutter/services.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
+import 'package:timelay_health/features/op/appointments/presentation/screens/op_appointment_slots_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/screens/op_dashboard_screen.dart';
+import 'package:timelay_health/features/op/dashboard/presentation/screens/op_revenue_analytics_screen.dart';
 import 'package:timelay_health/features/op/doctors/presentation/screens/op_doctors_screen.dart';
 import 'package:timelay_health/features/op/online_booking/presentation/screens/op_online_booking_screen.dart';
+import 'package:timelay_health/features/op/referral/presentation/screens/op_referral_booking_screen.dart';
+import 'package:timelay_health/features/op/referral/presentation/screens/op_referral_management_screen.dart';
 import 'package:timelay_health/features/op/services/presentation/screens/op_services_screen.dart';
 import 'package:timelay_health/features/op/walkin/presentation/screens/op_walkin_screen.dart';
+import 'package:timelay_health/features/op/dashboard/presentation/screens/op_shell_navigator.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_bottom_nav.dart';
 
 class OpManagementShell extends StatefulWidget {
-  const OpManagementShell({super.key});
+  const OpManagementShell({super.key, this.initialTab = 0});
+
+  final int initialTab;
+
+  static int tabFromRoute(String? routeName) =>
+      OpShellNavigator.tabFromRoute(routeName);
 
   @override
   State<OpManagementShell> createState() => _OpManagementShellState();
@@ -20,31 +30,110 @@ class OpManagementShell extends StatefulWidget {
 
 class _OpManagementShellState extends State<OpManagementShell> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int _stackIndex = 0;
-  int _navIndex = 0;
+  late int _stackIndex;
+  late int _navIndex;
 
-  void _openTab(int stackIndex) {
+  static const _pageCount = 9;
+
+  late final void Function(int) _boundOpenTab = openTab;
+
+  @override
+  void initState() {
+    super.initState();
+    OpShellNavigator.bind(_boundOpenTab);
+    final tab = widget.initialTab.clamp(0, _pageCount - 1);
+    _stackIndex = tab;
+    _navIndex = tab <= 4 ? tab : -1;
+  }
+
+  @override
+  void dispose() {
+    OpShellNavigator.unbind(_boundOpenTab);
+    super.dispose();
+  }
+
+  void openTab(int stackIndex) {
+    final next = stackIndex.clamp(0, _pageCount - 1);
+    if (next == _stackIndex) return;
     setState(() {
-      _stackIndex = stackIndex.clamp(0, 4);
-      _navIndex = _stackIndex;
+      _stackIndex = next;
+      _navIndex = _stackIndex <= 4 ? _stackIndex : -1;
     });
   }
 
   void _onNavTap(int navIndex) {
-    setState(() {
-      _navIndex = navIndex;
-      _stackIndex = navIndex.clamp(0, 4);
-    });
+    openTab(navIndex.clamp(0, 4));
   }
 
   void _onMenuTap() {
     _scaffoldKey.currentState?.openDrawer();
   }
 
+  Widget _wrapSafe({
+    required Color statusBarColor,
+    required Widget child,
+  }) {
+    return PortalSafeArea(
+      bottom: false,
+      statusBarColor: statusBarColor,
+      child: child,
+    );
+  }
+
+  Widget _buildPage(int index) {
+    switch (index) {
+      case 1:
+        return _wrapSafe(
+          statusBarColor: Colors.white,
+          child: OpWalkinScreen(onMenuTap: _onMenuTap),
+        );
+      case 2:
+        return _wrapSafe(
+          statusBarColor: OpColors.primary,
+          child: OpDoctorsScreen(onMenuTap: _onMenuTap),
+        );
+      case 3:
+        return _wrapSafe(
+          statusBarColor: OpColors.primary,
+          child: OpServicesScreen(onMenuTap: _onMenuTap),
+        );
+      case 4:
+        return _wrapSafe(
+          statusBarColor: Colors.white,
+          child: OpOnlineBookingScreen(onMenuTap: _onMenuTap),
+        );
+      case 5:
+        return const OpReferralManagementScreen();
+      case 6:
+        return const OpReferralBookingScreen();
+      case 7:
+        return _wrapSafe(
+          statusBarColor: OpColors.primary,
+          child: OpAppointmentSlotsScreen(onMenuTap: _onMenuTap),
+        );
+      case 8:
+        return OpRevenueAnalyticsScreen(onMenuTap: _onMenuTap);
+      case 0:
+      default:
+        return _wrapSafe(
+          statusBarColor: Colors.white,
+          child: OpDashboardScreen(
+            onOpenTab: openTab,
+            onMenuTap: _onMenuTap,
+          ),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isWhiteHeader =
-        _stackIndex == 0 || _stackIndex == 1 || _stackIndex == 4;
+    final isWhiteHeader = _stackIndex == 0 ||
+        _stackIndex == 1 ||
+        _stackIndex == 4 ||
+        _stackIndex == 5 ||
+        _stackIndex == 6 ||
+        _stackIndex == 8;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: (isWhiteHeader ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light)
           .copyWith(statusBarColor: Colors.transparent),
@@ -53,23 +142,7 @@ class _OpManagementShellState extends State<OpManagementShell> {
         backgroundColor: OpColors.background,
         drawer: const HomeSideDrawer(),
         drawerScrimColor: PortalColors.brand.withValues(alpha: 0.28),
-        body: PortalSafeArea(
-          bottom: false,
-          statusBarColor: isWhiteHeader ? Colors.white : OpColors.primary,
-          child: IndexedStack(
-            index: _stackIndex,
-            children: [
-              OpDashboardScreen(
-                onOpenTab: _openTab,
-                onMenuTap: _onMenuTap,
-              ),
-              OpWalkinScreen(onMenuTap: _onMenuTap),
-              OpDoctorsScreen(onMenuTap: _onMenuTap),
-              OpServicesScreen(onMenuTap: _onMenuTap),
-              OpOnlineBookingScreen(onMenuTap: _onMenuTap),
-            ],
-          ),
-        ),
+        body: _buildPage(_stackIndex),
         bottomNavigationBar: OpBottomNav(
           currentIndex: _navIndex,
           onTap: _onNavTap,

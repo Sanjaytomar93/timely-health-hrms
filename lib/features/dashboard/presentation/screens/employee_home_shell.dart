@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
-import 'package:timelay_health/core/theme/portal_system_ui.dart';
 import 'package:timelay_health/features/auth/data/auth_session.dart';
 import 'package:timelay_health/features/attendance/presentation/screens/attendance_screen.dart';
 import 'package:timelay_health/features/dashboard/presentation/bloc/dashboard_cubit.dart';
@@ -107,7 +106,11 @@ class _EmployeeHomeShellState extends State<EmployeeHomeShell> {
 
     Widget shell = AnnotatedRegion<SystemUiOverlayStyle>(
       value: _index == 0
-          ? PortalSystemUi.darkStatusBar
+          ? const SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.light,
+              statusBarBrightness: Brightness.dark,
+            )
           : SystemUiOverlayStyle.dark.copyWith(
               statusBarColor: Colors.transparent,
             ),

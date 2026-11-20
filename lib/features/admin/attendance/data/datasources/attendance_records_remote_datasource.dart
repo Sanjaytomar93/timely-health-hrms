@@ -1,0 +1,59 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+import 'package:timelay_health/features/admin/attendance/data/endpoints/attendance_records_endpoints.dart';
+import 'package:timelay_health/features/admin/attendance/domain/failures/attendance_records_failure.dart';
+
+class AttendanceRecordsRemoteDataSource {
+  AttendanceRecordsRemoteDataSource({http.Client? client})
+      : _client = client ?? http.Client();
+
+  final http.Client _client;
+
+  Future<Map<String, dynamic>> getPageData({
+    required String month,
+    int page = 1,
+    int limit = 15,
+    String? employeeId,
+    String? department,
+    String? designation,
+    String? date,
+  }) async {
+    final url = AttendanceRecordsEndpoints.pageData(
+      month: month,
+      page: page,
+      limit: limit,
+      employeeId: employeeId,
+      department: department,
+      designation: designation,
+      date: date,
+    );
+
+    late final http.Response response;
+    try {
+      response = await _client.get(
+        Uri.parse(url),
+        headers: const {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 30));
+    } catch (_) {
+      throw const AttendanceRecordsFailure(
+        'Unable to reach server. Please check your internet connection.',
+      );
+    }
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw const AttendanceRecordsFailure('Failed to load attendance records.');
+    }
+
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+      throw const AttendanceRecordsFailure('Unexpected response format from server.');
+    } catch (e) {
+      if (e is AttendanceRecordsFailure) rethrow;
+      throw const AttendanceRecordsFailure('Invalid JSON response from server.');
+    }
+  }
+}

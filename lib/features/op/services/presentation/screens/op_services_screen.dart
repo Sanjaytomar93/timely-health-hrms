@@ -19,7 +19,6 @@ class _OpServicesScreenState extends State<OpServicesScreen> {
   late List<OpServiceUi> _services;
   String _query = '';
   String _sort = 'Default';
-  bool _refreshing = false;
 
   @override
   void initState() {
@@ -70,12 +69,10 @@ class _OpServicesScreenState extends State<OpServicesScreen> {
   }
 
   Future<void> _refresh() async {
-    setState(() => _refreshing = true);
     await Future<void>.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     setState(() {
       _services = List.of(OpServicesUi.demo.services);
-      _refreshing = false;
     });
     _snack('Services refreshed');
   }
@@ -197,23 +194,21 @@ class _OpServicesScreenState extends State<OpServicesScreen> {
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _HeroBanner(count: _services.length),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 14),
                           _SearchField(controller: _search),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                           _ActionRow(
                             sort: _sort,
-                            refreshing: _refreshing,
                             onSort: (v) => setState(() => _sort = v),
-                            onRefresh: _refresh,
                             onExport: _exportCsv,
                             onAdd: () => _openForm(),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 14),
                           _StatsGrid(
                             total: _services.length,
                             avg: avg,
@@ -226,9 +221,9 @@ class _OpServicesScreenState extends State<OpServicesScreen> {
                             children: [
                               Container(
                                 width: 4,
-                                height: 18,
+                                height: 16,
                                 decoration: BoxDecoration(
-                                  color: OpColors.blue,
+                                  color: const Color(0xFF26204A),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
@@ -236,33 +231,33 @@ class _OpServicesScreenState extends State<OpServicesScreen> {
                               Text(
                                 'Clinical Services',
                                 style: portalText(
-                                  fontSize: 15,
+                                  fontSize: 14.5,
                                   fontWeight: FontWeight.w800,
-                                  color: OpColors.heading,
+                                  color: const Color(0xFF0F172A),
                                 ),
                               ),
                               const Spacer(),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
+                                  horizontal: 8,
+                                  vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: OpColors.blueTint,
-                                  borderRadius: BorderRadius.circular(20),
+                                  color: const Color(0xFFEEEDF0),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   '${filtered.length}',
                                   style: portalText(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: OpColors.blue,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF26204A),
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                         ],
                       ),
                     ),
@@ -283,14 +278,13 @@ class _OpServicesScreenState extends State<OpServicesScreen> {
                     )
                   else
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(14, 0, 14, 28),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
                       sliver: SliverList.separated(
                         itemCount: filtered.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 10),
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (context, i) {
                           final service = filtered[i];
                           return _ServiceCard(
-                            sno: i + 1,
                             service: service,
                             onView: () => _view(service),
                             onEdit: () => _openForm(service),
@@ -407,28 +401,41 @@ class _SearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
-      decoration: OpColors.card(radius: 16),
+      height: 44,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: OpColors.blueTint,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.search_rounded, size: 18, color: OpColors.blue),
+          const Icon(
+            Icons.search_rounded,
+            size: 18,
+            color: Color(0xFF94A3B8),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
               controller: controller,
+              style: portalText(
+                fontSize: 12.5,
+                color: const Color(0xFF0F172A),
+              ),
               decoration: InputDecoration(
                 hintText: 'Search service name, price, description...',
-                hintStyle: portalText(fontSize: 13, color: OpColors.muted),
+                hintStyle: portalText(
+                  fontSize: 12.5,
+                  color: const Color(0xFF94A3B8),
+                ),
                 border: InputBorder.none,
                 isDense: true,
               ),
@@ -443,17 +450,13 @@ class _SearchField extends StatelessWidget {
 class _ActionRow extends StatelessWidget {
   const _ActionRow({
     required this.sort,
-    required this.refreshing,
     required this.onSort,
-    required this.onRefresh,
     required this.onExport,
     required this.onAdd,
   });
 
   final String sort;
-  final bool refreshing;
   final ValueChanged<String> onSort;
-  final VoidCallback onRefresh;
   final VoidCallback onExport;
   final VoidCallback onAdd;
 
@@ -461,109 +464,93 @@ class _ActionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
+        // Sort / Filter "Default" dropdown with modern UI
         Expanded(
           child: Container(
-            height: 42,
+            height: 40,
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
-              color: OpColors.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: OpColors.border),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x06000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
+              ],
             ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                isExpanded: true,
-                value: sort,
-                items: const [
-                  'Default',
-                  'Name A-Z',
-                  'Name Z-A',
-                  'Price Low-High',
-                  'Price High-Low',
-                ]
-                    .map(
-                      (e) => DropdownMenuItem(
-                        value: e,
-                        child: Text(
-                          e,
-                          style: portalText(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.swap_vert_rounded,
+                  size: 16,
+                  color: Color(0xFF64748B),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: sort,
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 17,
+                        color: Color(0xFF64748B),
                       ),
-                    )
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) onSort(v);
-                },
-              ),
+                      style: portalText(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF0F172A),
+                      ),
+                      items: const [
+                        'Default',
+                        'Name A-Z',
+                        'Name Z-A',
+                        'Price Low-High',
+                        'Price High-Low',
+                      ]
+                          .map(
+                            (e) => DropdownMenuItem(
+                              value: e,
+                              child: Text(
+                                e == 'Default' ? 'Sort: Default' : e,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) {
+                        if (v != null) onSort(v);
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        _IconBtn(
-          icon: Icons.refresh_rounded,
-          spinning: refreshing,
-          onTap: onRefresh,
         ),
         const SizedBox(width: 8),
         _Pill(
           label: 'CSV',
           icon: Icons.file_download_outlined,
-          fg: OpColors.green,
-          bg: OpColors.greenTint,
+          fg: const Color(0xFF059669),
+          bg: const Color(0xFFECFDF5),
+          borderColor: const Color(0xFFA7F3D0),
           onTap: onExport,
         ),
         const SizedBox(width: 8),
         _Pill(
-          label: 'Add',
+          label: 'Add Service',
           icon: Icons.add_rounded,
           fg: Colors.white,
-          bg: OpColors.blue,
+          bg: const Color(0xFF26204A),
+          hasShadow: true,
           onTap: onAdd,
         ),
       ],
-    );
-  }
-}
-
-class _IconBtn extends StatelessWidget {
-  const _IconBtn({
-    required this.icon,
-    required this.onTap,
-    this.spinning = false,
-  });
-
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool spinning;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: OpColors.surface,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: OpColors.border),
-          ),
-          alignment: Alignment.center,
-          child: spinning
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Icon(icon, size: 18, color: OpColors.secondary),
-        ),
-      ),
     );
   }
 }
@@ -574,6 +561,8 @@ class _Pill extends StatelessWidget {
     required this.icon,
     required this.fg,
     required this.bg,
+    this.borderColor,
+    this.hasShadow = false,
     required this.onTap,
   });
 
@@ -581,33 +570,46 @@ class _Pill extends StatelessWidget {
   final IconData icon;
   final Color fg;
   final Color bg;
+  final Color? borderColor;
+  final bool hasShadow;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: bg,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          height: 42,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              Icon(icon, size: 15, color: fg),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: portalText(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: fg,
-                ),
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(10),
+          border: borderColor != null ? Border.all(color: borderColor!) : null,
+          boxShadow: hasShadow
+              ? const [
+                  BoxShadow(
+                    color: Color(0x3326204A),
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: fg),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: portalText(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: fg,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -789,14 +791,12 @@ class _StatCard extends StatelessWidget {
 
 class _ServiceCard extends StatelessWidget {
   const _ServiceCard({
-    required this.sno,
     required this.service,
     required this.onView,
     required this.onEdit,
     required this.onDelete,
   });
 
-  final int sno;
   final OpServiceUi service;
   final VoidCallback onView;
   final VoidCallback onEdit;
@@ -804,199 +804,230 @@ class _ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: OpColors.surface,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onView,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: OpColors.border),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x08000000),
-                blurRadius: 8,
-                offset: Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    '#$sno',
+    return GestureDetector(
+      onTap: onView,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFF1F5F9)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 10,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Row 1: Avatar + Name & Category + Price Badge (Matching Referral Management Card)
+            Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF26204A),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    service.initial,
                     style: portalText(
-                      fontSize: 11,
+                      fontSize: 17,
                       fontWeight: FontWeight.w800,
-                      color: OpColors.muted,
+                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 42,
-                    height: 42,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [
-                          service.avatarColor,
-                          service.avatarColor.withValues(alpha: 0.7),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        service.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: portalText(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.category_outlined,
+                            size: 12,
+                            color: Color(0xFFB45309),
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              service.category,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: portalText(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: service.avatarColor.withValues(alpha: 0.28),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      service.initial,
-                      style: portalText(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          service.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: portalText(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: OpColors.heading,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          service.category,
-                          style: portalText(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: OpColors.blue,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: OpColors.greenTint,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      service.priceLabel,
-                      style: portalText(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w800,
-                        color: OpColors.green,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                service.descriptionLabel,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: portalText(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: OpColors.muted,
                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECFDF5),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFFD1FAE5),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Text(
+                    service.priceLabel,
+                    style: portalText(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF059669),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // Row 2: Description Box (pill container matching Referral Management)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFF1F5F9)),
               ),
-              const SizedBox(height: 10),
-              Row(
+              child: Row(
                 children: [
                   const Icon(
-                    Icons.event_outlined,
+                    Icons.description_outlined,
                     size: 14,
-                    color: OpColors.muted,
+                    color: Color(0xFF94A3B8),
                   ),
-                  const SizedBox(width: 5),
-                  Text(
-                    service.createdAt,
-                    style: portalText(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: OpColors.secondary,
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      service.descriptionLabel,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: portalText(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF64748B),
+                        height: 1.3,
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  _RoundAction(
-                    icon: Icons.visibility_rounded,
-                    color: OpColors.blue,
-                    bg: OpColors.blueTint,
-                    onTap: onView,
-                  ),
-                  const SizedBox(width: 6),
-                  _RoundAction(
-                    icon: Icons.edit_rounded,
-                    color: OpColors.primary,
-                    bg: OpColors.primaryTint,
-                    onTap: onEdit,
-                  ),
-                  const SizedBox(width: 6),
-                  _RoundAction(
-                    icon: Icons.delete_outline_rounded,
-                    color: OpColors.red,
-                    bg: OpColors.redTint,
-                    onTap: onDelete,
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+            ),
+            const SizedBox(height: 10),
 
-class _RoundAction extends StatelessWidget {
-  const _RoundAction({
-    required this.icon,
-    required this.color,
-    required this.bg,
-    required this.onTap,
-  });
+            const Divider(
+              height: 1,
+              thickness: 1,
+              color: Color(0xFFF1F5F9),
+            ),
+            const SizedBox(height: 10),
 
-  final IconData icon;
-  final Color color;
-  final Color bg;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: bg,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: SizedBox(
-          width: 34,
-          height: 34,
-          child: Icon(icon, size: 16, color: color),
+            // Row 3: Created Date on left & Action Icons on right
+            Row(
+              children: [
+                Flexible(
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Created: ',
+                          style: portalText(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF94A3B8),
+                          ),
+                        ),
+                        TextSpan(
+                          text: service.createdAt,
+                          style: portalText(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF334155),
+                          ),
+                        ),
+                      ],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Spacer(),
+                // View Icon
+                GestureDetector(
+                  onTap: onView,
+                  behavior: HitTestBehavior.opaque,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    child: Icon(
+                      Icons.visibility_outlined,
+                      size: 18,
+                      color: Color(0xFF3B82F6),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Edit Icon
+                GestureDetector(
+                  onTap: onEdit,
+                  behavior: HitTestBehavior.opaque,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    child: Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: Color(0xFFF59E0B),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Delete Icon
+                GestureDetector(
+                  onTap: onDelete,
+                  behavior: HitTestBehavior.opaque,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    child: Icon(
+                      Icons.delete_outline_rounded,
+                      size: 18,
+                      color: Color(0xFFEF4444),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

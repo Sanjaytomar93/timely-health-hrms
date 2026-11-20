@@ -1,4 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:timelay_health/features/admin/attendance/presentation/screens/absent_today_screen.dart';
+import 'package:timelay_health/features/admin/attendance/presentation/screens/attendance_records_screen.dart';
+import 'package:timelay_health/features/admin/attendance/presentation/screens/attendance_summary_screen.dart';
+import 'package:timelay_health/features/admin/attendance/presentation/screens/late_today_screen.dart';
+import 'package:timelay_health/features/admin/attendance/presentation/screens/today_attendance_screen.dart';
+import 'package:timelay_health/features/admin/employees/presentation/screens/employee_list_screen.dart';
+import 'package:timelay_health/features/admin/expense/presentation/screens/admin_expense_management_screen.dart';
+import 'package:timelay_health/features/admin/leaves/presentation/screens/admin_leave_requests_screen.dart';
+import 'package:timelay_health/features/admin/payroll/presentation/screens/employee_payroll_screen.dart';
+import 'package:timelay_health/features/admin/payroll/presentation/screens/payroll_overview_screen.dart';
+import 'package:timelay_health/features/admin/shift/presentation/screens/admin_shift_management_screen.dart';
 import 'package:timelay_health/features/auth/domain/entities/employee.dart';
 import 'package:timelay_health/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:timelay_health/features/auth/presentation/screens/login_screen.dart';
@@ -6,6 +17,7 @@ import 'package:timelay_health/features/auth/presentation/screens/splash_screen.
 import 'package:timelay_health/features/camp/dashboard/presentation/screens/camp_management_shell.dart';
 import 'package:timelay_health/features/dashboard/presentation/screens/admin_dashboard_screen.dart';
 import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
+import 'package:timelay_health/features/leaves/presentation/screens/leaves_screen.dart';
 import 'package:timelay_health/features/events/presentation/screens/my_events_screen.dart';
 import 'package:timelay_health/features/expense/presentation/screens/expense_screen.dart';
 import 'package:timelay_health/features/issues/presentation/screens/issues_screen.dart';
@@ -47,6 +59,26 @@ abstract final class AppRoutes {
   static const placeholder = '/profile/placeholder';
   static const campManagement = '/camp-management';
   static const opManagement = '/op-management';
+  static const opDashboard = '/op/dashboard';
+  static const opWalkin = '/op/walkin';
+  static const opOnlineBookings = '/op/online-bookings';
+  static const opReferralManagement = '/op/referral-management';
+  static const opReferralBookings = '/op/referral-bookings';
+  static const opAppointmentSlots = '/op/appointment-slots';
+  static const opDoctors = '/op/doctors';
+  static const opServices = '/op/services';
+  static const opRevenueAnalytics = '/op/revenue-analytics';
+  static const employeeList = '/admin/employee-list';
+  static const attendanceSummary = '/admin/attendance-summary';
+  static const attendanceRecords = '/admin/attendance-records';
+  static const todayAttendance = '/admin/today-attendance';
+  static const absentToday = '/admin/absent-today';
+  static const lateToday = '/admin/late-today';
+  static const leaveList = '/admin/leave-list';
+  static const payrollDashboard = '/admin/payroll-dashboard';
+  static const employeePayroll = '/admin/employee-payroll';
+  static const adminShift = '/admin/shift';
+  static const leaves = '/leaves';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -119,7 +151,7 @@ abstract final class AppRoutes {
 
       case expense:
         return MaterialPageRoute<void>(
-          builder: (_) => const ExpenseScreen(),
+          builder: (_) => const AdminExpenseManagementScreen(),
           settings: settings,
         );
 
@@ -163,6 +195,12 @@ abstract final class AppRoutes {
           settings: settings,
         );
 
+      case adminShift:
+        return MaterialPageRoute<void>(
+          builder: (_) => const AdminShiftManagementScreen(),
+          settings: settings,
+        );
+
       case placeholder:
         final title = (settings.arguments as String?) ?? 'Portal';
         return MaterialPageRoute<void>(
@@ -177,8 +215,117 @@ abstract final class AppRoutes {
         );
 
       case opManagement:
+      case opDashboard:
         return MaterialPageRoute<void>(
-          builder: (_) => const OpManagementShell(),
+          builder: (_) => const OpManagementShell(initialTab: 0),
+          settings: settings,
+        );
+
+      case opWalkin:
+        return MaterialPageRoute<void>(
+          builder: (_) => const OpManagementShell(initialTab: 1),
+          settings: settings,
+        );
+
+      case opDoctors:
+        return MaterialPageRoute<void>(
+          builder: (_) => const OpManagementShell(initialTab: 2),
+          settings: settings,
+        );
+
+      case opServices:
+        return MaterialPageRoute<void>(
+          builder: (_) => const OpManagementShell(initialTab: 3),
+          settings: settings,
+        );
+
+      case opOnlineBookings:
+        return MaterialPageRoute<void>(
+          builder: (_) => const OpManagementShell(initialTab: 4),
+          settings: settings,
+        );
+
+      case opReferralManagement:
+        return MaterialPageRoute<void>(
+          builder: (_) => const OpManagementShell(initialTab: 5),
+          settings: settings,
+        );
+
+      case opReferralBookings:
+        return MaterialPageRoute<void>(
+          builder: (_) => const OpManagementShell(initialTab: 6),
+          settings: settings,
+        );
+
+      case opAppointmentSlots:
+        return MaterialPageRoute<void>(
+          builder: (_) => const OpManagementShell(initialTab: 7),
+          settings: settings,
+        );
+
+      case opRevenueAnalytics:
+        return MaterialPageRoute<void>(
+          builder: (_) => const OpManagementShell(initialTab: 8),
+          settings: settings,
+        );
+
+      case employeeList:
+        return MaterialPageRoute<void>(
+          builder: (_) => const EmployeeListScreen(),
+          settings: settings,
+        );
+
+      case attendanceSummary:
+        return MaterialPageRoute<void>(
+          builder: (_) => const AttendanceSummaryScreen(),
+          settings: settings,
+        );
+
+      case attendanceRecords:
+        return MaterialPageRoute<void>(
+          builder: (_) => const AttendanceRecordsScreen(),
+          settings: settings,
+        );
+
+      case todayAttendance:
+        return MaterialPageRoute<void>(
+          builder: (_) => const TodayAttendanceScreen(),
+          settings: settings,
+        );
+
+      case absentToday:
+        return MaterialPageRoute<void>(
+          builder: (_) => const AbsentTodayScreen(),
+          settings: settings,
+        );
+
+      case lateToday:
+        return MaterialPageRoute<void>(
+          builder: (_) => const LateTodayScreen(),
+          settings: settings,
+        );
+
+      case leaveList:
+        return MaterialPageRoute<void>(
+          builder: (_) => const AdminLeaveRequestsScreen(),
+          settings: settings,
+        );
+
+      case payrollDashboard:
+        return MaterialPageRoute<void>(
+          builder: (_) => const PayrollOverviewScreen(),
+          settings: settings,
+        );
+
+      case employeePayroll:
+        return MaterialPageRoute<void>(
+          builder: (_) => const EmployeePayrollScreen(),
+          settings: settings,
+        );
+
+      case leaves:
+        return MaterialPageRoute<void>(
+          builder: (_) => const LeavesScreen(),
           settings: settings,
         );
 

@@ -3,13 +3,10 @@ import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/models/op_dashboard_ui.dart';
-import 'package:timelay_health/features/op/appointments/presentation/screens/op_appointment_slots_screen.dart';
-import 'package:timelay_health/features/op/referral/presentation/screens/op_referral_management_screen.dart';
 import 'package:timelay_health/features/op/walkin/presentation/screens/op_register_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_dashboard_analytics.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_dashboard_sections.dart';
-import 'package:timelay_health/features/op/shared/widgets/op_top_bar.dart';
 
 class OpDashboardScreen extends StatefulWidget {
   const OpDashboardScreen({
@@ -59,94 +56,6 @@ class _OpDashboardScreenState extends State<OpDashboardScreen> {
     );
   }
 
-  void _openSlots() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (ctx) => Scaffold(
-          backgroundColor: OpColors.background,
-          body: PortalSafeArea(
-            bottom: false,
-            statusBarColor: OpColors.primary,
-            child: OpAppointmentSlotsScreen(
-              onMenuTap: () => Navigator.of(ctx).pop(),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _openReferralManagement() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const OpReferralManagementScreen(),
-      ),
-    );
-  }
-
-  void _openComingSoon(String title) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (ctx) => Scaffold(
-          backgroundColor: OpColors.background,
-          body: PortalSafeArea(
-            bottom: false,
-            statusBarColor: OpColors.primary,
-            child: Column(
-              children: [
-                OpTopBar(
-                  title: title,
-                  showBack: true,
-                  onMenuTap: () => Navigator.of(ctx).pop(),
-                ),
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 54,
-                          height: 54,
-                          decoration: BoxDecoration(
-                            color: PortalColors.brand.withValues(alpha: 0.08),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.hourglass_empty_rounded,
-                            color: PortalColors.brand,
-                            size: 26,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Coming Soon',
-                          style: portalText(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: PortalColors.heading,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '$title is coming soon',
-                          style: portalText(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: PortalColors.muted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final data = OpDashboardUi.demo;
@@ -177,16 +86,19 @@ class _OpDashboardScreenState extends State<OpDashboardScreen> {
                     actions: data.quickActions,
                     onTap: (action) {
                       if (action.label == 'Slots') {
-                        _openSlots();
+                        widget.onOpenTab?.call(7);
                         return;
                       }
                       if (action.label == 'Referral Management') {
-                        _openReferralManagement();
+                        widget.onOpenTab?.call(5);
                         return;
                       }
-                      if (action.label == 'Referral Booking' ||
-                          action.label == 'Revenue Analytics') {
-                        _openComingSoon(action.label);
+                      if (action.label == 'Referral Booking') {
+                        widget.onOpenTab?.call(6);
+                        return;
+                      }
+                      if (action.label == 'Revenue Analytics') {
+                        widget.onOpenTab?.call(8);
                         return;
                       }
                       final tab = action.tabIndex;

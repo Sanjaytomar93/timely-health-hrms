@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 import 'package:timelay_health/features/op/walkin/presentation/models/op_walkin_ui.dart';
+import 'package:timelay_health/features/op/walkin/presentation/screens/op_inactive_patients_screen.dart';
 import 'package:timelay_health/features/op/walkin/presentation/screens/op_register_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/models/op_dashboard_ui.dart';
@@ -55,6 +56,16 @@ class _OpWalkinScreenState extends State<OpWalkinScreen> {
     );
   }
 
+  void _openInactivePatients() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (ctx) => OpInactivePatientsScreen(
+          onMenuTap: widget.onMenuTap,
+        ),
+      ),
+    );
+  }
+
   List<OpWalkinPatientUi> _filtered(OpWalkinUi data) {
     if (_query.isEmpty) return data.patients;
     final q = _query.toLowerCase();
@@ -98,7 +109,10 @@ class _OpWalkinScreenState extends State<OpWalkinScreen> {
                           onSelected: (value) => setState(() => _period = value),
                         ),
                         const SizedBox(height: 14),
-                        _RevenueSummary(patients: patients),
+                        _RevenueSummary(
+                          patients: patients,
+                          onInactiveTap: _openInactivePatients,
+                        ),
                         const SizedBox(height: 16),
                         _WalkinStatsGrid(metrics: data.metrics),
                         Padding(
@@ -373,9 +387,10 @@ class _HeaderIconBox extends StatelessWidget {
 
 
 class _RevenueSummary extends StatelessWidget {
-  const _RevenueSummary({required this.patients});
+  const _RevenueSummary({required this.patients, this.onInactiveTap});
 
   final List<OpWalkinPatientUi> patients;
+  final VoidCallback? onInactiveTap;
 
   int _amount(String value) =>
       int.tryParse(value.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
@@ -526,7 +541,7 @@ class _RevenueSummary extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   child: InkWell(
-                    onTap: () {},
+                    onTap: onInactiveTap,
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
                       height: 32,
