@@ -1052,3 +1052,352 @@ class _PayslipRecordBone extends StatelessWidget {
     );
   }
 }
+
+class PayslipRecordsShimmer extends StatelessWidget {
+  const PayslipRecordsShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Shimmer(
+      baseColor: Color(0xFFE4E1EF),
+      highlightColor: Color(0xFFF8F7FC),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(18, 14, 18, 0),
+        child: _PayslipRecordBone(),
+      ),
+    );
+  }
+}
+
+class VisitsShimmer extends StatelessWidget {
+  const VisitsShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SingleChildScrollView(
+      physics: NeverScrollableScrollPhysics(),
+      child: Shimmer(
+        baseColor: Color(0xFFE4E1EF),
+        highlightColor: Color(0xFFF8F7FC),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 14, 16, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: ShimmerBox(height: 88, radius: 14)),
+                  SizedBox(width: 8),
+                  Expanded(child: ShimmerBox(height: 88, radius: 14)),
+                  SizedBox(width: 8),
+                  Expanded(child: ShimmerBox(height: 88, radius: 14)),
+                ],
+              ),
+              SizedBox(height: 14),
+              ShimmerBox(width: double.infinity, height: 210, radius: 18),
+              SizedBox(height: 18),
+              Row(
+                children: [
+                  ShimmerBox(width: 30, height: 30, radius: 9),
+                  SizedBox(width: 8),
+                  ShimmerBox(width: 110, height: 14, radius: 6),
+                  SizedBox(width: 8),
+                  ShimmerBox(width: 28, height: 18, radius: 999),
+                ],
+              ),
+              SizedBox(height: 6),
+              ShimmerBox(width: 200, height: 10, radius: 4),
+              SizedBox(height: 14),
+              ShimmerBox(width: double.infinity, height: 150, radius: 16),
+              SizedBox(height: 10),
+              ShimmerBox(width: double.infinity, height: 150, radius: 16),
+              SizedBox(height: 10),
+              ShimmerBox(width: double.infinity, height: 150, radius: 16),
+              SizedBox(height: 16),
+              ShimmerBox(width: double.infinity, height: 120, radius: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Flipkart-style shimmer for My Issues screen.
+class IssuesShimmer extends StatelessWidget {
+  const IssuesShimmer({super.key});
+
+  static const _base = Color(0xFFE6E6E6);
+  static const _highlight = Color(0xFFF7F7F7);
+  static const _bone = Color(0xFFE6E6E6);
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: PortalColors.background,
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Shimmer(
+          baseColor: _base,
+          highlightColor: _highlight,
+          duration: const Duration(milliseconds: 1100),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _fkBox(height: 48, radius: 12),
+                const SizedBox(height: 14),
+                const Row(
+                  children: [
+                    Expanded(child: _FkStatBone()),
+                    SizedBox(width: 8),
+                    Expanded(child: _FkStatBone()),
+                    SizedBox(width: 8),
+                    Expanded(child: _FkStatBone()),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _fkBox(height: 128, radius: 16),
+                const SizedBox(height: 14),
+                const _FkFiltersBone(),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    _fkBox(width: 26, height: 26, radius: 8),
+                    const SizedBox(width: 8),
+                    _fkBox(width: 100, height: 13, radius: 6),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const _FkIssueCardBone(),
+                const SizedBox(height: 10),
+                const _FkIssueCardBone(),
+                const SizedBox(height: 10),
+                const _FkIssueCardBone(),
+                const SizedBox(height: 10),
+                const _FkIssueCardBone(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _fkBox({
+    double? width,
+    required double height,
+    double radius = 8,
+  }) {
+    return Container(
+      width: width ?? double.infinity,
+      height: height,
+      decoration: BoxDecoration(
+        color: _bone,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+  }
+}
+
+class _FkStatBone extends StatelessWidget {
+  const _FkStatBone();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6E6E6),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD9D9D9),
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: 42,
+            height: 8,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD9D9D9),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: 30,
+            height: 14,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD9D9D9),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 5),
+          Container(
+            width: 56,
+            height: 7,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD9D9D9),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FkFiltersBone extends StatelessWidget {
+  const _FkFiltersBone();
+
+  @override
+  Widget build(BuildContext context) {
+    Widget line({double? width, required double height, double radius = 6}) {
+      return Container(
+        width: width ?? double.infinity,
+        height: height,
+        decoration: BoxDecoration(
+          color: const Color(0xFFD9D9D9),
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6E6E6),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              line(width: 28, height: 28, radius: 8),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    line(width: 64, height: 11),
+                    const SizedBox(height: 6),
+                    line(width: 140, height: 8),
+                  ],
+                ),
+              ),
+              line(width: 40, height: 10),
+            ],
+          ),
+          const SizedBox(height: 14),
+          line(width: 52, height: 8),
+          const SizedBox(height: 6),
+          line(height: 40, radius: 10),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    line(width: 44, height: 8),
+                    const SizedBox(height: 6),
+                    line(height: 40, radius: 10),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    line(width: 36, height: 8),
+                    const SizedBox(height: 6),
+                    line(height: 40, radius: 10),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FkIssueCardBone extends StatelessWidget {
+  const _FkIssueCardBone();
+
+  @override
+  Widget build(BuildContext context) {
+    Widget line({double? width, required double height, double radius = 6}) {
+      return Container(
+        width: width ?? double.infinity,
+        height: height,
+        decoration: BoxDecoration(
+          color: const Color(0xFFD9D9D9),
+          borderRadius: BorderRadius.circular(radius),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 12, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6E6E6),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: line(height: 13)),
+              const SizedBox(width: 10),
+              line(width: 28, height: 28, radius: 8),
+              const SizedBox(width: 4),
+              line(width: 28, height: 28, radius: 8),
+              const SizedBox(width: 4),
+              line(width: 28, height: 28, radius: 8),
+            ],
+          ),
+          const SizedBox(height: 10),
+          line(height: 9),
+          const SizedBox(height: 6),
+          line(width: 170, height: 9),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              line(width: 56, height: 18, radius: 999),
+              const SizedBox(width: 6),
+              line(width: 50, height: 18, radius: 999),
+              const SizedBox(width: 6),
+              line(width: 60, height: 18, radius: 999),
+            ],
+          ),
+          const SizedBox(height: 12),
+          line(height: 1, radius: 1),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              line(width: 70, height: 9),
+              const Spacer(),
+              line(width: 88, height: 9),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
