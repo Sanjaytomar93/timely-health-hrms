@@ -17,7 +17,6 @@ class CampDateAndStatsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Date Row on top left
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -28,7 +27,9 @@ class CampDateAndStatsCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                data.dateLabel,
+                data.dateLabel.isEmpty
+                    ? CampDashboardUiMapper.todayLabel()
+                    : data.dateLabel,
                 style: portalText(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -38,7 +39,6 @@ class CampDateAndStatsCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          // 5 circular stat items
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -138,5 +138,4 @@ class _PulseWavePainter extends CustomPainter {
   bool shouldRepaint(covariant _PulseWavePainter oldDelegate) =>
       oldDelegate.color != color;
 }
-// ── Hero With Stats (Clean Wrapper) ─────────────────────────────────────────
 

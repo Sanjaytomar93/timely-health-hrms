@@ -39,7 +39,6 @@ class PatientsAddNewButton extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                // Subtle circle decoration
                 Positioned(
                   right: 20,
                   top: -10,

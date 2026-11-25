@@ -229,7 +229,6 @@ class _HealthReportBodyState extends State<_HealthReportBody> {
                         _VitalsTable(rows: data.rows),
                         if (data.bmi != null) ...[
                           const SizedBox(height: 16),
-                          // BMI orange + arrow + scale in one box (website)
                           Container(
                             decoration: BoxDecoration(
                               border: Border.all(

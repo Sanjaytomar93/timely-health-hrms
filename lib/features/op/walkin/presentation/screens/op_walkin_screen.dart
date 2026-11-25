@@ -8,6 +8,7 @@ import 'package:timelay_health/features/op/walkin/presentation/screens/op_inacti
 import 'package:timelay_health/features/op/walkin/presentation/screens/op_register_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/models/op_dashboard_ui.dart';
+import 'package:timelay_health/features/op/walkin/data/datasources/op_walkin_remote_datasource.dart';
 import 'package:timelay_health/features/op/walkin/presentation/widgets/op_amount_items_sheet.dart';
 import 'package:timelay_health/features/op/walkin/presentation/widgets/op_patient_actions_sheet.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_dashboard_sections.dart';
@@ -22,22 +23,260 @@ class OpWalkinScreen extends StatefulWidget {
   State<OpWalkinScreen> createState() => _OpWalkinScreenState();
 }
 
+class _CachedWalkinData {
+  const _CachedWalkinData({
+    required this.patients,
+    required this.metrics,
+    this.totalCollected,
+    this.clinicRevenue,
+    this.labRevenue,
+    this.pharmacyRevenue,
+  });
+
+  final List<OpWalkinPatientUi> patients;
+  final List<OpMetricUi> metrics;
+  final int? totalCollected;
+  final int? clinicRevenue;
+  final int? labRevenue;
+  final int? pharmacyRevenue;
+}
+
 class _OpWalkinScreenState extends State<OpWalkinScreen> {
   final _search = TextEditingController();
+  final OpWalkinRemoteDataSource _dataSource = OpWalkinRemoteDataSource();
+
   late String _period;
   String _query = '';
+  bool _isLoading = false;
+  int _requestId = 0;
+  final Map<String, _CachedWalkinData> _periodCache = {};
+
+  List<OpWalkinPatientUi> _allPatients = List.of(OpWalkinUi.demo.patients);
+  List<OpMetricUi> _metrics = List.of(OpWalkinUi.demo.metrics);
+
+  int? _apiTotalCollected;
+  int? _apiClinicRevenue;
+  int? _apiLabRevenue;
+  int? _apiPharmacyRevenue;
 
   @override
   void initState() {
     super.initState();
     _period = OpWalkinUi.demo.selectedPeriod;
     _search.addListener(() => setState(() => _query = _search.text.trim()));
+    _loadBookings();
   }
 
   @override
   void dispose() {
     _search.dispose();
     super.dispose();
+  }
+
+  static String _formatYmd(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  (String?, String?) _getDateRange(String period) {
+    final now = DateTime.now().toLocal();
+    final today = DateTime(now.year, now.month, now.day);
+    switch (period) {
+      case 'Today':
+        final s = _formatYmd(today);
+        return (s, s);
+      case 'Yesterday':
+        final y = today.subtract(const Duration(days: 1));
+        final s = _formatYmd(y);
+        return (s, s);
+      case 'This Week':
+        final start = today.subtract(Duration(days: today.weekday - 1));
+        final end = start.add(const Duration(days: 6));
+        return (_formatYmd(start), _formatYmd(end));
+      case 'Last 7 Days':
+        final start = today.subtract(const Duration(days: 6));
+        return (_formatYmd(start), _formatYmd(today));
+      case 'This Month':
+        final start = DateTime(today.year, today.month, 1);
+        final end = DateTime(today.year, today.month + 1, 0);
+        return (_formatYmd(start), _formatYmd(end));
+      case 'Last Month':
+        final start = DateTime(today.year, today.month - 1, 1);
+        final end = DateTime(today.year, today.month, 0);
+        return (_formatYmd(start), _formatYmd(end));
+      case 'This Year':
+        final start = DateTime(today.year, 1, 1);
+        final end = DateTime(today.year, 12, 31);
+        return (_formatYmd(start), _formatYmd(end));
+      case 'All':
+      default:
+        return (null, null);
+    }
+  }
+
+  Future<void> _loadBookings({bool isRefresh = false}) async {
+    final currentPeriod = _period;
+    final currentReqId = ++_requestId;
+
+    if (!isRefresh && _periodCache.containsKey(currentPeriod)) {
+      final cached = _periodCache[currentPeriod]!;
+      setState(() {
+        _allPatients = cached.patients;
+        _metrics = cached.metrics;
+        _apiTotalCollected = cached.totalCollected;
+        _apiClinicRevenue = cached.clinicRevenue;
+        _apiLabRevenue = cached.labRevenue;
+        _apiPharmacyRevenue = cached.pharmacyRevenue;
+        _isLoading = false;
+      });
+    } else if (!isRefresh) {
+      setState(() => _isLoading = true);
+    }
+
+    final (from, to) = _getDateRange(currentPeriod);
+    try {
+      final res = await _dataSource.getAllBookings(apptFrom: from, apptTo: to);
+      if (!mounted || currentReqId != _requestId) return;
+
+      List<OpWalkinPatientUi> parsedPatients = [];
+      if (res['bookings'] is List) {
+        final list = res['bookings'] as List;
+        int idx = 1;
+        for (final item in list) {
+          if (item is Map<String, dynamic>) {
+            parsedPatients.add(OpWalkinPatientUi.fromJson(item, index: idx++));
+          }
+        }
+      }
+
+      List<OpMetricUi> parsedMetrics = List.of(_metrics);
+      if (res['stats'] is Map<String, dynamic>) {
+        final s = res['stats'] as Map<String, dynamic>;
+        final totalPatients = s['totalPatients'] ?? parsedPatients.length;
+        final active = s['active'] ?? totalPatients;
+        final inactive = s['inactive'] ?? 0;
+        final paid = s['paid'] ?? 0;
+        final partial = s['partial'] ?? 0;
+        final due = s['due'] ?? 0;
+        final rev = s['revenueBreakdown'] is Map<String, dynamic>
+            ? s['revenueBreakdown'] as Map<String, dynamic>
+            : null;
+        final cat = res['categoryBreakdown'] is Map<String, dynamic>
+            ? res['categoryBreakdown'] as Map<String, dynamic>
+            : null;
+
+        final clinicNum = rev?['clinicRevenue'] ?? cat?['clinic']?['total'];
+        final labNum = rev?['labRevenue'] ?? cat?['lab']?['total'];
+        final pharmNum = rev?['pharmacyRevenue'] ?? cat?['pharmacy']?['total'];
+
+        _apiClinicRevenue = (clinicNum is num) ? clinicNum.round() : null;
+        _apiLabRevenue = (labNum is num) ? labNum.round() : null;
+        _apiPharmacyRevenue = (pharmNum is num) ? pharmNum.round() : null;
+
+        final int totalCategorySum = (_apiClinicRevenue ?? 0) +
+            (_apiLabRevenue ?? 0) +
+            (_apiPharmacyRevenue ?? 0);
+
+        final revCollected = rev?['totalCollected'] is num
+            ? (rev!['totalCollected'] as num).round()
+            : (s['totalRevenue'] is num ? (s['totalRevenue'] as num).round() : null);
+
+        _apiTotalCollected = revCollected ?? (totalCategorySum > 0 ? totalCategorySum : 0);
+
+        parsedMetrics = [
+          OpMetricUi(
+            title: 'TOTAL CLINIC PATIENTS',
+            value: '$totalPatients',
+            activeLabel: 'Active: $active',
+            inactiveLabel: 'Inactive: $inactive',
+            accent: const Color(0xFF4F46E5),
+            icon: Icons.people_outline_rounded,
+            tint: const Color(0xFFEEF2FF),
+          ),
+          OpMetricUi(
+            title: 'PAID',
+            value: '$paid',
+            subtitle: 'completed payments',
+            accent: const Color(0xFF059669),
+            icon: Icons.person_outline_rounded,
+            tint: const Color(0xFFECFDF5),
+          ),
+          OpMetricUi(
+            title: 'PARTIAL',
+            value: '$partial',
+            subtitle: 'partially paid',
+            accent: const Color(0xFF2563EB),
+            icon: Icons.access_time_rounded,
+            tint: const Color(0xFFEFF6FF),
+          ),
+          OpMetricUi(
+            title: 'DUE',
+            value: '$due',
+            subtitle: 'overdue payments',
+            accent: const Color(0xFFEA580C),
+            icon: Icons.cancel_outlined,
+            tint: const Color(0xFFFFF7ED),
+          ),
+          OpMetricUi(
+            title: 'TOTAL COLLECTED',
+            value: '₹${_formatCurrency(_apiTotalCollected ?? 0)}',
+            accent: const Color(0xFF059669),
+            icon: Icons.currency_rupee_rounded,
+            tint: const Color(0xFFECFDF5),
+            wide: true,
+            breakdown: [
+              (
+                label: 'Clinic',
+                value: '₹${_formatCurrency(_apiClinicRevenue ?? 0)}',
+                color: const Color(0xFF2563EB),
+              ),
+              (
+                label: 'Lab',
+                value: '₹${_formatCurrency(_apiLabRevenue ?? 0)}',
+                color: const Color(0xFF7C3AED),
+              ),
+              (
+                label: 'Pharmacy',
+                value: '₹${_formatCurrency(_apiPharmacyRevenue ?? 0)}',
+                color: const Color(0xFF059669),
+              ),
+            ],
+          ),
+        ];
+      }
+
+      _periodCache[currentPeriod] = _CachedWalkinData(
+        patients: parsedPatients,
+        metrics: parsedMetrics,
+        totalCollected: _apiTotalCollected,
+        clinicRevenue: _apiClinicRevenue,
+        labRevenue: _apiLabRevenue,
+        pharmacyRevenue: _apiPharmacyRevenue,
+      );
+
+      setState(() {
+        _allPatients = parsedPatients;
+        _metrics = parsedMetrics;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (mounted && currentReqId == _requestId) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  static String _formatCurrency(int val) {
+    if (val == 0) return '0';
+    final s = val.toString();
+    final len = s.length;
+    if (len <= 3) return s;
+    final last3 = s.substring(len - 3);
+    var rest = s.substring(0, len - 3);
+    final buffer = StringBuffer();
+    while (rest.length > 2) {
+      buffer.write(',${rest.substring(rest.length - 2)}');
+      rest = rest.substring(0, rest.length - 2);
+    }
+    return '$rest$buffer,$last3';
   }
 
   void _openRegister() {
@@ -66,10 +305,10 @@ class _OpWalkinScreenState extends State<OpWalkinScreen> {
     );
   }
 
-  List<OpWalkinPatientUi> _filtered(OpWalkinUi data) {
-    if (_query.isEmpty) return data.patients;
+  List<OpWalkinPatientUi> _filtered() {
+    if (_query.isEmpty) return _allPatients;
     final q = _query.toLowerCase();
-    return data.patients
+    return _allPatients
         .where(
           (p) =>
               p.name.toLowerCase().contains(q) ||
@@ -83,17 +322,23 @@ class _OpWalkinScreenState extends State<OpWalkinScreen> {
   @override
   Widget build(BuildContext context) {
     final data = OpWalkinUi.demo;
-    final patients = _filtered(data);
+    final patients = _filtered();
 
     return ColoredBox(
       color: const Color(0xFFF6F8FC),
       child: Column(
         children: [
           _WalkinTopBar(onMenuTap: widget.onMenuTap),
+          if (_isLoading)
+            const LinearProgressIndicator(
+              minHeight: 2.5,
+              color: OpColors.primary,
+              backgroundColor: Color(0xFFE2E8F0),
+            ),
           Expanded(
             child: RefreshIndicator(
               color: OpColors.primary,
-              onRefresh: () async {},
+              onRefresh: () => _loadBookings(isRefresh: true),
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
@@ -106,15 +351,22 @@ class _OpWalkinScreenState extends State<OpWalkinScreen> {
                           controller: _search,
                           filters: data.periodFilters,
                           selected: _period,
-                          onSelected: (value) => setState(() => _period = value),
+                          onSelected: (value) {
+                            if (_period == value && !_isLoading) return;
+                            setState(() => _period = value);
+                            _loadBookings();
+                          },
                         ),
                         const SizedBox(height: 14),
                         _RevenueSummary(
                           patients: patients,
-                          onInactiveTap: _openInactivePatients,
+                          totalOverride: _apiTotalCollected,
+                          clinicOverride: _apiClinicRevenue,
+                          labOverride: _apiLabRevenue,
+                          pharmacyOverride: _apiPharmacyRevenue,
                         ),
                         const SizedBox(height: 16),
-                        _WalkinStatsGrid(metrics: data.metrics),
+                        _WalkinStatsGrid(metrics: _metrics),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(14, 18, 14, 8),
                           child: Row(
@@ -136,27 +388,46 @@ class _OpWalkinScreenState extends State<OpWalkinScreen> {
                                   color: OpColors.heading,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: OpColors.primaryTint,
+                              const Spacer(),
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: _openInactivePatients,
                                   borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  '${patients.length} Active',
-                                  style: portalText(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: OpColors.primary,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 11,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFF7ED),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: const Color(0xFFFFEDD5),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.history_toggle_off_rounded,
+                                          size: 13,
+                                          color: Color(0xFFEA580C),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Inactive Patients',
+                                          style: portalText(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: const Color(0xFFEA580C),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                              const Spacer(),
-                              _AddPatientButton(onTap: _openRegister),
                             ],
                           ),
                         ),
@@ -387,20 +658,32 @@ class _HeaderIconBox extends StatelessWidget {
 
 
 class _RevenueSummary extends StatelessWidget {
-  const _RevenueSummary({required this.patients, this.onInactiveTap});
+  const _RevenueSummary({
+    required this.patients,
+    this.totalOverride,
+    this.clinicOverride,
+    this.labOverride,
+    this.pharmacyOverride,
+  });
 
   final List<OpWalkinPatientUi> patients;
-  final VoidCallback? onInactiveTap;
+  final int? totalOverride;
+  final int? clinicOverride;
+  final int? labOverride;
+  final int? pharmacyOverride;
 
   int _amount(String value) =>
       int.tryParse(value.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
 
   @override
   Widget build(BuildContext context) {
-    final clinic = patients.fold(0, (sum, p) => sum + _amount(p.clinic));
-    final lab = patients.fold(0, (sum, p) => sum + _amount(p.lab));
-    final pharmacy = patients.fold(0, (sum, p) => sum + _amount(p.pharmacy));
-    final total = clinic + lab + pharmacy;
+    final int clinic = clinicOverride ??
+        patients.fold<int>(0, (sum, p) => sum + _amount(p.clinic));
+    final int lab = labOverride ??
+        patients.fold<int>(0, (sum, p) => sum + _amount(p.lab));
+    final int pharmacy = pharmacyOverride ??
+        patients.fold<int>(0, (sum, p) => sum + _amount(p.pharmacy));
+    final int total = totalOverride ?? (clinic + lab + pharmacy);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -466,7 +749,7 @@ class _RevenueSummary extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '₹$total',
+                          '₹${_OpWalkinScreenState._formatCurrency(total)}',
                           style: portalText(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
@@ -485,11 +768,20 @@ class _RevenueSummary extends StatelessWidget {
                     Expanded(
                       child: Row(
                         children: [
-                          _RevenuePartSmall(label: 'Clinic', value: '₹$clinic'),
+                          _RevenuePartSmall(
+                            label: 'Clinic',
+                            value: '₹${_OpWalkinScreenState._formatCurrency(clinic)}',
+                          ),
                           const SizedBox(width: 6),
-                          _RevenuePartSmall(label: 'Lab', value: '₹$lab'),
+                          _RevenuePartSmall(
+                            label: 'Lab',
+                            value: '₹${_OpWalkinScreenState._formatCurrency(lab)}',
+                          ),
                           const SizedBox(width: 6),
-                          _RevenuePartSmall(label: 'Pharmacy', value: '₹$pharmacy'),
+                          _RevenuePartSmall(
+                            label: 'Pharmacy',
+                            value: '₹${_OpWalkinScreenState._formatCurrency(pharmacy)}',
+                          ),
                         ],
                       ),
                     ),
@@ -497,75 +789,6 @@ class _RevenueSummary extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Material(
-                  color: const Color(0xFFECFDF5),
-                  borderRadius: BorderRadius.circular(10),
-                  child: InkWell(
-                    onTap: () {},
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      height: 32,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFBBF7D0)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.download_rounded, color: Color(0xFF047857), size: 13),
-                          const SizedBox(width: 5),
-                          Text(
-                            'Export CSV',
-                            style: portalText(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFF047857),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Material(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  child: InkWell(
-                    onTap: onInactiveTap,
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      height: 32,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.history_toggle_off_rounded, color: Color(0xFFF97316), size: 13),
-                          const SizedBox(width: 5),
-                          Text(
-                            'Inactive Patients',
-                            style: portalText(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF334155)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -633,37 +856,7 @@ class _RevenuePartSmall extends StatelessWidget {
 }
 
 
-class _AddPatientButton extends StatelessWidget {
-  const _AddPatientButton({required this.onTap});
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) => Material(
-    color: OpColors.primary,
-    borderRadius: BorderRadius.circular(12),
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.add_rounded, color: Colors.white, size: 16),
-            const SizedBox(width: 3),
-            Text(
-              'Add Patient',
-              style: portalText(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
+
 
 
 class _WalkinStatsGrid extends StatelessWidget {
@@ -698,36 +891,31 @@ class _WalkinStatsGrid extends StatelessWidget {
                     color: const Color(0xFF64748B),
                   ),
                 ),
-                const Spacer(),
-                const Icon(Icons.circle, size: 7, color: Color(0xFF34D399)),
-                const SizedBox(width: 4),
-                Text(
-                  'Realtime',
-                  style: portalText(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: OpColors.primary,
-                  ),
-                ),
-                const SizedBox(width: 14),
               ],
             ),
           ),
           LayoutBuilder(
             builder: (context, constraints) {
-              const gap = 7.0;
-              final cardWidth = (constraints.maxWidth - (gap * 2) - 14) / 3;
+              const gap = 8.0;
+              final standardWidth =
+                  ((constraints.maxWidth - (gap * 2) - 14) / 3).clamp(126.0, 160.0);
               return SizedBox(
-                height: 105,
+                height: 114,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.only(right: 14, bottom: 2),
                   itemCount: metrics.length,
                   separatorBuilder: (_, _) => const SizedBox(width: gap),
-                  itemBuilder: (_, i) => SizedBox(
-                    width: cardWidth,
-                    child: _CompactStatCard(data: metrics[i]),
-                  ),
+                  itemBuilder: (_, i) {
+                    final m = metrics[i];
+                    final width = m.breakdown.isNotEmpty
+                        ? (standardWidth * 1.55).clamp(185.0, 240.0)
+                        : standardWidth;
+                    return SizedBox(
+                      width: width,
+                      child: _CompactStatCard(data: m),
+                    );
+                  },
                 ),
               );
             },
@@ -746,14 +934,22 @@ class _CompactStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: OpColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: OpColors.border),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
@@ -763,44 +959,126 @@ class _CompactStatCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: portalText(
-                    fontSize: 11,
+                    fontSize: 9.5,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF475569),
+                    letterSpacing: 0.2,
+                    color: const Color(0xFF64748B),
                   ),
                 ),
               ),
+              const SizedBox(width: 4),
               Container(
-                width: 23,
-                height: 23,
+                width: 26,
+                height: 26,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: data.accent.withValues(alpha: 0.10),
+                  color: data.tint,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(data.icon, size: 13, color: data.accent),
+                child: Icon(data.icon, size: 14, color: data.accent),
               ),
             ],
           ),
-          const SizedBox(height: 7),
           Text(
             data.value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.w800,
               color: const Color(0xFF0F172A),
             ),
           ),
-          const SizedBox(height: 3),
-          Text(
-            data.subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: portalText(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF94A3B8),
-            ),
-          ),
+          if (data.breakdown.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (data.breakdown.isNotEmpty)
+                      Flexible(
+                        child: Text(
+                          '${data.breakdown[0].label}: ${data.breakdown[0].value}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: portalText(
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w700,
+                            color: data.breakdown[0].color,
+                          ),
+                        ),
+                      ),
+                    if (data.breakdown.length > 1) ...[
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: Text(
+                          '${data.breakdown[1].label}: ${data.breakdown[1].value}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: portalText(
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w700,
+                            color: data.breakdown[1].color,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                if (data.breakdown.length > 2) ...[
+                  const SizedBox(height: 1.5),
+                  Text(
+                    '${data.breakdown[2].label}: ${data.breakdown[2].value}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: portalText(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                      color: data.breakdown[2].color,
+                    ),
+                  ),
+                ],
+              ],
+            )
+          else if (data.activeLabel != null)
+            Row(
+              children: [
+                Text(
+                  data.activeLabel!,
+                  style: portalText(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF059669),
+                  ),
+                ),
+                if (data.inactiveLabel != null) ...[
+                  const SizedBox(width: 5),
+                  Text(
+                    data.inactiveLabel!,
+                    style: portalText(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFDC2626),
+                    ),
+                  ),
+                ],
+              ],
+            )
+          else if (data.subtitle.isNotEmpty)
+            Text(
+              data.subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: portalText(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF94A3B8),
+              ),
+            )
+          else
+            const SizedBox(height: 12),
         ],
       ),
     );

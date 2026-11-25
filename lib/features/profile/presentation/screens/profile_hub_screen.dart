@@ -4,8 +4,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/routes/app_routes.dart';
-import 'package:timelay_health/features/auth/data/auth_sign_out.dart';
+import 'package:timelay_health/features/auth/data/auth_session.dart';
 import 'package:timelay_health/features/auth/domain/entities/employee.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
 import 'package:timelay_health/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:timelay_health/features/profile/presentation/bloc/profile_state.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
@@ -32,98 +33,163 @@ class _ProfileHubView extends StatefulWidget {
 }
 
 class _ProfileHubViewState extends State<_ProfileHubView> {
-  static const _items = [
-    _HubItem(
-      title: 'My Profile',
-      subtitle: 'View and manage your profile details',
-      icon: 'assets/icons/menu/ic_my_profile.svg',
-      tint: PortalColors.purpleTint,
-    ),
+  static const _profileItem = _HubItem(
+    title: 'My Profile',
+    subtitle: 'View and manage your profile details',
+    icon: 'assets/icons/menu/ic_my_profile.svg',
+    tint: PortalColors.purpleTint,
+    id: 'profile',
+  );
+
+  static const _employeeItems = [
     _HubItem(
       title: 'Payslips',
       subtitle: 'Download and view salary slips',
       icon: 'assets/icons/menu/ic_payslips.svg',
       tint: PortalColors.greenTint,
+      id: 'payslips',
     ),
     _HubItem(
       title: 'Expense',
       subtitle: 'Track and submit expense claims',
       icon: 'assets/icons/menu/ic_expense.svg',
       tint: PortalColors.orangeTint,
+      id: 'expense',
     ),
     _HubItem(
       title: 'Issues',
       subtitle: 'Raise and follow up on issues',
       icon: 'assets/icons/menu/ic_issues.svg',
       tint: PortalColors.redTint,
+      id: 'issues',
     ),
     _HubItem(
       title: 'Holiday Calendar',
       subtitle: 'Company holidays & observances',
       icon: 'assets/icons/menu/ic_holiday.svg',
       tint: PortalColors.purpleTint,
+      id: 'holidays',
     ),
     _HubItem(
       title: 'My Visits',
       subtitle: 'Field visits and location logs',
       icon: 'assets/icons/menu/ic_visits.svg',
       tint: Color(0xFFE8F1FF),
+      id: 'visits',
     ),
     _HubItem(
       title: 'Relieving Letters',
       subtitle: 'Experience & relieving letters',
       icon: 'assets/icons/menu/ic_letters.svg',
       tint: PortalColors.greenTint,
+      id: 'letters',
     ),
     _HubItem(
       title: 'My Events',
       subtitle: 'Birthdays, anniversaries & reminders',
       icon: 'assets/icons/menu/ic_holiday.svg',
       tint: Color(0xFFFDECF2),
+      id: 'events',
     ),
   ];
 
-  Future<void> _openItem(BuildContext context, int index) async {
-    switch (index) {
-      case 0:
-        await AppRoutes.push(context, AppRoutes.profile);
+  static const _adminItems = [
+    _HubItem(
+      title: 'Payroll',
+      subtitle: 'Payroll dashboard & overview',
+      icon: 'assets/icons/menu/ic_payslips.svg',
+      tint: PortalColors.greenTint,
+      id: 'payroll',
+    ),
+    _HubItem(
+      title: 'Employee Payroll',
+      subtitle: 'Staff payroll records',
+      icon: 'assets/icons/menu/ic_payslips.svg',
+      tint: Color(0xFFE8F1FF),
+      id: 'employee_payroll',
+    ),
+    _HubItem(
+      title: 'Expenses',
+      subtitle: 'Team expense management',
+      icon: 'assets/icons/menu/ic_expense.svg',
+      tint: PortalColors.orangeTint,
+      id: 'admin_expense',
+    ),
+    _HubItem(
+      title: 'Shift Management',
+      subtitle: 'Shifts & staff schedules',
+      icon: 'assets/icons/menu/ic_holiday.svg',
+      tint: PortalColors.brandTint,
+      id: 'admin_shift',
+    ),
+  ];
+
+  List<_HubItem> get _items {
+    final isAdmin =
+        kForceAdminHome || (AuthSession.currentEmployee?.isAdmin ?? false);
+    return [
+      _profileItem,
+      if (isAdmin) ..._adminItems else ..._employeeItems,
+    ];
+  }
+
+  Future<void> _openItem(BuildContext context, _HubItem item) async {
+    switch (item.id) {
+      case 'profile':
+        final isAdmin =
+            kForceAdminHome || (AuthSession.currentEmployee?.isAdmin ?? false);
+        await AppRoutes.push(
+          context,
+          isAdmin ? AppRoutes.adminProfile : AppRoutes.profile,
+        );
         if (!context.mounted) return;
         context.read<ProfileCubit>().syncFromSession();
         return;
-      case 1:
+      case 'payslips':
         await AppRoutes.push(context, AppRoutes.payslips);
         return;
-      case 2:
+      case 'expense':
         await AppRoutes.push(context, AppRoutes.expense);
         return;
-      case 3:
+      case 'issues':
         await AppRoutes.push(context, AppRoutes.issues);
         return;
-      case 4:
+      case 'holidays':
         await AppRoutes.push(context, AppRoutes.holidayCalendar);
         return;
-      case 5:
+      case 'visits':
         await AppRoutes.push(context, AppRoutes.visits);
         return;
-      case 6:
+      case 'letters':
         await AppRoutes.push(context, AppRoutes.letters);
         return;
-      case 7:
-        await AppRoutes.push(context, AppRoutes.events);
+      case 'events':
+        await AppRoutes.push(context, AppRoutes.myEvents);
+        return;
+      case 'payroll':
+        await AppRoutes.push(context, AppRoutes.payrollDashboard);
+        return;
+      case 'employee_payroll':
+        await AppRoutes.push(context, AppRoutes.employeePayroll);
+        return;
+      case 'admin_expense':
+        await AppRoutes.push(context, AppRoutes.adminExpense);
+        return;
+      case 'admin_shift':
+        await AppRoutes.push(context, AppRoutes.adminShift);
         return;
       default:
-        final item = _items[index];
         await AppRoutes.push(
           context,
           AppRoutes.placeholder,
           arguments: item.title,
         );
-        return;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final items = _items;
     return ColoredBox(
       color: PortalColors.background,
       child: Column(
@@ -154,12 +220,13 @@ class _ProfileHubViewState extends State<_ProfileHubView> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                for (var i = 0; i < _items.length; i++) ...[
+                for (var i = 0; i < items.length; i++) ...[
                   if (i > 0) const SizedBox(height: 10),
-                  _HubTile(item: _items[i], onTap: () => _openItem(context, i)),
+                  _HubTile(
+                    item: items[i],
+                    onTap: () => _openItem(context, items[i]),
+                  ),
                 ],
-                const SizedBox(height: 10),
-                const _LogoutTile(),
               ],
             ),
           ),
@@ -175,12 +242,14 @@ class _HubItem {
     required this.subtitle,
     required this.icon,
     required this.tint,
+    required this.id,
   });
 
   final String title;
   final String subtitle;
   final String icon;
   final Color tint;
+  final String id;
 }
 
 class _HubAppBar extends StatelessWidget {
@@ -260,6 +329,13 @@ class _HubHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = employee?.displayName ?? 'Employee';
     final initials = employee?.initials ?? 'E';
+    final id = employee?.employeeId.trim() ?? '';
+    final role = (employee?.role.trim().isNotEmpty ?? false)
+        ? employee!.role.trim()
+        : 'Admin';
+    final subtitle = employee == null
+        ? 'Choose a section below to continue'
+        : (id.isEmpty ? role : '$id · $role');
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
@@ -306,9 +382,7 @@ class _HubHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  employee == null
-                      ? 'Choose a section below to continue'
-                      : '${employee!.employeeId} · ${employee!.role}',
+                  subtitle,
                   style: portalText(
                     fontSize: 11.5,
                     color: Colors.white.withValues(alpha: 0.88),
@@ -396,79 +470,3 @@ class _HubTile extends StatelessWidget {
   }
 }
 
-class _LogoutTile extends StatelessWidget {
-  const _LogoutTile();
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: PortalColors.surface,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: () async {
-          await AuthSignOut.run();
-          if (!context.mounted) return;
-          AppRoutes.pushAndRemoveUntil(context, AppRoutes.login);
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: PortalColors.border),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: PortalColors.redTint,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.logout_rounded,
-                  size: 18,
-                  color: PortalColors.red,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Logout',
-                      style: portalText(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        color: PortalColors.red,
-                        height: 16 / 13.5,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      'Sign out of your account',
-                      style: portalText(
-                        fontSize: 11,
-                        color: PortalColors.muted,
-                        height: 14 / 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: PortalColors.muted,
-                size: 22,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

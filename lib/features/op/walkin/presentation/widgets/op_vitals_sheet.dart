@@ -83,7 +83,6 @@ class _OpVitalsSheetState extends State<OpVitalsSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── drag handle ──────────────────────────────────────────
               const SizedBox(height: 10),
               Container(
                 width: 40,
@@ -93,12 +92,10 @@ class _OpVitalsSheetState extends State<OpVitalsSheet> {
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              // ── header ───────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
                 child: Row(
                   children: [
-                    // icon box — OP primary color (soft)
                     Container(
                       width: 48,
                       height: 48,
@@ -151,7 +148,6 @@ class _OpVitalsSheetState extends State<OpVitalsSheet> {
               ),
               const SizedBox(height: 14),
               const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              // ── form fields ──────────────────────────────────────────
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
@@ -202,13 +198,11 @@ class _OpVitalsSheetState extends State<OpVitalsSheet> {
                   ),
                 ),
               ),
-              // ── divider + action buttons ─────────────────────────────
               const Divider(height: 1, color: Color(0xFFF1F5F9)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                 child: Row(
                   children: [
-                    // Cancel
                     Expanded(
                       child: Material(
                         color: const Color(0xFFF1F5F9),
@@ -232,7 +226,6 @@ class _OpVitalsSheetState extends State<OpVitalsSheet> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    // Save Vitals
                     Expanded(
                       flex: 2,
                       child: Material(
@@ -278,7 +271,6 @@ class _OpVitalsSheetState extends State<OpVitalsSheet> {
   }
 }
 
-// ── single vital input field ──────────────────────────────────────────────────
 
 class _VitalField extends StatelessWidget {
   const _VitalField({
@@ -300,7 +292,6 @@ class _VitalField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Label row: "TEMP" bold primary + "(°F)" muted
         Row(
           children: [
             Text(
@@ -324,7 +315,6 @@ class _VitalField extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 6),
-        // Input box
         Container(
           height: 48,
           decoration: BoxDecoration(

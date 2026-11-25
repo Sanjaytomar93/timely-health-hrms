@@ -107,10 +107,8 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
         statusBarColor: Colors.white,
         child: Column(
           children: [
-            // Top App Bar
             _buildTopAppBar(),
 
-            // Main Scrollable Content
             Expanded(
               child: RefreshIndicator(
                 color: const Color(0xFF26204A),
@@ -124,23 +122,18 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
                   children: [
-                    // Segmented Tabs: Customer Referral / Doctor Referral
                     _buildSegmentedTabs(),
                     const SizedBox(height: 14),
 
-                    // Search Bar
                     _buildSearchBar(),
                     const SizedBox(height: 12),
 
-                    // Time Filter Horizontal Chips
                     _buildTimeFilterChips(),
                     const SizedBox(height: 14),
 
-                    // Referral Revenue Breakdown Card
                     _buildRevenueBreakdownCard(),
                     const SizedBox(height: 14),
 
-                    // KPI Row (TOTAL CUSTOMERS/DOCTORS, PAID, PARTIAL, PENDING)
                     _buildKpiRow(
                       total: totalBookings,
                       count: uniqueCount > 0 ? uniqueCount : totalBookings,
@@ -150,11 +143,9 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Bookings Section Header
                     _buildBookingsHeader(),
                     const SizedBox(height: 12),
 
-                    // List of Cards
                     for (final booking in filtered) ...[
                       _buildBookingCard(booking),
                       const SizedBox(height: 14),
@@ -186,7 +177,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
     );
   }
 
-  // Top App Bar
   Widget _buildTopAppBar() {
     final isCustomer = _selectedTab == 0;
     return Container(
@@ -278,7 +268,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
     );
   }
 
-  // Segmented Tabs: Customer Referral / Doctor Referral (Exact original style, outer height: 48, full-height white button)
   Widget _buildSegmentedTabs() {
     final customerCount =
         _bookings.where((b) => b.isCustomerReferral).length;
@@ -295,7 +284,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Tab 0: Customer Referral
           Expanded(
             child: GestureDetector(
               onTap: () => setState(() => _selectedTab = 0),
@@ -367,7 +355,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
             ),
           ),
 
-          // Tab 1: Doctor Referral
           Expanded(
             child: GestureDetector(
               onTap: () => setState(() => _selectedTab = 1),
@@ -443,7 +430,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
     );
   }
 
-  // Search Field (Matching Home Screen OpSearchFiltersBar)
   Widget _buildSearchBar() {
     return Container(
       height: 44,
@@ -497,7 +483,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
     );
   }
 
-  // Time Filter Chips (Matching OpPeriodFiltersRow style)
   Widget _buildTimeFilterChips() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -553,7 +538,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
     );
   }
 
-  // Referral Revenue Breakdown Card (Matches Home Screen OpRevenueBreakdownHeader style)
   Widget _buildRevenueBreakdownCard() {
     return Container(
       margin: EdgeInsets.zero,
@@ -664,7 +648,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
           ),
           if (_isBreakdownExpanded) ...[
             const SizedBox(height: 12),
-            // 1. SERVICE REVENUE
             _channelCard(
               title: 'SERVICE REVENUE',
               icon: Icons.layers_outlined,
@@ -681,7 +664,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
             ),
             const SizedBox(height: 8),
 
-            // 2. LAB REVENUE
             _channelCard(
               title: 'LAB REVENUE',
               icon: Icons.science_outlined,
@@ -698,7 +680,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
             ),
             const SizedBox(height: 8),
 
-            // 3. PHARMACY REVENUE
             _channelCard(
               title: 'PHARMACY REVENUE',
               icon: Icons.local_pharmacy_outlined,
@@ -715,7 +696,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
             ),
             const SizedBox(height: 8),
 
-            // 4. FEES REVENUE
             _channelCard(
               title: 'FEES REVENUE',
               icon: Icons.receipt_long_outlined,
@@ -732,7 +712,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
             ),
             const SizedBox(height: 8),
 
-            // 5. TOTAL REVENUE
             _channelCard(
               title: 'TOTAL REVENUE',
               icon: Icons.currency_rupee_rounded,
@@ -750,7 +729,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
             ),
             const SizedBox(height: 8),
 
-            // 6. TOTAL PAYABLE
             _channelCard(
               title: 'TOTAL PAYABLE',
               icon: Icons.call_made_rounded,
@@ -768,7 +746,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
             ),
             const SizedBox(height: 8),
 
-            // 7. REFERRAL PAYOUT %
             _channelCard(
               title: 'REFERRAL PAYOUT %',
               icon: Icons.percent_rounded,
@@ -889,7 +866,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
     );
   }
 
-  // KPI Row of 4 cards: TOTAL CUSTOMERS/DOCTORS, PAID, PARTIAL, PENDING (Matching Image)
   Widget _buildKpiRow({
     required int total,
     required int count,
@@ -1031,13 +1007,11 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
     );
   }
 
-  // Bookings Header
   Widget _buildBookingsHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Left: Icon + REFERRAL BOOKINGS
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1068,7 +1042,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
           ],
         ),
 
-        // Right: Export CSV Button
         GestureDetector(
           onTap: () => _snack('Exported Referral Bookings to CSV'),
           child: Container(
@@ -1111,7 +1084,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
     );
   }
 
-  // Referral Booking Card
   Widget _buildBookingCard(OpReferralBookingUi b) {
     final isPaid = b.paymentStatus == 'PAID';
     final isPartial = b.paymentStatus == 'PARTIAL';
@@ -1133,7 +1105,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row 1: ID tag + Booking Date/Time on left, PAID status badge docked to the far right!
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -1171,7 +1142,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                   ),
                 ],
               ),
-              // Extreme right side: PAID badge
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 9,
@@ -1229,7 +1199,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Row 2: 2 Column Box (REFERRED BY + PATIENT DETAILS)
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -1240,7 +1209,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Left: REFERRED BY
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1323,7 +1291,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                   color: const Color(0xFFE2E8F0),
                   margin: const EdgeInsets.symmetric(horizontal: 8),
                 ),
-                // Right: PATIENT DETAILS
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1375,7 +1342,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
           ),
           const SizedBox(height: 10),
 
-          // Row 3: Doctor & Slot Pill
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
@@ -1426,7 +1392,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
             ),
           ),
 
-          // Tags Row (Lab, Pharmacy, Fees, Service if applicable)
           if (b.labAmount.isNotEmpty ||
               b.pharmacyAmount.isNotEmpty ||
               b.feesAmount.isNotEmpty ||
@@ -1474,7 +1439,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
           ],
           const SizedBox(height: 10),
 
-          // Breakdown & Payable Box
           if (b.breakdownText.isNotEmpty)
             Container(
               width: double.infinity,
@@ -1520,7 +1484,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
             ],
           ),
 
-          // Settled bar or Pending To Pay bar
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -1568,12 +1531,10 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
           const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 10),
 
-          // Footer: Payout Status + Payout % on left, View & Edit action icons docked to the pure right!
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Left: Payout status + percentage
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1626,11 +1587,9 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                   ),
                 ],
               ),
-              // Pure Right: Only View and Edit Action Icons
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // View Icon -> opens View modal (Image 1)
                   GestureDetector(
                     onTap: () => _showBookingDetails(b),
                     behavior: HitTestBehavior.opaque,
@@ -1650,7 +1609,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Edit Icon -> opens Edit modal (Image 2)
                   GestureDetector(
                     onTap: () => _showUpdatePaymentSheet(b),
                     behavior: HitTestBehavior.opaque,
@@ -1697,9 +1655,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
     );
   }
 
-  // -------------------------------------------------------------
-  // Booking Details Modal (Matching Image 1: Customer/Doctor Referral Details)
-  // -------------------------------------------------------------
   void _showBookingDetails(OpReferralBookingUi b) {
     showModalBottomSheet<void>(
       context: context,
@@ -1724,7 +1679,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Modal Top Header
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 12, 12),
               child: Row(
@@ -1782,7 +1736,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
             ),
             const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
 
-            // Scrollable Content
             Flexible(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -1790,7 +1743,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Referrer Profile Box
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -1863,7 +1815,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // 2. Rupee Received Subtitle
                     Text(
                       '₹ ${b.isCustomerReferral ? 'CUSTOMER' : 'DOCTOR'} WISE TOTAL AMOUNT RECEIVED',
                       style: portalText(
@@ -1875,10 +1826,8 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // 3. 2x2 Received Cards Grid
                     Row(
                       children: [
-                        // SERVICE
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.all(12),
@@ -1944,7 +1893,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        // PHARMACY
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.all(12),
@@ -2014,7 +1962,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        // LAB
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.all(12),
@@ -2082,7 +2029,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        // FEES
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.all(12),
@@ -2151,7 +2097,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // 4. TOTAL CUSTOMER/DOCTOR PAYABLE Banner
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
@@ -2193,7 +2138,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // 5. ALREADY PAID & REMAINING TO PAY
                     Row(
                       children: [
                         Expanded(
@@ -2265,7 +2209,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // 6. SELECTED BOOKING DETAILS
                     Text(
                       'SELECTED BOOKING DETAILS',
                       style: portalText(
@@ -2379,7 +2322,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // 7. SERVICE-WISE COMMISSION
                     Text(
                       'SERVICE-WISE COMMISSION',
                       style: portalText(
@@ -2399,7 +2341,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                       clipBehavior: Clip.antiAlias,
                       child: Column(
                         children: [
-                          // Header
                           Container(
                             color: const Color(0xFFF8FAFC),
                             padding: const EdgeInsets.symmetric(
@@ -2465,7 +2406,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                             ),
                           ),
                           const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
-                          // Row
                           Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
@@ -2555,7 +2495,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                               ],
                             ),
                           ),
-                          // Total bar in table
                           Container(
                             color: const Color(0xFFEEF2FF),
                             padding: const EdgeInsets.symmetric(
@@ -2594,7 +2533,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
 
             const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
 
-            // Footer Buttons: Update Referral Payment (outlined) + Close (solid)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               child: Row(
@@ -2661,9 +2599,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
     );
   }
 
-  // -------------------------------------------------------------
-  // Update Referral Payment Modal (Matching Image 2)
-  // -------------------------------------------------------------
   void _showUpdatePaymentSheet(OpReferralBookingUi b) {
     final payAmountController = TextEditingController(
       text: b.customerPayable.replaceAll('₹', '').replaceAll(',', '').trim(),
@@ -2705,7 +2640,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top Header
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 12, 12),
                     child: Row(
@@ -2764,7 +2698,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Summary Banner
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
@@ -2837,7 +2770,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                                 ],
                               ),
                               const SizedBox(height: 10),
-                              // Yellow breakdown sub-bar
                               Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(
@@ -2875,7 +2807,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                                 ),
                               ),
                               const SizedBox(height: 6),
-                              // TOTAL sub-bar
                               Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(
@@ -2914,7 +2845,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Form Field 1: PAYMENT NEED TO PAY (₹)
                         Text(
                           'PAYMENT NEED TO PAY (₹)',
                           style: portalText(
@@ -3000,7 +2930,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Form Field 2: PAYMENT TYPE & Field 3: PAYMENT STATUS in a row or stacked
                         Row(
                           children: [
                             Expanded(
@@ -3142,7 +3071,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
                         ),
                         const SizedBox(height: 14),
 
-                        // LIVE PREVIEW Container
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
@@ -3180,7 +3108,6 @@ class _OpReferralBookingScreenState extends State<OpReferralBookingScreen> {
 
                   const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
 
-                  // Footer: Cancel & Save Payment
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                     child: Row(

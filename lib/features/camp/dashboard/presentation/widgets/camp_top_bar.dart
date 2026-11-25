@@ -1,65 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:timelay_health/core/routes/app_routes.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
-import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp_hrms_switch_button.dart';
+import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
 
 class CampTopBar extends StatelessWidget {
   const CampTopBar({super.key});
 
   static const _logoAsset = 'assets/images/camp_timely_health_logo.png';
 
-  void _goToHrms(BuildContext context) {
-    Navigator.of(context).popUntil(
-      (route) => route.isFirst || route.settings.name == AppRoutes.home,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 68,
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
-      color: CampColors.surface,
+      decoration: BoxDecoration(
+        color: CampColors.surface,
+        border: const Border(bottom: BorderSide(color: CampColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(22, 2, 18, 6),
       child: Row(
         children: [
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: GestureDetector(
-                onTap: () => _goToHrms(context),
-                behavior: HitTestBehavior.opaque,
-                child: Image.asset(
-                  _logoAsset,
-                  height: 52,
-                  fit: BoxFit.contain,
-                  alignment: Alignment.centerLeft,
-                  filterQuality: FilterQuality.high,
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Material(
-              color: const Color(0xFFF3F3FA),
-              borderRadius: BorderRadius.circular(12),
-              child: InkWell(
-                onTap: () => AppRoutes.push(context, AppRoutes.notifications),
+          GestureDetector(
+            onTap: () => Scaffold.of(context).openDrawer(),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: PortalColors.brandTint,
                 borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.notifications_none_rounded,
-                    size: 22,
-                    color: CampColors.primary,
-                  ),
-                ),
+              ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                'assets/icons/top_bar/ic_top_menu.svg',
+                width: 18,
+                height: 18,
               ),
             ),
           ),
-          CampHrmsSwitchButton(onTap: () => _goToHrms(context)),
+          const SizedBox(width: 4),
+          Image.asset(
+            _logoAsset,
+            height: 44,
+            fit: BoxFit.contain,
+            alignment: Alignment.centerLeft,
+            filterQuality: FilterQuality.high,
+          ),
+          const Spacer(),
+          const TopNotificationButton(),
         ],
       ),
     );

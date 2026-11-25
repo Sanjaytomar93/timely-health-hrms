@@ -44,7 +44,6 @@ class DashboardRemoteDataSource {
       if (body['success'] == false) {
         throw DashboardFailure(_message(body, 'Failed to load dashboard.'));
       }
-      // API returns { success, stats, charts } (no nested `data`).
       final raw = body['data'] is Map<String, dynamic>
           ? body['data'] as Map<String, dynamic>
           : body;

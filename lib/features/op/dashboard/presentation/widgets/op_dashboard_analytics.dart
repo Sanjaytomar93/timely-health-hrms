@@ -1173,7 +1173,6 @@ class _DonutPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final total = slices.fold<int>(0, (s, e) => s + e.count);
     final center = Offset(size.width / 2, size.height / 2);
-    // ~4.5 stroke on 36 viewBox ≈ 12.5%
     final stroke = size.shortestSide * 0.125;
     final radius = (size.shortestSide - stroke) / 2;
     final rect = Rect.fromCircle(center: center, radius: radius);
@@ -1191,7 +1190,6 @@ class _DonutPainter extends CustomPainter {
 
     if (total <= 0) return;
 
-    // Draw smaller slices first so larger (Male) sits on top — matches stitch SVG.
     final active = slices.where((s) => s.count > 0).toList()
       ..sort((a, b) => a.count.compareTo(b.count));
 

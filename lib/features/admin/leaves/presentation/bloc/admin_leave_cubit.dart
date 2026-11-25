@@ -102,6 +102,36 @@ class AdminLeaveCubit extends Cubit<AdminLeaveState> {
     ));
   }
 
+  Future<void> rejectLeave({required String id}) async {
+    final admin = AuthSession.currentEmployee ?? await AuthSession.load();
+    if (admin == null) {
+      throw const AdminLeaveFailure('Admin session missing. Please login again.');
+    }
+
+    final adminName = admin.name.trim().isNotEmpty
+        ? admin.name.trim()
+        : (admin.employeeId.trim().isNotEmpty ? admin.employeeId.trim() : 'Admin');
+    final adminEmail = admin.email.trim();
+    final adminRole =
+        admin.role.trim().isNotEmpty ? admin.role.trim() : 'Admin';
+    final actionAt = DateTime.now().toUtc().toIso8601String();
+
+    await _repository.updateLeaveStatus(
+      id: id,
+      status: 'rejected',
+      adminName: adminName,
+      adminEmail: adminEmail,
+      adminRole: adminRole,
+      actionAt: actionAt,
+    );
+
+    _applyLocalStatus(
+      id: id,
+      status: 'Rejected',
+      approver: adminName,
+    );
+  }
+
   void updateLeaveStatus({
     required String id,
     required String status,

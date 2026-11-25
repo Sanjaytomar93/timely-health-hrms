@@ -7,8 +7,13 @@ class PayslipEndpoints {
     required String employeeId,
     required String month,
   }) {
-    return Uri.parse(
-      '$_base/employees/salary-summary/${Uri.encodeComponent(employeeId)}',
-    ).replace(queryParameters: {'month': month}).toString();
+    return Uri.parse('$_base/attendancesummary/single-payroll')
+        .replace(
+          queryParameters: {
+            'month': month,
+            'employeeId': employeeId,
+          },
+        )
+        .toString();
   }
 }

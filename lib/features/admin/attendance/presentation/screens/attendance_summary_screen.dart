@@ -374,7 +374,6 @@ class _AttendanceSummaryScreenState extends State<AttendanceSummaryScreen> {
 
                       final ui = state.ui;
 
-                      // Derive dynamic departments
                       final deptsSet = <String>{
                         ...ui.meta.departments,
                         for (final item in ui.roster)
@@ -390,7 +389,6 @@ class _AttendanceSummaryScreenState extends State<AttendanceSummaryScreen> {
                         _dept = 'All Departments';
                       }
 
-                      // Derive dynamic designations
                       final desigSet = <String>{
                         ...ui.meta.designations,
                         for (final item in ui.roster)
@@ -525,86 +523,7 @@ class _LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 20),
-      child: Shimmer(
-        child: Column(
-          children: [
-            const ShimmerBox(width: double.infinity, height: 44, radius: 12),
-            const SizedBox(height: 10),
-            const Row(
-              children: [
-                Expanded(child: ShimmerBox(height: 34, radius: 10)),
-                SizedBox(width: 8),
-                Expanded(child: ShimmerBox(height: 34, radius: 10)),
-                SizedBox(width: 8),
-                Expanded(child: ShimmerBox(height: 34, radius: 10)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Row(
-              children: [
-                Expanded(child: ShimmerBox(height: 74, radius: 14)),
-                SizedBox(width: 10),
-                Expanded(child: ShimmerBox(height: 74, radius: 14)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            const Row(
-              children: [
-                Expanded(child: ShimmerBox(height: 74, radius: 14)),
-                SizedBox(width: 10),
-                Expanded(child: ShimmerBox(height: 74, radius: 14)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            const ShimmerBox(width: double.infinity, height: 80, radius: 16),
-            const SizedBox(height: 16),
-            for (var i = 0; i < 4; i++) ...[
-              if (i > 0) const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: PortalColors.border),
-                ),
-                child: const Column(
-                  children: [
-                    Row(
-                      children: [
-                        ShimmerBox(height: 38, circle: true),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ShimmerBox(width: 120, height: 12, radius: 4),
-                              SizedBox(height: 6),
-                              ShimmerBox(width: 80, height: 9, radius: 4),
-                            ],
-                          ),
-                        ),
-                        ShimmerBox(width: 60, height: 20, radius: 10),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(child: ShimmerBox(height: 28, radius: 6)),
-                        SizedBox(width: 8),
-                        Expanded(child: ShimmerBox(height: 28, radius: 6)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
+    return const AdminListShimmer(statCount: 4, cardCount: 5);
   }
 }
 
@@ -1026,7 +945,6 @@ class _StatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Row 1: 2 cards
         Row(
           children: [
             Expanded(
@@ -1053,7 +971,6 @@ class _StatsRow extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        // Row 2: 2 cards
         Row(
           children: [
             Expanded(
@@ -1080,7 +997,6 @@ class _StatsRow extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        // Row 3: Last one stat (Total Overtime) full width in App Color
         _StatCard(
           title: 'TOTAL OVERTIME',
           value: stats.totalOvertime,

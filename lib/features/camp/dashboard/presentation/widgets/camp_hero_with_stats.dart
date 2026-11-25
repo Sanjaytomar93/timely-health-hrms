@@ -20,4 +20,3 @@ class CampHeroWithStats extends StatelessWidget {
   }
 }
 
-// ── Date Range Filter Card ──────────────────────────────────────────────────

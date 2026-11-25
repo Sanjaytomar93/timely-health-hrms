@@ -85,16 +85,17 @@ class _CampListViewState extends State<_CampListView> {
                               context.read<CampsCubit>().setSearch(v),
                         ),
                       ),
-                      if (state.stats.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: CampListStatStrip(
-                            stats: state.stats,
-                            selectedFilter: state.filter,
-                            onStatTap: (stat) => context
-                                .read<CampsCubit>()
-                                .setFilter(stat.filter),
-                          ),
+                      SliverToBoxAdapter(
+                        child: CampListStatStrip(
+                          stats: state.stats.isNotEmpty
+                              ? state.stats
+                              : CampListUiMapper.toStats(const []),
+                          selectedFilter: state.filter,
+                          onStatTap: (stat) => context
+                              .read<CampsCubit>()
+                              .setFilter(stat.filter),
                         ),
+                      ),
                       SliverToBoxAdapter(
                         child: CampListFilterChips(
                           selected: state.filter,
@@ -159,22 +160,13 @@ class _CampListViewState extends State<_CampListView> {
                           ),
                         ),
                       ],
-                      if (camps.isEmpty && state is! CampsFailureState)
-                        const SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.all(40),
-                            child: Center(
-                              child: Text(
-                                'No camps found',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: CampColors.muted,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                      if (camps.isEmpty)
+                        const SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _CampsEmptyState(),
+                        )
+                      else
+                        const SliverToBoxAdapter(child: SizedBox(height: 24)),
                     ],
                   ),
                 );
@@ -182,6 +174,55 @@ class _CampListViewState extends State<_CampListView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CampsEmptyState extends StatelessWidget {
+  const _CampsEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: CampColors.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const Icon(
+                Icons.campaign_outlined,
+                size: 34,
+                color: CampColors.primary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'No camps found',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: CampColors.heading,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Assigned camps will appear here',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: CampColors.muted,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

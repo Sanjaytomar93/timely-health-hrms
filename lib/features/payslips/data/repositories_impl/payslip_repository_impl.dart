@@ -13,7 +13,8 @@ class PayslipRepositoryImpl implements PayslipRepository {
     required String employeeId,
     required DateTime month,
   }) async {
-    final label = '${month.month.toString().padLeft(2, '0')}-${month.year}';
+    final label =
+        '${month.year}-${month.month.toString().padLeft(2, '0')}';
     final model = await _remote.getSalarySummary(
       employeeId: employeeId,
       month: label,

@@ -62,7 +62,6 @@ class CampStackedBarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (items.isEmpty) return;
     final chartTop = 8.0;
     final chartBottom = size.height - _bottomLabels;
     final chartLeft = _leftAxis;
@@ -93,6 +92,8 @@ class CampStackedBarPainter extends CustomPainter {
       )..layout();
       tp.paint(canvas, Offset(2, y - tp.height / 2));
     }
+
+    if (items.isEmpty) return;
 
     final groupW = chartW / items.length;
     final barW = groupW * 0.44;
@@ -181,7 +182,6 @@ class CampParticipationBarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (items.isEmpty) return;
     final chartTop = 8.0;
     final chartBottom = size.height - _bottomLabels;
     final chartLeft = _leftAxis;
@@ -212,6 +212,8 @@ class CampParticipationBarPainter extends CustomPainter {
       )..layout();
       tp.paint(canvas, Offset(2, y - tp.height / 2));
     }
+
+    if (items.isEmpty) return;
 
     final groupW = chartW / items.length;
     final barW = groupW * 0.44;

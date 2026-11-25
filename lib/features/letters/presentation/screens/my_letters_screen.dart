@@ -13,8 +13,10 @@ import 'package:timelay_health/features/letters/presentation/utils/letter_downlo
 import 'package:timelay_health/features/letters/presentation/widgets/resignation_form_sheet.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
-import 'package:timelay_health/core/widgets/portal_back_button.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 
 extension _LetterTypeStyle on LetterType {
   IconData get icon => switch (this) {
@@ -56,6 +58,7 @@ class _MyLettersView extends StatefulWidget {
 }
 
 class _MyLettersViewState extends State<_MyLettersView> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   Employee? _employee;
   LetterType _type = LetterType.experience;
 
@@ -121,12 +124,17 @@ class _MyLettersViewState extends State<_MyLettersView> {
     final error = state is LettersFailureState ? state.message : null;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: PortalColors.background,
+      drawer: const HomeSideDrawer(),
+      drawerScrimColor: PortalColors.brand.withValues(alpha: 0.28),
       body: PortalSafeArea(
         bottom: false,
         child: Column(
           children: [
-            const _LettersAppBar(),
+            _LettersAppBar(
+              onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
             Expanded(
               child: RefreshIndicator(
                 color: PortalColors.purple,
@@ -173,12 +181,19 @@ class _MyLettersViewState extends State<_MyLettersView> {
           ],
         ),
       ),
+    
+      bottomNavigationBar: EmployeeBottomNav(
+        currentIndex: 3,
+        onTap: (i) => EmployeeHomeShell.goToTab(context, i),
+      ),
     );
   }
 }
 
 class _LettersAppBar extends StatelessWidget {
-  const _LettersAppBar();
+  const _LettersAppBar({required this.onMenuTap});
+
+  final VoidCallback onMenuTap;
 
   @override
   Widget build(BuildContext context) {
@@ -187,24 +202,59 @@ class _LettersAppBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
       child: Row(
         children: [
-          const PortalBackButton(),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'My Letters',
-              style: portalText(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: PortalColors.heading,
-                letterSpacing: 0.2,
-                height: 1.2,
+          GestureDetector(
+            onTap: onMenuTap,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: PortalColors.brandTint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                'assets/icons/top_bar/ic_top_menu.svg',
+                width: 18,
+                height: 18,
               ),
             ),
           ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'My Letters',
+                  style: portalText(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: PortalColors.heading,
+                    letterSpacing: 0.1,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Experience, relieving & resignation',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 11.5,
+                    color: PortalColors.muted,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
           const TopNotificationButton(
             asset: 'assets/icons/payslips/ic_notification.svg',
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           const TopCalendarButton(
             asset: 'assets/icons/payslips/ic_notification_cal.svg',
           ),

@@ -31,9 +31,9 @@ class PayslipsCubit extends Cubit<PayslipsState> {
     final employee = AuthSession.currentEmployee ?? await AuthSession.load();
     if (isClosed) return;
 
-    final pathId = (employee?.id.trim().isNotEmpty == true)
-        ? employee!.id.trim()
-        : (employee?.employeeId.trim() ?? '');
+    final pathId = (employee?.employeeId.trim().isNotEmpty == true)
+        ? employee!.employeeId.trim()
+        : (employee?.employeeCode?.trim() ?? '');
 
     if (pathId.isEmpty) {
       emit(

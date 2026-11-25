@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:timelay_health/features/auth/data/auth_session.dart';
 import 'package:timelay_health/features/auth/data/endpoints/auth_endpoints.dart';
 import 'package:timelay_health/features/auth/data/models/employee_model.dart';
 import 'package:timelay_health/features/auth/domain/failures/auth_failure.dart';
@@ -46,6 +47,7 @@ class AuthRemoteDataSource {
         response.statusCode < 300 &&
         parsed.success &&
         parsed.employee != null) {
+      await AuthSession.saveCampActivated(parsed.campActivated);
       return parsed.employee!;
     }
 

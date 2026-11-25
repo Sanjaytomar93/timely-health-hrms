@@ -6,7 +6,7 @@ import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
 import 'package:timelay_health/features/payslips/presentation/models/payslip_ui_model.dart';
-import 'package:timelay_health/features/payslips/presentation/utils/payslip_pdf.dart';
+import 'package:timelay_health/features/payslips/presentation/utils/payslip_download.dart';
 
 Future<void> showSalaryDetailsSheet(
   BuildContext context, {

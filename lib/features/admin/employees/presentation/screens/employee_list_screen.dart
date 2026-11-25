@@ -6,6 +6,7 @@ import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_system_ui.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/core/widgets/shimmer.dart';
 import 'package:timelay_health/features/admin/employees/presentation/bloc/employee_list_cubit.dart';
 import 'package:timelay_health/features/admin/employees/presentation/bloc/employee_list_state.dart';
 import 'package:timelay_health/features/admin/employees/presentation/models/employee_list_ui.dart';
@@ -309,7 +310,6 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                       final ui = state.ui;
                       final allEmployees = ui.employees;
 
-                      // Derive dynamic departments
                       final deptsSet = <String>{
                         for (final e in allEmployees)
                           if (e.department.isNotEmpty && e.department != 'General')
@@ -323,7 +323,6 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                         _dept = 'All Departments';
                       }
 
-                      // Derive dynamic designations/roles
                       final desigSet = <String>{
                         for (final e in allEmployees)
                           if (e.role.isNotEmpty && e.role != 'Staff')
@@ -364,6 +363,9 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                                 selected: _dept,
                                 onPick: (v) => setState(() => _dept = v),
                               ),
+                              onDeptClear: () => setState(
+                                () => _dept = 'All Departments',
+                              ),
                               onDesignationTap: () => _pickFromSheet(
                                 title: 'Designations',
                                 subtitle: 'Filter employees by designation',
@@ -373,6 +375,9 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                                 items: designations,
                                 selected: _designation,
                                 onPick: (v) => setState(() => _designation = v),
+                              ),
+                              onDesignationClear: () => setState(
+                                () => _designation = 'All Designations',
                               ),
                             ),
                             const SizedBox(height: 14),
@@ -463,26 +468,7 @@ class _LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircularProgressIndicator(
-            color: PortalColors.brand,
-            strokeWidth: 2.8,
-          ),
-          SizedBox(height: 14),
-          Text(
-            'Loading employee list...',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: PortalColors.muted,
-            ),
-          ),
-        ],
-      ),
-    );
+    return const AdminListShimmer(statCount: 3, cardCount: 6);
   }
 }
 
@@ -1017,13 +1003,17 @@ class _FilterRow extends StatelessWidget {
     required this.dept,
     required this.designation,
     required this.onDeptTap,
+    required this.onDeptClear,
     required this.onDesignationTap,
+    required this.onDesignationClear,
   });
 
   final String dept;
   final String designation;
   final VoidCallback onDeptTap;
+  final VoidCallback onDeptClear;
   final VoidCallback onDesignationTap;
+  final VoidCallback onDesignationClear;
 
   @override
   Widget build(BuildContext context) {
@@ -1035,20 +1025,22 @@ class _FilterRow extends StatelessWidget {
         Expanded(
           child: _FilterCard(
             label: 'DEPARTMENT',
-            value: dept,
+            value: isDeptActive ? dept : 'All',
             icon: Icons.apartment_rounded,
             isActive: isDeptActive,
             onTap: onDeptTap,
+            onClear: onDeptClear,
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: _FilterCard(
             label: 'DESIGNATION',
-            value: designation,
+            value: isDesigActive ? designation : 'All',
             icon: Icons.badge_outlined,
             isActive: isDesigActive,
             onTap: onDesignationTap,
+            onClear: onDesignationClear,
           ),
         ),
       ],
@@ -1063,6 +1055,7 @@ class _FilterCard extends StatelessWidget {
     required this.icon,
     required this.isActive,
     required this.onTap,
+    required this.onClear,
   });
 
   final String label;
@@ -1070,45 +1063,73 @@ class _FilterCard extends StatelessWidget {
   final IconData icon;
   final bool isActive;
   final VoidCallback onTap;
+  final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          height: 52,
+          padding: const EdgeInsets.fromLTRB(10, 7, 8, 7),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: isActive
-                ? PortalColors.brandTint.withValues(alpha: 0.55)
-                : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            gradient: isActive
+                ? LinearGradient(
+                    colors: [
+                      PortalColors.brand.withValues(alpha: 0.08),
+                      PortalColors.brandLight.withValues(alpha: 0.06),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: isActive ? null : Colors.white,
             border: Border.all(
               color: isActive
-                  ? PortalColors.brand.withValues(alpha: 0.4)
+                  ? PortalColors.brand.withValues(alpha: 0.45)
                   : PortalColors.border,
-              width: isActive ? 1.2 : 1.0,
+              width: isActive ? 1.4 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
-                color: PortalColors.brand.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: PortalColors.brand
+                    .withValues(alpha: isActive ? 0.10 : 0.04),
+                blurRadius: isActive ? 12 : 8,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: Row(
             children: [
               Container(
-                width: 30,
-                height: 30,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
-                  color: isActive ? PortalColors.brand : PortalColors.brandTint,
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: isActive
+                      ? const LinearGradient(
+                          colors: PortalColors.brandGradient,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null,
+                  color: isActive ? null : PortalColors.brandTint,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color:
+                                PortalColors.brand.withValues(alpha: 0.22),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
                 ),
                 alignment: Alignment.center,
                 child: Icon(
@@ -1128,8 +1149,10 @@ class _FilterCard extends StatelessWidget {
                       style: portalText(
                         fontSize: 8.5,
                         fontWeight: FontWeight.w700,
-                        color: PortalColors.muted,
-                        letterSpacing: 0.3,
+                        color: isActive
+                            ? PortalColors.brandLight
+                            : PortalColors.muted,
+                        letterSpacing: 0.35,
                         height: 1.1,
                       ),
                     ),
@@ -1139,11 +1162,11 @@ class _FilterCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: portalText(
-                        fontSize: 11.5,
-                        fontWeight:
-                            isActive ? FontWeight.w700 : FontWeight.w600,
-                        color:
-                            isActive ? PortalColors.brand : PortalColors.heading,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isActive
+                            ? PortalColors.brand
+                            : PortalColors.heading,
                         height: 1.1,
                       ),
                     ),
@@ -1151,11 +1174,40 @@ class _FilterCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Icon(
-                Icons.keyboard_arrow_down_rounded,
-                size: 18,
-                color: isActive ? PortalColors.brand : PortalColors.muted,
-              ),
+              if (isActive)
+                GestureDetector(
+                  onTap: onClear,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: PortalColors.brand.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.close_rounded,
+                      size: 14,
+                      color: PortalColors.brand,
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: PortalColors.background,
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 16,
+                    color: PortalColors.muted,
+                  ),
+                ),
             ],
           ),
         ),
@@ -1186,216 +1238,296 @@ class _EmployeeCard extends StatelessWidget {
     final isActive = item.status == 'ACTIVE';
 
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: () => _showDetails(context),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.white,
             border: Border.all(color: PortalColors.border),
             boxShadow: [
               BoxShadow(
-                color: PortalColors.brand.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: PortalColors.brand.withValues(alpha: 0.07),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: PortalColors.brandGradient,
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: item.profileImageUrl.isNotEmpty
-                          ? Image.network(
-                              item.profileImageUrl,
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => Center(
-                                child: Text(
-                                  item.initials,
-                                  style: portalText(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            )
-                          : Center(
-                              child: Text(
-                                item.initials,
-                                style: portalText(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
+          clipBehavior: Clip.antiAlias,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isActive
+                          ? const [PortalColors.green, Color(0xFF34D399)]
+                          : const [PortalColors.red, Color(0xFFF87171)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 11),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Flexible(
-                              child: Text(
-                                item.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: portalText(
-                                  fontSize: 13.8,
-                                  fontWeight: FontWeight.w800,
-                                  color: PortalColors.heading,
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                gradient: const LinearGradient(
+                                  colors: PortalColors.brandGradient,
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: PortalColors.brand
+                                        .withValues(alpha: 0.22),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: item.profileImageUrl.isNotEmpty
+                                  ? Image.network(
+                                      item.profileImageUrl,
+                                      width: 44,
+                                      height: 44,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => Center(
+                                        child: Text(
+                                          item.initials,
+                                          style: portalText(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        item.initials,
+                                        style: portalText(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                            const SizedBox(width: 11),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: portalText(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                      color: PortalColors.heading,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    '${item.role} • ${item.department}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: portalText(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: PortalColors.brandLight,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: PortalColors.brandTint,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      item.employeeId,
+                                      style: portalText(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: PortalColors.brand,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 1.5,
+                                horizontal: 8,
+                                vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF0F0F4),
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              child: Text(
-                                item.employeeId,
-                                style: portalText(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: PortalColors.muted,
+                                color: isActive
+                                    ? PortalColors.greenTint
+                                    : PortalColors.redTint,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isActive
+                                      ? PortalColors.green
+                                          .withValues(alpha: 0.25)
+                                      : PortalColors.red
+                                          .withValues(alpha: 0.25),
                                 ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: BoxDecoration(
+                                      color: isActive
+                                          ? PortalColors.green
+                                          : PortalColors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    item.status,
+                                    style: portalText(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: isActive
+                                          ? PortalColors.green
+                                          : PortalColors.red,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          '${item.role} • ${item.department}',
-                          style: portalText(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                            color: PortalColors.brandLight,
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+                          decoration: BoxDecoration(
+                            color: PortalColors.background,
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _InfoCell(
+                                      label: 'PHONE',
+                                      value: item.phone,
+                                      icon: Icons.phone_outlined,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _InfoCell(
+                                      label: 'SALARY',
+                                      value: item.salary,
+                                      icon: Icons.payments_outlined,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _InfoCell(
+                                      label: 'SHIFT & OFF',
+                                      value: item.shiftOff,
+                                      icon: Icons.schedule_outlined,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _InfoCell(
+                                      label: 'JOINED',
+                                      value: item.joiningDate,
+                                      icon: Icons.event_outlined,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Container(
+                              width: 22,
+                              height: 22,
+                              decoration: BoxDecoration(
+                                color: PortalColors.brandTint,
+                                borderRadius: BorderRadius.circular(7),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.location_on_rounded,
+                                size: 12,
+                                color: PortalColors.brand,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                item.location,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: portalText(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: PortalColors.secondaryText,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              item.trackingId,
+                              style: portalText(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w600,
+                                color: PortalColors.muted,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              size: 16,
+                              color: PortalColors.brandLight,
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? PortalColors.greenTint
-                          : PortalColors.redTint,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      item.status,
-                      style: portalText(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w800,
-                        color:
-                            isActive ? PortalColors.green : PortalColors.red,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 9),
-              Row(
-                children: [
-                  Expanded(
-                    child: _InfoCell(label: 'PHONE NUMBER', value: item.phone),
-                  ),
-                  Expanded(
-                    child: _InfoCell(
-                      label: 'SALARY / COMPENSATION',
-                      value: item.salary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 7),
-              Row(
-                children: [
-                  Expanded(
-                    child: _InfoCell(label: 'SHIFT & OFF', value: item.shiftOff),
-                  ),
-                  Expanded(
-                    child: _InfoCell(
-                      label: 'JOINING DATE',
-                      value: item.joiningDate,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Divider(height: 1, color: PortalColors.border),
-              const SizedBox(height: 7),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.location_on_outlined,
-                    size: 13,
-                    color: PortalColors.muted,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      item.location,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: portalText(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: PortalColors.secondaryText,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    'Tracking ID: ${item.trackingId}',
-                    style: portalText(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w500,
-                      color: PortalColors.muted,
-                    ),
-                  ),
-                  const SizedBox(width: 3),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    size: 15,
-                    color: PortalColors.muted,
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1404,34 +1536,50 @@ class _EmployeeCard extends StatelessWidget {
 }
 
 class _InfoCell extends StatelessWidget {
-  const _InfoCell({required this.label, required this.value});
+  const _InfoCell({
+    required this.label,
+    required this.value,
+    this.icon,
+  });
 
   final String label;
   final String value;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: portalText(
-            fontSize: 9,
-            fontWeight: FontWeight.w700,
-            color: PortalColors.muted,
-            letterSpacing: 0.35,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: portalText(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: PortalColors.heading,
+        if (icon != null) ...[
+          Icon(icon, size: 13, color: PortalColors.brandLight),
+          const SizedBox(width: 5),
+        ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: portalText(
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w700,
+                  color: PortalColors.muted,
+                  letterSpacing: 0.35,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: portalText(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: PortalColors.heading,
+                ),
+              ),
+            ],
           ),
         ),
       ],

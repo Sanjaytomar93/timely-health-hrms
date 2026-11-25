@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
-import 'package:timelay_health/core/widgets/portal_back_button.dart';
 import 'package:timelay_health/core/widgets/shimmer.dart';
 import 'package:timelay_health/features/attendance/presentation/bloc/shift_cubit.dart';
 import 'package:timelay_health/features/attendance/presentation/bloc/shift_state.dart';
@@ -15,6 +15,9 @@ import 'package:timelay_health/features/roster/presentation/bloc/week_off_cubit.
 import 'package:timelay_health/features/roster/presentation/bloc/week_off_state.dart';
 import 'package:timelay_health/features/roster/presentation/models/week_off_ui_model.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 
 const _monthNames = [
   'January',
@@ -59,8 +62,15 @@ class WorkRosterScreen extends StatelessWidget {
   }
 }
 
-class _WorkRosterView extends StatelessWidget {
+class _WorkRosterView extends StatefulWidget {
   const _WorkRosterView();
+
+  @override
+  State<_WorkRosterView> createState() => _WorkRosterViewState();
+}
+
+class _WorkRosterViewState extends State<_WorkRosterView> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Future<void> _refresh(BuildContext context) async {
     await Future.wait([
@@ -73,12 +83,18 @@ class _WorkRosterView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: PortalColors.background,
+      drawer: const HomeSideDrawer(),
+      drawerScrimColor: PortalColors.brand.withValues(alpha: 0.28),
       body: PortalSafeArea(
         bottom: false,
         child: Column(
           children: [
-            _RosterAppBar(onRefresh: () => _refresh(context)),
+            _RosterAppBar(
+              onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+              onRefresh: () => _refresh(context),
+            ),
             Expanded(
               child: BlocBuilder<ProfileCubit, ProfileState>(
                 builder: (context, profileState) {
@@ -160,13 +176,19 @@ class _WorkRosterView extends StatelessWidget {
           ],
         ),
       ),
+    
+      bottomNavigationBar: EmployeeBottomNav(
+        currentIndex: 1,
+        onTap: (i) => EmployeeHomeShell.goToTab(context, i),
+      ),
     );
   }
 }
 
 class _RosterAppBar extends StatelessWidget {
-  const _RosterAppBar({required this.onRefresh});
+  const _RosterAppBar({required this.onMenuTap, required this.onRefresh});
 
+  final VoidCallback onMenuTap;
   final VoidCallback onRefresh;
 
   @override
@@ -180,7 +202,24 @@ class _RosterAppBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       child: Row(
         children: [
-          const PortalBackButton(),
+          GestureDetector(
+            onTap: onMenuTap,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: PortalColors.brandTint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                'assets/icons/top_bar/ic_top_menu.svg',
+                width: 18,
+                height: 18,
+              ),
+            ),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(

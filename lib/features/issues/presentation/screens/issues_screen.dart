@@ -12,8 +12,10 @@ import 'package:timelay_health/features/issues/presentation/widgets/issue_detail
 import 'package:timelay_health/features/issues/presentation/widgets/raise_issue_sheet.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
-import 'package:timelay_health/core/widgets/portal_back_button.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 
 class IssuesScreen extends StatelessWidget {
   const IssuesScreen({super.key});
@@ -35,6 +37,7 @@ class _IssuesView extends StatefulWidget {
 }
 
 class _IssuesViewState extends State<_IssuesView> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _search = TextEditingController();
 
   @override
@@ -103,12 +106,17 @@ class _IssuesViewState extends State<_IssuesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: PortalColors.background,
+      drawer: const HomeSideDrawer(),
+      drawerScrimColor: PortalColors.brand.withValues(alpha: 0.28),
       body: PortalSafeArea(
         bottom: false,
         child: Column(
           children: [
-            const _IssuesAppBar(),
+            _IssuesAppBar(
+              onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
             Expanded(
               child: BlocBuilder<IssuesCubit, IssuesState>(
                 builder: (context, state) {
@@ -198,12 +206,19 @@ class _IssuesViewState extends State<_IssuesView> {
           ],
         ),
       ),
+    
+      bottomNavigationBar: EmployeeBottomNav(
+        currentIndex: 3,
+        onTap: (i) => EmployeeHomeShell.goToTab(context, i),
+      ),
     );
   }
 }
 
 class _IssuesAppBar extends StatelessWidget {
-  const _IssuesAppBar();
+  const _IssuesAppBar({required this.onMenuTap});
+
+  final VoidCallback onMenuTap;
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +237,24 @@ class _IssuesAppBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
       child: Row(
         children: [
-          const PortalBackButton(),
+          GestureDetector(
+            onTap: onMenuTap,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: PortalColors.brandTint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                'assets/icons/top_bar/ic_top_menu.svg',
+                width: 18,
+                height: 18,
+              ),
+            ),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -253,10 +285,11 @@ class _IssuesAppBar extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(width: 8),
           const TopNotificationButton(
             asset: 'assets/icons/issues/ic_notification.svg',
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           const TopCalendarButton(
             asset: 'assets/icons/issues/ic_notification_cal.svg',
           ),

@@ -48,6 +48,3 @@ class PatientsEmptyState extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  ADD NEW PATIENT FAB-STYLE BUTTON
-// ─────────────────────────────────────────────────────────────

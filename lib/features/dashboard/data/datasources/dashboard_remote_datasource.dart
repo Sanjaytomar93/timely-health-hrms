@@ -84,7 +84,6 @@ class DashboardRemoteDataSource {
       );
     }
 
-    // Web portal uses empdashboard stats for the monthly review popup.
     late final http.Response response;
     try {
       response = await _client

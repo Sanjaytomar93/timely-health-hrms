@@ -103,6 +103,21 @@ class _AddMedicalTestSheetState extends State<AddMedicalTestSheet> {
   final _oxygen = TextEditingController(text: '98');
   final _notes = TextEditingController();
 
+  final _leftVision = TextEditingController(text: '6/6');
+  final _rightVision = TextEditingController(text: '6/6');
+  final _pressureL = TextEditingController(text: '15');
+  final _pressureR = TextEditingController(text: '15');
+  String _colorVision = 'Normal';
+  String _cataract = 'None';
+  String _glaucoma = 'No';
+
+  final _hemoglobin = TextEditingController(text: '14.0');
+  final _wbc = TextEditingController(text: '7.5');
+  final _platelets = TextEditingController(text: '250');
+  final _cholesterol = TextEditingController(text: '180');
+  final _triglycerides = TextEditingController(text: '150');
+  final _hba1c = TextEditingController(text: '5.7');
+
   @override
   void dispose() {
     _weight.dispose();
@@ -114,6 +129,16 @@ class _AddMedicalTestSheetState extends State<AddMedicalTestSheet> {
     _heart.dispose();
     _oxygen.dispose();
     _notes.dispose();
+    _leftVision.dispose();
+    _rightVision.dispose();
+    _pressureL.dispose();
+    _pressureR.dispose();
+    _hemoglobin.dispose();
+    _wbc.dispose();
+    _platelets.dispose();
+    _cholesterol.dispose();
+    _triglycerides.dispose();
+    _hba1c.dispose();
     super.dispose();
   }
 
@@ -359,8 +384,27 @@ class _AddMedicalTestSheetState extends State<AddMedicalTestSheet> {
                             oxygen: _oxygen,
                           )
                         : _DetailsCard(
-                            key: const ValueKey('details'),
-                            notes: _notes,
+                            key: ValueKey('details-$_package'),
+                            package: _package,
+                            leftVision: _leftVision,
+                            rightVision: _rightVision,
+                            pressureL: _pressureL,
+                            pressureR: _pressureR,
+                            colorVision: _colorVision,
+                            cataract: _cataract,
+                            glaucoma: _glaucoma,
+                            onColorVisionChanged: (v) =>
+                                setState(() => _colorVision = v),
+                            onCataractChanged: (v) =>
+                                setState(() => _cataract = v),
+                            onGlaucomaChanged: (v) =>
+                                setState(() => _glaucoma = v),
+                            hemoglobin: _hemoglobin,
+                            wbc: _wbc,
+                            platelets: _platelets,
+                            cholesterol: _cholesterol,
+                            triglycerides: _triglycerides,
+                            hba1c: _hba1c,
                           ),
                   ),
                 ],
@@ -1287,9 +1331,200 @@ class _VitalsCard extends StatelessWidget {
 }
 
 class _DetailsCard extends StatelessWidget {
-  const _DetailsCard({super.key, required this.notes});
+  const _DetailsCard({
+    super.key,
+    required this.package,
+    required this.leftVision,
+    required this.rightVision,
+    required this.pressureL,
+    required this.pressureR,
+    required this.colorVision,
+    required this.cataract,
+    required this.glaucoma,
+    required this.onColorVisionChanged,
+    required this.onCataractChanged,
+    required this.onGlaucomaChanged,
+    required this.hemoglobin,
+    required this.wbc,
+    required this.platelets,
+    required this.cholesterol,
+    required this.triglycerides,
+    required this.hba1c,
+  });
 
-  final TextEditingController notes;
+  final _TestPackage package;
+  final TextEditingController leftVision;
+  final TextEditingController rightVision;
+  final TextEditingController pressureL;
+  final TextEditingController pressureR;
+  final String colorVision;
+  final String cataract;
+  final String glaucoma;
+  final ValueChanged<String> onColorVisionChanged;
+  final ValueChanged<String> onCataractChanged;
+  final ValueChanged<String> onGlaucomaChanged;
+  final TextEditingController hemoglobin;
+  final TextEditingController wbc;
+  final TextEditingController platelets;
+  final TextEditingController cholesterol;
+  final TextEditingController triglycerides;
+  final TextEditingController hba1c;
+
+  @override
+  Widget build(BuildContext context) {
+    if (package == _TestPackage.general) {
+      return _DetailsShell(
+        icon: Icons.info_outline_rounded,
+        title: 'Additional Details',
+        subtitle: 'No extra fields for General checkup',
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          child: Center(
+            child: Text(
+              'General package has no detail fields.',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: kPatientMuted.withValues(alpha: 0.9),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (package == _TestPackage.eye) {
+      return _DetailsShell(
+        icon: Icons.remove_red_eye_outlined,
+        title: 'Eye Examination',
+        subtitle: 'Vision, pressure and eye findings',
+        child: Column(
+          children: [
+            _DetailFieldRow(
+              children: [
+                _DetailTextField(label: 'Left Vision', controller: leftVision),
+                _DetailTextField(label: 'Right Vision', controller: rightVision),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _DetailFieldRow(
+              children: [
+                _DetailTextField(
+                  label: 'Pressure (L) mmHg',
+                  controller: pressureL,
+                  keyboardType: TextInputType.number,
+                ),
+                _DetailTextField(
+                  label: 'Pressure (R) mmHg',
+                  controller: pressureR,
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _DetailFieldRow(
+              children: [
+                _DetailDropdown(
+                  label: 'Color Vision',
+                  value: colorVision,
+                  items: const ['Normal', 'Deficient', 'Blind'],
+                  onChanged: onColorVisionChanged,
+                ),
+                _DetailDropdown(
+                  label: 'Cataract',
+                  value: cataract,
+                  items: const ['None', 'Mild', 'Moderate', 'Severe'],
+                  onChanged: onCataractChanged,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _DetailDropdown(
+              label: 'Glaucoma',
+              value: glaucoma,
+              items: const ['No', 'Suspect', 'Yes'],
+              onChanged: onGlaucomaChanged,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final isBlood = package == _TestPackage.blood;
+    return _DetailsShell(
+      icon: isBlood ? Icons.water_drop_outlined : Icons.favorite_border_rounded,
+      title: isBlood ? 'Blood Test Panel' : 'Full Body Checkup',
+      subtitle: isBlood
+          ? 'Lab values for blood package'
+          : 'Lab values for full body package',
+      child: Column(
+        children: [
+          _DetailFieldRow(
+            children: [
+              _DetailTextField(
+                label: 'Hemoglobin (g/dL)',
+                controller: hemoglobin,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+              ),
+              _DetailTextField(
+                label: 'WBC (×10³/µL)',
+                controller: wbc,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _DetailFieldRow(
+            children: [
+              _DetailTextField(
+                label: 'Platelets (×10³/µL)',
+                controller: platelets,
+                keyboardType: TextInputType.number,
+              ),
+              _DetailTextField(
+                label: 'Cholesterol (mg/dL)',
+                controller: cholesterol,
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _DetailFieldRow(
+            children: [
+              _DetailTextField(
+                label: 'Triglycerides (mg/dL)',
+                controller: triglycerides,
+                keyboardType: TextInputType.number,
+              ),
+              _DetailTextField(
+                label: 'HbA1c (%)',
+                controller: hba1c,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailsShell extends StatelessWidget {
+  const _DetailsShell({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.child,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -1322,30 +1557,26 @@ class _DetailsCard extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.edit_note_rounded,
-                  size: 17,
-                  color: Colors.white,
-                ),
+                child: Icon(icon, size: 17, color: Colors.white),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Additional Details',
-                      style: TextStyle(
+                      title,
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                         color: kPatientHeading,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'Notes, symptoms or observations',
-                      style: TextStyle(
+                      subtitle,
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
@@ -1358,39 +1589,148 @@ class _DetailsCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          TextField(
-            controller: notes,
-            minLines: 5,
-            maxLines: 7,
-            textCapitalization: TextCapitalization.sentences,
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailFieldRow extends StatelessWidget {
+  const _DetailFieldRow({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) const SizedBox(width: 10),
+          Expanded(child: children[i]),
+        ],
+      ],
+    );
+  }
+}
+
+class _DetailTextField extends StatelessWidget {
+  const _DetailTextField({
+    required this.label,
+    required this.controller,
+    this.keyboardType = TextInputType.text,
+  });
+
+  final String label;
+  final TextEditingController controller;
+  final TextInputType keyboardType;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: kPatientHeading,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          height: 46,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF7F6FB),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: kPatientBorder),
+          ),
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
             style: const TextStyle(
               fontFamily: 'Inter',
               fontSize: 13.5,
+              fontWeight: FontWeight.w600,
               color: kPatientHeading,
-              height: 1.4,
             ),
-            decoration: InputDecoration(
-              hintText: 'Enter notes, symptoms, or observations…',
-              hintStyle: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 13.5,
-                color: kPatientMuted.withValues(alpha: 0.8),
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF7F6FB),
-              contentPadding: const EdgeInsets.all(14),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: kPatientPrimary, width: 1.2),
-              ),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(horizontal: 12),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailDropdown extends StatelessWidget {
+  const _DetailDropdown({
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String value;
+  final List<String> items;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: kPatientHeading,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF7F6FB),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: kPatientBorder),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              isExpanded: true,
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: kPatientMuted,
+              ),
+              style: const TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: kPatientHeading,
+              ),
+              items: [
+                for (final item in items)
+                  DropdownMenuItem(value: item, child: Text(item)),
+              ],
+              onChanged: (v) {
+                if (v != null) onChanged(v);
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

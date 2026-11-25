@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 import 'package:timelay_health/features/op/appointments/presentation/screens/op_appointment_slots_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/screens/op_dashboard_screen.dart';
@@ -14,7 +16,6 @@ import 'package:timelay_health/features/op/services/presentation/screens/op_serv
 import 'package:timelay_health/features/op/walkin/presentation/screens/op_walkin_screen.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/screens/op_shell_navigator.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
-import 'package:timelay_health/features/op/dashboard/presentation/widgets/op_bottom_nav.dart';
 
 class OpManagementShell extends StatefulWidget {
   const OpManagementShell({super.key, this.initialTab = 0});
@@ -31,7 +32,6 @@ class OpManagementShell extends StatefulWidget {
 class _OpManagementShellState extends State<OpManagementShell> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late int _stackIndex;
-  late int _navIndex;
 
   static const _pageCount = 9;
 
@@ -41,9 +41,7 @@ class _OpManagementShellState extends State<OpManagementShell> {
   void initState() {
     super.initState();
     OpShellNavigator.bind(_boundOpenTab);
-    final tab = widget.initialTab.clamp(0, _pageCount - 1);
-    _stackIndex = tab;
-    _navIndex = tab <= 4 ? tab : -1;
+    _stackIndex = widget.initialTab.clamp(0, _pageCount - 1);
   }
 
   @override
@@ -55,18 +53,20 @@ class _OpManagementShellState extends State<OpManagementShell> {
   void openTab(int stackIndex) {
     final next = stackIndex.clamp(0, _pageCount - 1);
     if (next == _stackIndex) return;
-    setState(() {
-      _stackIndex = next;
-      _navIndex = _stackIndex <= 4 ? _stackIndex : -1;
-    });
-  }
-
-  void _onNavTap(int navIndex) {
-    openTab(navIndex.clamp(0, 4));
+    setState(() => _stackIndex = next);
   }
 
   void _onMenuTap() {
     _scaffoldKey.currentState?.openDrawer();
+  }
+
+  void _onBottomNavTap(int index) {
+    // Avoid re-entrant pop when already highlighting Home.
+    if (index == 0) {
+      EmployeeHomeShell.goToDashboard(context);
+      return;
+    }
+    EmployeeHomeShell.goToTab(context, index);
   }
 
   Widget _wrapSafe({
@@ -143,9 +143,9 @@ class _OpManagementShellState extends State<OpManagementShell> {
         drawer: const HomeSideDrawer(),
         drawerScrimColor: PortalColors.brand.withValues(alpha: 0.28),
         body: _buildPage(_stackIndex),
-        bottomNavigationBar: OpBottomNav(
-          currentIndex: _navIndex,
-          onTap: _onNavTap,
+        bottomNavigationBar: EmployeeBottomNav(
+          currentIndex: 0,
+          onTap: _onBottomNavTap,
         ),
       ),
     );

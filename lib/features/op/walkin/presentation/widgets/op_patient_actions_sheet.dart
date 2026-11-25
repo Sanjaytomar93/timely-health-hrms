@@ -69,7 +69,6 @@ class OpPatientActionsSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
-            // Patient header
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 12, 0),
               child: Row(
@@ -133,7 +132,6 @@ class OpPatientActionsSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Quick actions grid
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(

@@ -23,7 +23,6 @@ class AttendanceBanner extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Main card ───────────────────────────────────────────────────
           Container(
             constraints: const BoxConstraints(minHeight: 148),
             width: double.infinity,
@@ -38,7 +37,6 @@ class AttendanceBanner extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             child: Stack(
               children: [
-                // Decorative circle
                 Positioned(
                   right: -30,
                   top: -40,
@@ -146,7 +144,6 @@ class AttendanceBanner extends StatelessWidget {
               ],
             ),
           ),
-          // ── Dart indicator below card ───────────────────────────────────
           const SizedBox(height: 8),
           const _DartIndicator(),
         ],
@@ -155,7 +152,6 @@ class AttendanceBanner extends StatelessWidget {
   }
 }
 
-// ── Blinking dot ─────────────────────────────────────────────────────────────
 
 class _BlinkingDot extends StatefulWidget {
   const _BlinkingDot({required this.color});
@@ -210,7 +206,6 @@ class _BlinkingDotState extends State<_BlinkingDot>
   }
 }
 
-// ── Metric tile ──────────────────────────────────────────────────────────────
 
 class _Metric extends StatelessWidget {
   const _Metric({required this.label, required this.value});
@@ -253,7 +248,6 @@ class _Metric extends StatelessWidget {
   }
 }
 
-// ── Dart / chevron indicator ──────────────────────────────────────────────────
 
 class _DartIndicator extends StatelessWidget {
   const _DartIndicator();

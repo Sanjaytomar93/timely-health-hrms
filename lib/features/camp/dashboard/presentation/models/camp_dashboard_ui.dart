@@ -100,14 +100,124 @@ class CampDashboardUi {
     title: '',
     subtitle: 'Manage your assigned camps and patients.',
     dateLabel: '',
-    stats: [],
-    distribution: [],
+    stats: [
+      CampStatUi(
+        title: 'Total',
+        value: '0',
+        subtitle: 'assigned camps',
+        icon: Icons.location_on_outlined,
+        accent: CampColors.primary,
+        tint: CampColors.primaryTint,
+      ),
+      CampStatUi(
+        title: 'Active',
+        value: '0',
+        subtitle: 'currently running',
+        icon: Icons.monitor_heart_outlined,
+        accent: CampColors.green,
+        tint: CampColors.greenTint,
+        isPulse: true,
+      ),
+      CampStatUi(
+        title: 'Patients',
+        value: '0',
+        subtitle: 'total patients',
+        icon: Icons.groups_outlined,
+        accent: CampColors.orange,
+        tint: CampColors.orangeTint,
+      ),
+      CampStatUi(
+        title: 'Upcoming',
+        value: '0',
+        subtitle: 'scheduled camps',
+        icon: Icons.calendar_month_outlined,
+        accent: CampColors.blue,
+        tint: CampColors.blueTint,
+      ),
+      CampStatUi(
+        title: 'Screened',
+        value: '0',
+        subtitle: 'screened patients',
+        icon: Icons.verified_user_outlined,
+        accent: CampColors.slate,
+        tint: CampColors.slateTint,
+      ),
+    ],
+    distribution: [
+      CampSliceUi(
+        label: 'Live',
+        count: 0,
+        percent: 0,
+        color: CampColors.red,
+      ),
+      CampSliceUi(
+        label: 'Today',
+        count: 0,
+        percent: 0,
+        color: CampColors.green,
+      ),
+      CampSliceUi(
+        label: 'Upcoming',
+        count: 0,
+        percent: 0,
+        color: CampColors.orange,
+      ),
+      CampSliceUi(
+        label: 'Completed',
+        count: 0,
+        percent: 0,
+        color: CampColors.primary,
+      ),
+    ],
     distributionTotal: 0,
     participation: [],
-    bmi: [],
-    bpSlices: [],
+    bmi: [
+      CampBmiUi(label: 'Under', under: 0, healthy: 0, over: 0, obese: 0),
+      CampBmiUi(label: 'Healthy', under: 0, healthy: 0, over: 0, obese: 0),
+      CampBmiUi(label: 'Over', under: 0, healthy: 0, over: 0, obese: 0),
+      CampBmiUi(label: 'Obese', under: 0, healthy: 0, over: 0, obese: 0),
+    ],
+    bpSlices: [
+      CampSliceUi(
+        label: 'Normal',
+        count: 0,
+        percent: 0,
+        color: CampColors.green,
+      ),
+      CampSliceUi(
+        label: 'Elevated',
+        count: 0,
+        percent: 0,
+        color: CampColors.orange,
+      ),
+      CampSliceUi(
+        label: 'High',
+        count: 0,
+        percent: 0,
+        color: CampColors.red,
+      ),
+    ],
     bpPatients: 0,
-    sugarSlices: [],
+    sugarSlices: [
+      CampSliceUi(
+        label: 'Normal',
+        count: 0,
+        percent: 0,
+        color: CampColors.green,
+      ),
+      CampSliceUi(
+        label: 'Elevated',
+        count: 0,
+        percent: 0,
+        color: CampColors.orange,
+      ),
+      CampSliceUi(
+        label: 'High',
+        count: 0,
+        percent: 0,
+        color: CampColors.red,
+      ),
+    ],
     sugarPatients: 0,
   );
 }
@@ -238,6 +348,28 @@ class CampDashboardUiMapper {
   }
 
   static List<CampSliceUi> _metricSlices(List<VolunteerNamedCount> items) {
+    if (items.isEmpty) {
+      return const [
+        CampSliceUi(
+          label: 'Normal',
+          count: 0,
+          percent: 0,
+          color: CampColors.green,
+        ),
+        CampSliceUi(
+          label: 'Elevated',
+          count: 0,
+          percent: 0,
+          color: CampColors.orange,
+        ),
+        CampSliceUi(
+          label: 'High',
+          count: 0,
+          percent: 0,
+          color: CampColors.red,
+        ),
+      ];
+    }
     final total = _sumValues(items);
     return [
       for (final item in items)
@@ -286,4 +418,6 @@ class CampDashboardUiMapper {
     final now = DateTime.now();
     return '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}, ${now.year}';
   }
+
+  static String todayLabel() => _todayLabel();
 }

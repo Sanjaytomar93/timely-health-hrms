@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timelay_health/features/auth/data/auth_session.dart';
+import 'package:timelay_health/features/auth/domain/entities/employee.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
 import 'package:timelay_health/features/notifications/data/repositories_impl/notification_repository_impl.dart';
 import 'package:timelay_health/features/notifications/domain/failures/notification_failure.dart';
 import 'package:timelay_health/features/notifications/domain/usecases/notification_usecases.dart';
@@ -35,6 +37,21 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   NotificationFilter _filter = NotificationFilter.all;
   String _search = '';
 
+  static String _resolveTarget(Employee? employee) {
+    if (employee == null) return '';
+    final isAdmin = kForceAdminHome || employee.isAdmin;
+    if (isAdmin) {
+      final email = employee.email.trim();
+      if (email.isNotEmpty && email.contains('@')) {
+        return email;
+      }
+      return 'saidulureddy@gmail.com';
+    }
+    final empId = employee.employeeId.trim();
+    if (empId.isNotEmpty) return empId;
+    return employee.id.trim();
+  }
+
   Future<void> load({bool keepExisting = false}) async {
     emit(
       NotificationsLoading(
@@ -46,16 +63,15 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       ),
     );
 
-    final employeeId =
-        AuthSession.currentEmployee?.employeeId ??
-        (await AuthSession.load())?.employeeId ??
-        '';
+    final employee =
+        AuthSession.currentEmployee ?? (await AuthSession.load());
+    final targetId = _resolveTarget(employee);
 
     if (isClosed) return;
-    if (employeeId.isEmpty) {
+    if (targetId.isEmpty) {
       emit(
         NotificationsFailureState(
-          'Employee ID missing. Please login again.',
+          'User ID missing. Please login again.',
           items: keepExisting ? state.items : const [],
           allItems: keepExisting ? _all : const [],
           filter: _filter,
@@ -67,7 +83,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     }
 
     try {
-      final records = await _getNotifications(employeeId);
+      final records = await _getNotifications(targetId);
       if (isClosed) return;
       _all = NotificationUiMapper.toUiList(records);
       _emitFiltered();
@@ -111,11 +127,10 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   Future<void> markAllAsRead() async {
     if (_all.every((e) => e.isRead)) return;
 
-    final employeeId =
-        AuthSession.currentEmployee?.employeeId ??
-        (await AuthSession.load())?.employeeId ??
-        '';
-    if (employeeId.isEmpty) return;
+    final employee =
+        AuthSession.currentEmployee ?? (await AuthSession.load());
+    final targetId = _resolveTarget(employee);
+    if (targetId.isEmpty) return;
 
     emit(
       NotificationsLoaded(
@@ -129,7 +144,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     );
 
     try {
-      await _markAllRead(employeeId);
+      await _markAllRead(targetId);
       if (isClosed) return;
       _all = _all.map((e) => e.copyWith(isRead: true)).toList();
       _emitFiltered();

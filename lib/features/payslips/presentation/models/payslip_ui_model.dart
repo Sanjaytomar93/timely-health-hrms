@@ -70,6 +70,7 @@ class PayslipUiModel extends Equatable {
     this.statusColor = PortalColors.muted,
     this.statusBackground = PortalColors.background,
     this.canDownload = false,
+    this.invoiceUrl = '',
     this.department = '—',
     this.designation = '—',
     this.approvedLeaves = 'No Leaves',
@@ -117,6 +118,7 @@ class PayslipUiModel extends Equatable {
   final Color statusColor;
   final Color statusBackground;
   final bool canDownload;
+  final String invoiceUrl;
   final String department;
   final String designation;
   final String approvedLeaves;
@@ -167,6 +169,7 @@ class PayslipUiModel extends Equatable {
     finalPayLabel,
     statusLabel,
     canDownload,
+    invoiceUrl,
     department,
     designation,
     approvedLeaves,
@@ -306,7 +309,8 @@ class PayslipUiMapper {
       statusBackground: month.isCurrentMonth
           ? const Color(0xFFFFF4E8)
           : PortalColors.greenTint,
-      canDownload: _canDownload(selected),
+      canDownload: month.canDownload && month.invoiceUrl.isNotEmpty,
+      invoiceUrl: month.invoiceUrl,
       joiningDate: month.joiningDate,
       bankName: month.bankName,
       bankAccount: month.bankAccount,
@@ -444,15 +448,6 @@ class PayslipUiMapper {
       buf.write(raw[i]);
     }
     return '₹$buf';
-  }
-
-  static bool _canDownload(DateTime selected) {
-    final now = DateTime.now();
-    final selectedMonth = DateTime(selected.year, selected.month);
-    final thisMonth = DateTime(now.year, now.month);
-    if (selectedMonth.isBefore(thisMonth)) return true;
-    if (selectedMonth.isAtSameMomentAs(thisMonth)) return now.day > 26;
-    return false;
   }
 
   static double _daily(SalaryMonth month) {

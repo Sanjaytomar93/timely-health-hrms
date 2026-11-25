@@ -108,4 +108,3 @@ class _BmiLegendDot extends StatelessWidget {
   }
 }
 
-// ── BP & Sugar Analysis Card ────────────────────────────────────────────────

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 
-/// Sweeps a highlight across [child]. Every opaque pixel of [child] is
-/// repainted with the shimmer gradient, so skeletons can use any solid color.
 class Shimmer extends StatefulWidget {
   const Shimmer({
     super.key,
@@ -87,7 +85,6 @@ class ShimmerBox extends StatelessWidget {
   }
 }
 
-/// Placeholder for list screens: a column of cards shaped like list rows.
 class ShimmerCardList extends StatelessWidget {
   const ShimmerCardList({
     super.key,
@@ -99,8 +96,6 @@ class ShimmerCardList extends StatelessWidget {
   final int itemCount;
   final EdgeInsets padding;
 
-  /// Wraps the list in a non-interactive scroll view so it can sit inside
-  /// bounded parents (e.g. `Expanded`) without overflowing.
   final bool scrollable;
 
   @override
@@ -162,7 +157,6 @@ class _ShimmerListCard extends StatelessWidget {
   }
 }
 
-/// Mirrors the home dashboard layout.
 class DashboardShimmer extends StatelessWidget {
   const DashboardShimmer({super.key});
 
@@ -178,12 +172,10 @@ class DashboardShimmer extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting
               ShimmerBox(width: 210, height: 22, radius: 8),
               SizedBox(height: 8),
               ShimmerBox(width: 150, height: 12, radius: 6),
               SizedBox(height: 12),
-              // Profile card
               _ShimmerSurfaceCard(
                 height: 108,
                 child: Row(
@@ -207,10 +199,8 @@ class DashboardShimmer extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16),
-              // Attendance banner
               ShimmerBox(width: double.infinity, height: 148, radius: 18),
               SizedBox(height: 16),
-              // Stat cards 2x2
               Row(
                 children: [
                   Expanded(child: ShimmerBox(height: 78, radius: 16)),
@@ -227,21 +217,16 @@ class DashboardShimmer extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 20),
-              // Quick actions (3)
               ShimmerBox(width: 120, height: 12, radius: 5),
               SizedBox(height: 10),
               _QuickActionsBone(),
               SizedBox(height: 24),
-              // Late minutes chart
               ShimmerBox(width: double.infinity, height: 210, radius: 18),
               SizedBox(height: 14),
-              // Absent week-wise
               ShimmerBox(width: double.infinity, height: 180, radius: 18),
               SizedBox(height: 14),
-              // Recent activity
               ShimmerBox(width: double.infinity, height: 150, radius: 18),
               SizedBox(height: 14),
-              // Updates
               ShimmerBox(width: double.infinity, height: 140, radius: 18),
             ],
           ),
@@ -312,7 +297,6 @@ class _ShimmerSurfaceCard extends StatelessWidget {
   }
 }
 
-/// Lower home sections shimmer (kept header/profile/banner during refresh).
 class DashboardContentShimmer extends StatelessWidget {
   const DashboardContentShimmer({super.key});
 
@@ -362,7 +346,6 @@ class DashboardContentShimmer extends StatelessWidget {
   }
 }
 
-/// Mirrors the My Leaves screen layout.
 class LeavesShimmer extends StatelessWidget {
   const LeavesShimmer({super.key});
 
@@ -378,7 +361,6 @@ class LeavesShimmer extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Horizontal stats
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: NeverScrollableScrollPhysics(),
@@ -397,7 +379,6 @@ class LeavesShimmer extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 14),
-              // Apply / Permission
               Row(
                 children: [
                   Expanded(child: ShimmerBox(height: 36, radius: 11)),
@@ -406,7 +387,6 @@ class LeavesShimmer extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 16),
-              // Balance grid 2x2
               Row(
                 children: [
                   Expanded(child: ShimmerBox(height: 110, radius: 14)),
@@ -423,16 +403,12 @@ class LeavesShimmer extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 16),
-              // Extra days
               ShimmerBox(width: double.infinity, height: 120, radius: 16),
               SizedBox(height: 16),
-              // Filters
               ShimmerBox(width: double.infinity, height: 96, radius: 16),
               SizedBox(height: 18),
-              // Segment switcher
               ShimmerBox(width: double.infinity, height: 46, radius: 999),
               SizedBox(height: 20),
-              // Section title
               Row(
                 children: [
                   ShimmerBox(width: 22, height: 22, radius: 6),
@@ -443,7 +419,6 @@ class LeavesShimmer extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 12),
-              // List cards
               _LeaveListBone(),
               SizedBox(height: 10),
               _LeaveListBone(),
@@ -518,7 +493,6 @@ class _LeaveListBone extends StatelessWidget {
   }
 }
 
-/// Mirrors the My Attendance (Records) tab layout.
 class AttendanceShimmer extends StatelessWidget {
   const AttendanceShimmer({super.key});
 
@@ -534,10 +508,8 @@ class AttendanceShimmer extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Check-in banner
               ShimmerBox(width: double.infinity, height: 88, radius: 18),
               SizedBox(height: 14),
-              // Overview stats card (2 rows x 3)
               _AttendanceCardBone(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -582,10 +554,8 @@ class AttendanceShimmer extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 12),
-              // OT info
               ShimmerBox(width: double.infinity, height: 72, radius: 16),
               SizedBox(height: 12),
-              // Filters & actions
               _AttendanceCardBone(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -626,10 +596,8 @@ class AttendanceShimmer extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 12),
-              // OT available banner
               ShimmerBox(width: double.infinity, height: 56, radius: 14),
               SizedBox(height: 18),
-              // Records header
               Row(
                 children: [
                   ShimmerBox(width: 22, height: 22, radius: 6),
@@ -740,7 +708,6 @@ class _AttendanceRecordBone extends StatelessWidget {
   }
 }
 
-/// Mirrors My Shift / My Location tab loading layout.
 class AttendanceSubTabShimmer extends StatelessWidget {
   const AttendanceSubTabShimmer({super.key});
 
@@ -813,7 +780,6 @@ class AttendanceSubTabShimmer extends StatelessWidget {
   }
 }
 
-/// Mirrors the profile layout: avatar header followed by detail cards.
 class ProfileShimmer extends StatelessWidget {
   const ProfileShimmer({super.key});
 
@@ -849,7 +815,6 @@ class ProfileShimmer extends StatelessWidget {
   }
 }
 
-/// Mirrors the payslips screen: header, stats, filters, salary record.
 class PayslipsShimmer extends StatelessWidget {
   const PayslipsShimmer({super.key});
 
@@ -1123,278 +1088,338 @@ class VisitsShimmer extends StatelessWidget {
   }
 }
 
-/// Flipkart-style shimmer for My Issues screen.
 class IssuesShimmer extends StatelessWidget {
   const IssuesShimmer({super.key});
 
-  static const _base = Color(0xFFE6E6E6);
-  static const _highlight = Color(0xFFF7F7F7);
-  static const _bone = Color(0xFFE6E6E6);
+  @override
+  Widget build(BuildContext context) {
+    return const SingleChildScrollView(
+      physics: NeverScrollableScrollPhysics(),
+      child: Shimmer(
+        baseColor: Color(0xFFE4E1EF),
+        highlightColor: Color(0xFFF8F7FC),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 14, 16, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShimmerBox(width: double.infinity, height: 48, radius: 12),
+              SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(child: ShimmerBox(height: 78, radius: 14)),
+                  SizedBox(width: 8),
+                  Expanded(child: ShimmerBox(height: 78, radius: 14)),
+                  SizedBox(width: 8),
+                  Expanded(child: ShimmerBox(height: 78, radius: 14)),
+                ],
+              ),
+              SizedBox(height: 14),
+              ShimmerBox(width: double.infinity, height: 128, radius: 16),
+              SizedBox(height: 14),
+              ShimmerBox(width: double.infinity, height: 96, radius: 16),
+              SizedBox(height: 18),
+              Row(
+                children: [
+                  ShimmerBox(width: 22, height: 22, radius: 6),
+                  SizedBox(width: 8),
+                  ShimmerBox(width: 100, height: 13, radius: 6),
+                ],
+              ),
+              SizedBox(height: 12),
+              _AdminListCardBone(),
+              SizedBox(height: 10),
+              _AdminListCardBone(),
+              SizedBox(height: 10),
+              _AdminListCardBone(),
+              SizedBox(height: 10),
+              _AdminListCardBone(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AdminDashboardShimmer extends StatelessWidget {
+  const AdminDashboardShimmer({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: PortalColors.background,
-      child: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
-        child: Shimmer(
-          baseColor: _base,
-          highlightColor: _highlight,
-          duration: const Duration(milliseconds: 1100),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return const SingleChildScrollView(
+      physics: NeverScrollableScrollPhysics(),
+      child: Shimmer(
+        baseColor: Color(0xFFE4E1EF),
+        highlightColor: Color(0xFFF8F7FC),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShimmerBox(width: 180, height: 22, radius: 8),
+              SizedBox(height: 8),
+              ShimmerBox(width: 140, height: 12, radius: 6),
+              SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(child: ShimmerBox(height: 40, radius: 12)),
+                  SizedBox(width: 10),
+                  Expanded(child: ShimmerBox(height: 40, radius: 12)),
+                ],
+              ),
+              SizedBox(height: 14),
+              ShimmerBox(width: double.infinity, height: 96, radius: 16),
+              SizedBox(height: 12),
+              ShimmerBox(width: double.infinity, height: 180, radius: 18),
+              SizedBox(height: 12),
+              ShimmerBox(width: double.infinity, height: 220, radius: 18),
+              SizedBox(height: 12),
+              ShimmerBox(width: double.infinity, height: 160, radius: 18),
+              SizedBox(height: 12),
+              ShimmerBox(width: double.infinity, height: 150, radius: 18),
+              SizedBox(height: 12),
+              ShimmerBox(width: double.infinity, height: 170, radius: 18),
+              SizedBox(height: 12),
+              ShimmerBox(width: double.infinity, height: 140, radius: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AdminListShimmer extends StatelessWidget {
+  const AdminListShimmer({
+    super.key,
+    this.statCount = 4,
+    this.cardCount = 5,
+    this.showSearch = true,
+    this.showFilters = true,
+  });
+
+  final int statCount;
+  final int cardCount;
+  final bool showSearch;
+  final bool showFilters;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Shimmer(
+        baseColor: const Color(0xFFE4E1EF),
+        highlightColor: const Color(0xFFF8F7FC),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (showSearch) ...[
+                const ShimmerBox(width: double.infinity, height: 48, radius: 12),
+                const SizedBox(height: 14),
+              ],
+              Row(
+                children: [
+                  for (var i = 0; i < statCount; i++) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    const Expanded(child: ShimmerBox(height: 78, radius: 14)),
+                  ],
+                ],
+              ),
+              if (showFilters) ...[
+                const SizedBox(height: 14),
+                const ShimmerBox(width: double.infinity, height: 96, radius: 16),
+              ],
+              const SizedBox(height: 18),
+              const Row(
+                children: [
+                  ShimmerBox(width: 22, height: 22, radius: 6),
+                  SizedBox(width: 8),
+                  ShimmerBox(width: 120, height: 14, radius: 6),
+                  Spacer(),
+                  ShimmerBox(width: 60, height: 11, radius: 5),
+                ],
+              ),
+              const SizedBox(height: 12),
+              for (var i = 0; i < cardCount; i++) ...[
+                if (i > 0) const SizedBox(height: 10),
+                const _AdminListCardBone(),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AdminListCardsShimmer extends StatelessWidget {
+  const AdminListCardsShimmer({super.key, this.cardCount = 4});
+
+  final int cardCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer(
+      baseColor: const Color(0xFFE4E1EF),
+      highlightColor: const Color(0xFFF8F7FC),
+      child: Column(
+        children: [
+          for (var i = 0; i < cardCount; i++) ...[
+            if (i > 0) const SizedBox(height: 10),
+            const _AdminListCardBone(),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class DrawerShimmer extends StatelessWidget {
+  const DrawerShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final top = MediaQuery.paddingOf(context).top;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: EdgeInsets.fromLTRB(14, top + 12, 12, 16),
+          color: const Color(0xFF161234),
+          child: const Shimmer(
+            baseColor: Color(0xFFE4E1EF),
+            highlightColor: Color(0xFFF8F7FC),
+            child: Row(
               children: [
-                _fkBox(height: 48, radius: 12),
-                const SizedBox(height: 14),
-                const Row(
-                  children: [
-                    Expanded(child: _FkStatBone()),
-                    SizedBox(width: 8),
-                    Expanded(child: _FkStatBone()),
-                    SizedBox(width: 8),
-                    Expanded(child: _FkStatBone()),
-                  ],
+                ShimmerBox(width: 44, height: 44, radius: 14),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShimmerBox(width: 120, height: 14, radius: 6),
+                      SizedBox(height: 8),
+                      ShimmerBox(width: 90, height: 10, radius: 5),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 14),
-                _fkBox(height: 128, radius: 16),
-                const SizedBox(height: 14),
-                const _FkFiltersBone(),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    _fkBox(width: 26, height: 26, radius: 8),
-                    const SizedBox(width: 8),
-                    _fkBox(width: 100, height: 13, radius: 6),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const _FkIssueCardBone(),
-                const SizedBox(height: 10),
-                const _FkIssueCardBone(),
-                const SizedBox(height: 10),
-                const _FkIssueCardBone(),
-                const SizedBox(height: 10),
-                const _FkIssueCardBone(),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  static Widget _fkBox({
-    double? width,
-    required double height,
-    double radius = 8,
-  }) {
-    return Container(
-      width: width ?? double.infinity,
-      height: height,
-      decoration: BoxDecoration(
-        color: _bone,
-        borderRadius: BorderRadius.circular(radius),
-      ),
-    );
-  }
-}
-
-class _FkStatBone extends StatelessWidget {
-  const _FkStatBone();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE6E6E6),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD9D9D9),
-              borderRadius: BorderRadius.circular(6),
+        Expanded(
+          child: ColoredBox(
+            color: const Color(0xFFF8FAFC),
+            child: SingleChildScrollView(
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+              child: Shimmer(
+                baseColor: const Color(0xFFE4E1EF),
+                highlightColor: const Color(0xFFF8F7FC),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        ShimmerBox(width: 72, height: 10, radius: 4),
+                        Spacer(),
+                        ShimmerBox(width: 40, height: 16, radius: 8),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    for (var i = 0; i < 6; i++) ...[
+                      if (i > 0) const SizedBox(height: 8),
+                      const _DrawerMenuBone(),
+                    ],
+                    const SizedBox(height: 18),
+                    const ShimmerBox(width: 90, height: 10, radius: 4),
+                    const SizedBox(height: 12),
+                    for (var i = 0; i < 4; i++) ...[
+                      if (i > 0) const SizedBox(height: 8),
+                      const _DrawerMenuBone(),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 10),
-          Container(
-            width: 42,
-            height: 8,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD9D9D9),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Container(
-            width: 30,
-            height: 14,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD9D9D9),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 5),
-          Container(
-            width: 56,
-            height: 7,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD9D9D9),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FkFiltersBone extends StatelessWidget {
-  const _FkFiltersBone();
-
-  @override
-  Widget build(BuildContext context) {
-    Widget line({double? width, required double height, double radius = 6}) {
-      return Container(
-        width: width ?? double.infinity,
-        height: height,
-        decoration: BoxDecoration(
-          color: const Color(0xFFD9D9D9),
-          borderRadius: BorderRadius.circular(radius),
         ),
-      );
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE6E6E6),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              line(width: 28, height: 28, radius: 8),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    line(width: 64, height: 11),
-                    const SizedBox(height: 6),
-                    line(width: 140, height: 8),
-                  ],
-                ),
-              ),
-              line(width: 40, height: 10),
-            ],
-          ),
-          const SizedBox(height: 14),
-          line(width: 52, height: 8),
-          const SizedBox(height: 6),
-          line(height: 40, radius: 10),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    line(width: 44, height: 8),
-                    const SizedBox(height: 6),
-                    line(height: 40, radius: 10),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    line(width: 36, height: 8),
-                    const SizedBox(height: 6),
-                    line(height: 40, radius: 10),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
 
-class _FkIssueCardBone extends StatelessWidget {
-  const _FkIssueCardBone();
+class _AdminListCardBone extends StatelessWidget {
+  const _AdminListCardBone();
 
   @override
   Widget build(BuildContext context) {
-    Widget line({double? width, required double height, double radius = 6}) {
-      return Container(
-        width: width ?? double.infinity,
-        height: height,
-        decoration: BoxDecoration(
-          color: const Color(0xFFD9D9D9),
-          borderRadius: BorderRadius.circular(radius),
-        ),
-      );
-    }
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(14, 14, 12, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFE6E6E6),
+        color: PortalColors.surface,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PortalColors.border),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(child: line(height: 13)),
-              const SizedBox(width: 10),
-              line(width: 28, height: 28, radius: 8),
-              const SizedBox(width: 4),
-              line(width: 28, height: 28, radius: 8),
-              const SizedBox(width: 4),
-              line(width: 28, height: 28, radius: 8),
+              ShimmerBox(width: 40, height: 40, radius: 12),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerBox(width: 130, height: 12, radius: 5),
+                    SizedBox(height: 6),
+                    ShimmerBox(width: 90, height: 9, radius: 4),
+                  ],
+                ),
+              ),
+              ShimmerBox(width: 56, height: 20, radius: 999),
             ],
           ),
-          const SizedBox(height: 10),
-          line(height: 9),
-          const SizedBox(height: 6),
-          line(width: 170, height: 9),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              line(width: 56, height: 18, radius: 999),
-              const SizedBox(width: 6),
-              line(width: 50, height: 18, radius: 999),
-              const SizedBox(width: 6),
-              line(width: 60, height: 18, radius: 999),
-            ],
-          ),
-          const SizedBox(height: 12),
-          line(height: 1, radius: 1),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              line(width: 70, height: 9),
-              const Spacer(),
-              line(width: 88, height: 9),
-            ],
+          SizedBox(height: 12),
+          ShimmerBox(width: double.infinity, height: 9, radius: 4),
+          SizedBox(height: 6),
+          ShimmerBox(width: 160, height: 9, radius: 4),
+        ],
+      ),
+    );
+  }
+}
+
+class _DrawerMenuBone extends StatelessWidget {
+  const _DrawerMenuBone();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: PortalColors.border),
+      ),
+      child: const Row(
+        children: [
+          ShimmerBox(width: 38, height: 38, radius: 12),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerBox(width: 100, height: 12, radius: 5),
+                SizedBox(height: 6),
+                ShimmerBox(width: 70, height: 9, radius: 4),
+              ],
+            ),
           ),
         ],
       ),

@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/core/widgets/shimmer.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/bloc/attendance_records_cubit.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/bloc/attendance_records_state.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/models/attendance_records_ui.dart';
@@ -465,14 +466,9 @@ class _AttendanceRecordsScreenState extends State<AttendanceRecordsScreen> {
                             const SizedBox(height: 12),
 
                             if (isLoading)
-                              Container(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 48),
-                                alignment: Alignment.center,
-                                child: const CircularProgressIndicator(
-                                  color: Color(0xFF4F46E5),
-                                  strokeWidth: 2.5,
-                                ),
+                              const Padding(
+                                padding: EdgeInsets.only(top: 8, bottom: 16),
+                                child: AdminListCardsShimmer(cardCount: 5),
                               )
                             else if (isFailure)
                               Container(

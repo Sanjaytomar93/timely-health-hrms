@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/screens/camp_dashboard_screen.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_colors.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/theme/camp_ui_scope.dart';
@@ -10,6 +11,7 @@ import 'package:timelay_health/features/camp/dashboard/presentation/widgets/camp
 import 'package:timelay_health/features/camp/profile/presentation/screens/camp_profile_screen.dart';
 import 'package:timelay_health/features/camp/camps/presentation/screens/camp_list_screen.dart';
 import 'package:timelay_health/features/camp/patients/presentation/screens/patients_screen.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 
 class CampManagementShell extends StatefulWidget {
   const CampManagementShell({super.key});
@@ -65,6 +67,8 @@ class _CampManagementShellState extends State<CampManagementShell> {
           },
           child: Scaffold(
             backgroundColor: CampColors.background,
+            drawer: const HomeSideDrawer(),
+            drawerScrimColor: PortalColors.brand.withValues(alpha: 0.28),
             body: PortalSafeArea(
               bottom: false,
               statusBarColor: CampColors.surface,

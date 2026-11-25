@@ -32,12 +32,13 @@ class CampsCubit extends Cubit<CampsState> {
     if (isClosed) return;
 
     if (employeeName.isEmpty) {
+      final zeroStats = CampListUiMapper.toStats(const []);
       emit(
         CampsFailureState(
           'Employee name missing. Please login again.',
           camps: keepExisting ? state.camps : const [],
           allCamps: keepExisting ? _all : const [],
-          stats: keepExisting ? _stats : const [],
+          stats: keepExisting ? _stats : zeroStats,
           search: _search,
           filter: _filter,
         ),
@@ -77,12 +78,13 @@ class CampsCubit extends Cubit<CampsState> {
     } on CampFailure catch (e) {
       if (isClosed) return;
       if (hasCache) return;
+      final zeroStats = CampListUiMapper.toStats(const []);
       emit(
         CampsFailureState(
           e.message,
           camps: keepExisting ? state.camps : const [],
           allCamps: keepExisting ? _all : const [],
-          stats: keepExisting ? _stats : const [],
+          stats: keepExisting ? _stats : zeroStats,
           search: _search,
           filter: _filter,
         ),
@@ -90,12 +92,13 @@ class CampsCubit extends Cubit<CampsState> {
     } catch (_) {
       if (isClosed) return;
       if (hasCache) return;
+      final zeroStats = CampListUiMapper.toStats(const []);
       emit(
         CampsFailureState(
           'Failed to load camps. Please try again.',
           camps: keepExisting ? state.camps : const [],
           allCamps: keepExisting ? _all : const [],
-          stats: keepExisting ? _stats : const [],
+          stats: keepExisting ? _stats : zeroStats,
           search: _search,
           filter: _filter,
         ),

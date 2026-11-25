@@ -45,7 +45,6 @@ class PatientsSectionHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          // thin line
           Expanded(
             flex: 3,
             child: Container(
@@ -63,6 +62,3 @@ class PatientsSectionHeader extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  ACCORDION PATIENT CARD
-// ─────────────────────────────────────────────────────────────

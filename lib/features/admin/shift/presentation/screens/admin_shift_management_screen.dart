@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/theme/portal_system_ui.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/core/widgets/shimmer.dart';
+import 'package:timelay_health/features/admin/shift/presentation/bloc/admin_shift_cubit.dart';
+import 'package:timelay_health/features/admin/shift/presentation/bloc/admin_shift_state.dart';
 import 'package:timelay_health/features/admin/shift/presentation/models/admin_shift_model.dart';
 import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
@@ -24,86 +27,32 @@ class _AdminShiftManagementScreenState
     extends State<AdminShiftManagementScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchCtrl = TextEditingController();
+  late final AdminShiftCubit _cubit;
 
   String _deptFilter = 'All Departments';
   String _desigFilter = 'All Designations';
   String _shiftFilter = 'All Shifts';
 
-  static const List<String> departments = [
-    'All Departments',
-    'Laboratory Medicine',
-    'Nursing',
-    'Digital Marketing',
-    'Developer',
-    'Medical',
-    'Marketing',
-    'Sales',
-    'Consultant',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _cubit = AdminShiftCubit()..load();
+  }
 
-  static const List<String> designations = [
-    'All Designations',
-    'Ai Intern',
-    'Clinical Dietician Trainee',
-    'Consultant',
-    'Digital Marketing Executive',
-    'Doctor',
-    'Employee',
-    'Flutter Developer',
-    'General Manager',
-    'Graphic Designer',
-    'HR Intern',
-    'HR Manager',
-    'MERN Stack Developer',
-    'Manager',
-    'Manger',
-    'Marketing',
-    'Pharmacist',
-    'Phlebotomist',
-    'SMM & SEO Executive',
-    'Sales Executive',
-    'Senior Marketing Executive',
-    'Staff Nurse',
-    'Team Lead',
-    'Web Developer',
-  ];
-
-  static const List<String> shifts = [
-    'All Shifts',
-    'Shift A',
-    'Shift B',
-    'Shift C',
-    'Shift D',
-    'Shift E',
-    'Shift F',
-    'Shift G',
-    'Shift H',
-    'Shift I',
-    'Shift J',
-    'Shift K',
-    'Shift L',
-    'Shift M',
-    'Shift N',
-    'Shift O',
-    'Shift P',
-    'Shift Q',
-    'Shift R',
-    'Shift S',
-    'Shift T',
-  ];
-
-  final List<AdminShiftEmployeeItem> _allRecords =
-      AdminShiftEmployeeItem.sampleList();
-
-  List<AdminShiftEmployeeItem> get _filteredRecords {
+  List<AdminShiftEmployeeItem> _filteredRecords(
+    List<AdminShiftEmployeeItem> all,
+  ) {
     final query = _searchCtrl.text.trim().toLowerCase();
-    return _allRecords.where((item) {
+    return all.where((item) {
       if (query.isNotEmpty) {
         final matchesName = item.name.toLowerCase().contains(query);
+        final matchesId = item.employeeId.toLowerCase().contains(query);
         final matchesDesig = item.designation.toLowerCase().contains(query);
         final matchesShift = item.shiftCode.toLowerCase().contains(query) ||
             item.shiftName.toLowerCase().contains(query);
-        if (!matchesName && !matchesDesig && !matchesShift) return false;
+        if (!matchesName && !matchesId && !matchesDesig && !matchesShift) {
+          return false;
+        }
       }
       if (_deptFilter != 'All Departments' && item.department != _deptFilter) {
         return false;
@@ -119,107 +68,42 @@ class _AdminShiftManagementScreenState
     }).toList();
   }
 
-  void _pickFromSheet({
-    required String title,
-    required List<String> items,
-    required String selected,
-    required ValueChanged<String> onPick,
-  }) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                margin: const EdgeInsets.only(top: 10, bottom: 6),
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                child: Row(
-                  children: [
-                    Text(
-                      title,
-                      style: portalText(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: PortalColors.heading,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 20),
-                      onPressed: () => Navigator.pop(ctx),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: items.length,
-                  itemBuilder: (_, index) {
-                    final it = items[index];
-                    final isSel = it == selected;
-                    return ListTile(
-                      dense: true,
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-                      title: Text(
-                        it,
-                        style: portalText(
-                          fontSize: 13.5,
-                          fontWeight:
-                              isSel ? FontWeight.w800 : FontWeight.w500,
-                          color: isSel
-                              ? const Color(0xFF4F46E5)
-                              : PortalColors.heading,
-                        ),
-                      ),
-                      trailing: isSel
-                          ? const Icon(
-                              Icons.check_circle_rounded,
-                              size: 18,
-                              color: Color(0xFF4F46E5),
-                            )
-                          : null,
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        onPick(it);
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  List<String> _departments(List<AdminShiftEmployeeItem> records) {
+    final set = <String>{};
+    for (final r in records) {
+      if (r.department.trim().isNotEmpty) set.add(r.department.trim());
+    }
+    final list = set.toList()..sort();
+    return ['All Departments', ...list];
+  }
+
+  List<String> _designations(List<AdminShiftEmployeeItem> records) {
+    final set = <String>{};
+    for (final r in records) {
+      if (r.designation.trim().isNotEmpty) set.add(r.designation.trim());
+    }
+    final list = set.toList()..sort();
+    return ['All Designations', ...list];
+  }
+
+  List<String> _shifts(List<AdminShiftEmployeeItem> records) {
+    final set = <String>{};
+    for (final r in records) {
+      if (r.shiftCode.trim().isNotEmpty) set.add(r.shiftCode.trim());
+    }
+    final list = set.toList()..sort();
+    return ['All Shifts', ...list];
   }
 
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _cubit.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final list = _filteredRecords;
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: PortalSystemUi.darkStatusBar,
       child: Scaffold(
@@ -232,187 +116,272 @@ class _AdminShiftManagementScreenState
           statusBarColor: PortalColors.brand,
           child: Column(
             children: [
-              // 1. Top Navbar matching exact style
               _TopBar(
                 onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
               ),
-
-              // 2. Scrollable Body
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                  children: [
-                    // Search Bar
-                    _SearchField(
-                      controller: _searchCtrl,
-                      onChanged: (_) => setState(() {}),
-                    ),
-                    const SizedBox(height: 12),
+                child: BlocBuilder<AdminShiftCubit, AdminShiftState>(
+                  bloc: _cubit,
+                  builder: (context, state) {
+                    final ui = state.ui;
+                    final list = _filteredRecords(ui.records);
+                    final isLoading =
+                        state is AdminShiftLoading && ui.records.isEmpty;
+                    final failureState =
+                        state is AdminShiftFailureState ? state : null;
+                    final isFailure =
+                        failureState != null && ui.records.isEmpty;
+                    final departments = _departments(ui.records);
+                    final designations = _designations(ui.records);
+                    final shifts = _shifts(ui.records);
+                    final stats = ui.stats;
 
-                    // Filter Row: [All Departments ▾] [All Designations ▾] [All Shifts ▾]
-                    _FilterRow(
-                      deptLabel: _deptFilter,
-                      desigLabel: _desigFilter,
-                      shiftLabel: _shiftFilter,
-                      departments: departments,
-                      designations: designations,
-                      shifts: shifts,
-                      onDeptSelected: (v) => setState(() => _deptFilter = v),
-                      onDesigSelected: (v) => setState(() => _desigFilter = v),
-                      onShiftSelected: (v) => setState(() => _shiftFilter = v),
-                    ),
-                    const SizedBox(height: 18),
+                    if (isLoading) {
+                      return const AdminListShimmer(
+                        statCount: 4,
+                        cardCount: 5,
+                      );
+                    }
 
-                    // Section: OVERVIEW METRICS
-                    Row(
-                      children: [
-                        Text(
-                          'OVERVIEW METRICS',
-                          style: portalText(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF64748B),
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-
-                    // 4 Overview Metric Cards (2x2 Grid)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _MetricCard(
-                            title: 'TOTAL EMPLOYEES',
-                            value: '25',
-                            subtitle: 'Employees',
-                            icon: Icons.groups_outlined,
-                            iconColor: const Color(0xFF059669),
-                            iconBg: const Color(0xFFECFDF5),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _MetricCard(
-                            title: 'ACTIVE SHIFTS',
-                            value: '20',
-                            subtitle: 'Shifts Live',
-                            icon: Icons.calendar_view_day_rounded,
-                            iconColor: const Color(0xFF4F46E5),
-                            iconBg: const Color(0xFFEEF2FF),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _MetricCard(
-                            title: 'ASSIGNED SHIFTS',
-                            value: '25',
-                            subtitle: 'Shift Slots',
-                            icon: Icons.access_time_rounded,
-                            iconColor: const Color(0xFF7C3AED),
-                            iconBg: const Color(0xFFFAF5FF),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _MetricCard(
-                            title: 'ON SHIFT TODAY',
-                            value: '25',
-                            valueSuffix: ' / 65',
-                            subtitle: 'Active Today',
-                            subtitleColor: const Color(0xFF059669),
-                            icon: Icons.verified_user_outlined,
-                            iconColor: const Color(0xFFD97706),
-                            iconBg: const Color(0xFFFEF3C7),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Section Header: Shift Schedule
-                    Row(
-                      children: [
-                        Container(
-                          width: 4,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E1B4B),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Shift Schedule',
-                          style: portalText(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: PortalColors.heading,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${list.length} Shown',
-                            style: portalText(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF64748B),
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        Row(
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF10B981),
-                                shape: BoxShape.circle,
+                    if (isFailure) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEE2E2),
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
+                                child: const Icon(
+                                  Icons.wifi_off_rounded,
+                                  size: 28,
+                                  color: Color(0xFFDC2626),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Live Monitoring',
-                              style: portalText(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF0D9488),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Failed to Load Shifts',
+                                style: portalText(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: PortalColors.heading,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 6),
+                              Text(
+                                failureState.message,
+                                textAlign: TextAlign.center,
+                                style: portalText(
+                                  fontSize: 12.5,
+                                  color: PortalColors.muted,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: PortalColors.brand,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 10,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                onPressed: () => _cubit.load(),
+                                child: Text(
+                                  'Retry',
+                                  style: portalText(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
+                      );
+                    }
 
-                    // 10 Employee Shift Cards
-                    for (final item in list) ...[
-                      _ShiftEmployeeCard(item: item),
-                      const SizedBox(height: 12),
-                    ],
-                  ],
+                    return RefreshIndicator(
+                      color: PortalColors.brand,
+                      onRefresh: () => _cubit.load(isRefresh: true),
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                        children: [
+                          _SearchField(
+                            controller: _searchCtrl,
+                            onChanged: (_) => setState(() {}),
+                          ),
+                          const SizedBox(height: 12),
+                          _FilterRow(
+                            deptLabel: _deptFilter,
+                            desigLabel: _desigFilter,
+                            shiftLabel: _shiftFilter,
+                            departments: departments,
+                            designations: designations,
+                            shifts: shifts,
+                            onDeptSelected: (v) =>
+                                setState(() => _deptFilter = v),
+                            onDesigSelected: (v) =>
+                                setState(() => _desigFilter = v),
+                            onShiftSelected: (v) =>
+                                setState(() => _shiftFilter = v),
+                            onDeptClear: () =>
+                                setState(() => _deptFilter = 'All Departments'),
+                            onDesigClear: () => setState(
+                                () => _desigFilter = 'All Designations'),
+                            onShiftClear: () =>
+                                setState(() => _shiftFilter = 'All Shifts'),
+                          ),
+                          const SizedBox(height: 18),
+                          Row(
+                            children: [
+                              Text(
+                                'OVERVIEW METRICS',
+                                style: portalText(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF64748B),
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _MetricCard(
+                                  title: 'TOTAL EMPLOYEES',
+                                  value: '${stats.totalEmployees}',
+                                  subtitle: 'Employees',
+                                  icon: Icons.groups_outlined,
+                                  iconColor: const Color(0xFF059669),
+                                  iconBg: const Color(0xFFECFDF5),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _MetricCard(
+                                  title: 'ACTIVE SHIFTS',
+                                  value: '${stats.activeShifts}',
+                                  subtitle: 'Shifts Live',
+                                  icon: Icons.calendar_view_day_rounded,
+                                  iconColor: const Color(0xFF4F46E5),
+                                  iconBg: const Color(0xFFEEF2FF),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _MetricCard(
+                                  title: 'ASSIGNED SHIFTS',
+                                  value: '${stats.assignedShifts}',
+                                  subtitle: 'Shift Slots',
+                                  icon: Icons.access_time_rounded,
+                                  iconColor: const Color(0xFF7C3AED),
+                                  iconBg: const Color(0xFFFAF5FF),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _MetricCard(
+                                  title: 'ON SHIFT TODAY',
+                                  value: '${stats.onShiftToday}',
+                                  valueSuffix:
+                                      ' / ${stats.totalEmployees}',
+                                  subtitle: 'Active Today',
+                                  subtitleColor: const Color(0xFF059669),
+                                  icon: Icons.verified_user_outlined,
+                                  iconColor: const Color(0xFFD97706),
+                                  iconBg: const Color(0xFFFEF3C7),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              Container(
+                                width: 4,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1E1B4B),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Shift Schedule',
+                                style: portalText(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: PortalColors.heading,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${list.length} Shown',
+                                  style: portalText(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF64748B),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          if (list.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 40),
+                              child: Center(
+                                child: Text(
+                                  'No shift assignments found',
+                                  style: portalText(
+                                    fontSize: 13,
+                                    color: PortalColors.muted,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            for (final item in list) ...[
+                              _ShiftEmployeeCard(item: item),
+                              const SizedBox(height: 12),
+                            ],
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
           ),
         ),
         bottomNavigationBar: EmployeeBottomNav(
-          currentIndex: 2,
+          currentIndex: 3,
           onTap: (i) => EmployeeHomeShell.goToTab(context, i),
         ),
       ),
@@ -420,9 +389,6 @@ class _AdminShiftManagementScreenState
   }
 }
 
-// ---------------------------------------------------------------------------
-// 1. Top Navbar (Identical to Payroll & Expense)
-// ---------------------------------------------------------------------------
 class _TopBar extends StatelessWidget {
   const _TopBar({required this.onMenuTap});
 
@@ -489,9 +455,6 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 2. Search Field
-// ---------------------------------------------------------------------------
 class _SearchField extends StatelessWidget {
   const _SearchField({
     required this.controller,
@@ -563,9 +526,6 @@ class _SearchField extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 3. Filter Row (3 Chips in single row)
-// ---------------------------------------------------------------------------
 class _FilterRow extends StatelessWidget {
   const _FilterRow({
     required this.deptLabel,
@@ -577,6 +537,9 @@ class _FilterRow extends StatelessWidget {
     required this.onDeptSelected,
     required this.onDesigSelected,
     required this.onShiftSelected,
+    required this.onDeptClear,
+    required this.onDesigClear,
+    required this.onShiftClear,
   });
 
   final String deptLabel;
@@ -588,6 +551,9 @@ class _FilterRow extends StatelessWidget {
   final ValueChanged<String> onDeptSelected;
   final ValueChanged<String> onDesigSelected;
   final ValueChanged<String> onShiftSelected;
+  final VoidCallback onDeptClear;
+  final VoidCallback onDesigClear;
+  final VoidCallback onShiftClear;
 
   @override
   Widget build(BuildContext context) {
@@ -599,6 +565,8 @@ class _FilterRow extends StatelessWidget {
             selected: deptLabel,
             items: departments,
             onSelected: onDeptSelected,
+            active: deptLabel != 'All Departments',
+            onClear: onDeptClear,
             minWidth: 170,
             maxWidth: 220,
           ),
@@ -610,6 +578,8 @@ class _FilterRow extends StatelessWidget {
             selected: desigLabel,
             items: designations,
             onSelected: onDesigSelected,
+            active: desigLabel != 'All Designations',
+            onClear: onDesigClear,
             minWidth: 200,
             maxWidth: 260,
           ),
@@ -621,6 +591,8 @@ class _FilterRow extends StatelessWidget {
             selected: shiftLabel,
             items: shifts,
             onSelected: onShiftSelected,
+            active: shiftLabel != 'All Shifts',
+            onClear: onShiftClear,
             minWidth: 140,
             maxWidth: 180,
           ),
@@ -635,6 +607,8 @@ class _FilterChipDropdown extends StatelessWidget {
     required this.selected,
     required this.items,
     required this.onSelected,
+    required this.active,
+    required this.onClear,
     this.minWidth = 160,
     this.maxWidth = 240,
   });
@@ -642,113 +616,151 @@ class _FilterChipDropdown extends StatelessWidget {
   final String selected;
   final List<String> items;
   final ValueChanged<String> onSelected;
+  final bool active;
+  final VoidCallback onClear;
   final double minWidth;
   final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        popupMenuTheme: PopupMenuThemeData(
-          color: const Color(0xFF6B7280).withValues(alpha: 0.96),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          elevation: 12,
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.only(left: 8, right: 6),
+      decoration: BoxDecoration(
+        color: active ? PortalColors.brandTint : Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: active
+              ? PortalColors.brand.withValues(alpha: 0.28)
+              : PortalColors.border,
         ),
       ),
-      child: PopupMenuButton<String>(
-        tooltip: selected,
-        padding: EdgeInsets.zero,
-        offset: const Offset(0, 42),
-        constraints: BoxConstraints(
-          maxHeight: 380,
-          minWidth: minWidth,
-          maxWidth: maxWidth,
-        ),
-        onSelected: onSelected,
-        itemBuilder: (ctx) {
-          return items.map((item) {
-            final isCurrent = item == selected;
-            return PopupMenuItem<String>(
-              value: item,
-              height: 36,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color:
-                      isCurrent ? const Color(0xFF007AFF) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                popupMenuTheme: PopupMenuThemeData(
+                  color: const Color(0xFF6B7280).withValues(alpha: 0.96),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  elevation: 12,
                 ),
+              ),
+              child: PopupMenuButton<String>(
+                tooltip: selected,
+                padding: EdgeInsets.zero,
+                offset: const Offset(0, 42),
+                constraints: BoxConstraints(
+                  maxHeight: 380,
+                  minWidth: minWidth,
+                  maxWidth: maxWidth,
+                ),
+                onSelected: onSelected,
+                itemBuilder: (ctx) {
+                  return items.map((item) {
+                    final isCurrent = item == selected;
+                    return PopupMenuItem<String>(
+                      value: item,
+                      height: 36,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isCurrent
+                              ? const Color(0xFF007AFF)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            if (isCurrent) ...[
+                              const Icon(
+                                Icons.check_rounded,
+                                size: 15,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Expanded(
+                              child: Text(
+                                item,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: portalText(
+                                  fontSize: 12.5,
+                                  fontWeight: isCurrent
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList();
+                },
                 child: Row(
                   children: [
-                    if (isCurrent) ...[
-                      const Icon(
-                        Icons.check_rounded,
-                        size: 15,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(width: 6),
-                    ],
                     Expanded(
                       child: Text(
-                        item,
+                        selected,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: portalText(
-                          fontSize: 12.5,
-                          fontWeight:
-                              isCurrent ? FontWeight.w700 : FontWeight.w500,
-                          color: Colors.white,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: active
+                              ? PortalColors.brand
+                              : PortalColors.heading,
                         ),
                       ),
                     ),
+                    if (!active)
+                      const Icon(
+                        Icons.arrow_drop_down_rounded,
+                        size: 18,
+                        color: PortalColors.muted,
+                      ),
                   ],
                 ),
               ),
-            );
-          }).toList();
-        },
-        child: Container(
-          height: 38,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: PortalColors.border),
+            ),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  selected,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: portalText(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w600,
-                    color: PortalColors.heading,
-                  ),
+          if (active) ...[
+            const SizedBox(width: 2),
+            GestureDetector(
+              onTap: onClear,
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.all(1.5),
+                decoration: BoxDecoration(
+                  color: PortalColors.brand.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 11,
+                  color: PortalColors.brand,
                 ),
               ),
-              const SizedBox(width: 2),
-              const Icon(
-                Icons.arrow_drop_down_rounded,
-                size: 18,
-                color: PortalColors.muted,
-              ),
-            ],
-          ),
-        ),
+            ),
+          ],
+        ],
       ),
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// 4. Metric Card (2x2 Grid) - Compact & Impressive
-// ---------------------------------------------------------------------------
 class _MetricCard extends StatelessWidget {
   const _MetricCard({
     required this.title,
@@ -859,9 +871,6 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 5. Employee Shift Card
-// ---------------------------------------------------------------------------
 class _ShiftEmployeeCard extends StatelessWidget {
   const _ShiftEmployeeCard({required this.item});
 
@@ -885,7 +894,6 @@ class _ShiftEmployeeCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Top Row: Avatar with live dot, Name, Designation, Shift Badge
           Row(
             children: [
               Stack(
@@ -973,7 +981,6 @@ class _ShiftEmployeeCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Bottom Info Box: [ NAME: <shiftName> ] [ 🕒 <timeRange> ]
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -983,25 +990,19 @@ class _ShiftEmployeeCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                RichText(
-                  text: TextSpan(
+                Expanded(
+                  child: Text(
+                    item.shiftMessage,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: portalText(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
+                      color: const Color(0xFF334155),
                     ),
-                    children: [
-                      const TextSpan(
-                        text: 'NAME: ',
-                        style: TextStyle(color: Color(0xFF94A3B8)),
-                      ),
-                      TextSpan(
-                        text: item.shiftName,
-                        style: const TextStyle(color: Color(0xFF334155)),
-                      ),
-                    ],
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 Row(
                   children: [
                     const Icon(

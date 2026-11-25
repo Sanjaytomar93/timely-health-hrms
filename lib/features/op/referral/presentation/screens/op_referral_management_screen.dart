@@ -100,11 +100,9 @@ class _OpReferralManagementScreenState
     final orgCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
     final locCtrl = TextEditingController();
-    // Special offers (discount)
     final specFeesCtrl = TextEditingController();
     final specLabCtrl = TextEditingController();
     final specPharmCtrl = TextEditingController();
-    // Consultant fee (numeric string)
     final serviceCtrl = TextEditingController();
     final pharmacyCtrl = TextEditingController();
     final labCtrl = TextEditingController();
@@ -142,7 +140,6 @@ class _OpReferralManagementScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 12, 12),
                 child: Row(
@@ -196,14 +193,12 @@ class _OpReferralManagementScreenState
               ),
               const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
 
-              // Scrollable Body
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // BASIC INFORMATION
                       Text(
                         'BASIC INFORMATION',
                         style: portalText(
@@ -244,7 +239,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // SPECIAL OFFERS (DISCOUNT) Box
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -313,7 +307,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // CONSULTANT FEE
                       Text(
                         'CONSULTANT FEE',
                         style: portalText(
@@ -369,7 +362,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // ADDITIONAL DETAILS
                       Text(
                         'ADDITIONAL DETAILS',
                         style: portalText(
@@ -382,7 +374,6 @@ class _OpReferralManagementScreenState
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          // ONBOARD DATE
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -452,7 +443,6 @@ class _OpReferralManagementScreenState
                             ),
                           ),
                           const SizedBox(width: 10),
-                          // STATUS
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -513,7 +503,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // NOTES
                       Text(
                         'NOTES',
                         style: portalText(
@@ -555,7 +544,6 @@ class _OpReferralManagementScreenState
                 ),
               ),
 
-              // Bottom Action Buttons: Cancel and Add Customer
               const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -702,7 +690,6 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // Customer Referral Details Modal (Matching Reference View Image)
   void _showCustomerDetail(OpCustomerReferralUi customer) {
     showModalBottomSheet<void>(
       context: context,
@@ -726,7 +713,6 @@ class _OpReferralManagementScreenState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with Blue Share/Referral Icon, Title, and ID
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 12, 12),
                 child: Row(
@@ -780,7 +766,6 @@ class _OpReferralManagementScreenState
               ),
               const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
 
-              // Inner Box Container
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Container(
@@ -793,7 +778,6 @@ class _OpReferralManagementScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Avatar & Name + Phone
                       Row(
                         children: [
                           Container(
@@ -846,7 +830,6 @@ class _OpReferralManagementScreenState
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
                       const SizedBox(height: 12),
 
-                      // ADDRESS
                       Text(
                         'ADDRESS',
                         style: portalText(
@@ -869,7 +852,6 @@ class _OpReferralManagementScreenState
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
                       const SizedBox(height: 12),
 
-                      // CONSULTANT FEE
                       Text(
                         'CONSULTANT FEE',
                         style: portalText(
@@ -927,7 +909,6 @@ class _OpReferralManagementScreenState
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
                       const SizedBox(height: 12),
 
-                      // OP METRICS
                       Text(
                         'OP METRICS',
                         style: portalText(
@@ -1009,7 +990,6 @@ class _OpReferralManagementScreenState
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
                       const SizedBox(height: 12),
 
-                      // ONBOARD DATE
                       Text(
                         'ONBOARD DATE',
                         style: portalText(
@@ -1033,13 +1013,11 @@ class _OpReferralManagementScreenState
                 ),
               ),
 
-              // Bottom Action Buttons: Print, Edit, Close
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Print
                     GestureDetector(
                       onTap: () {
                         _snack('Printing details for ${customer.name}...');
@@ -1073,7 +1051,6 @@ class _OpReferralManagementScreenState
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Edit
                     GestureDetector(
                       onTap: () {
                         Navigator.pop(ctx);
@@ -1108,7 +1085,6 @@ class _OpReferralManagementScreenState
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Close
                     GestureDetector(
                       onTap: () => Navigator.pop(ctx),
                       child: Container(
@@ -1169,7 +1145,6 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // Edit Customer Referral Modal (Matching Reference Edit Image)
   void _showEditCustomerSheet(OpCustomerReferralUi customer) {
     final nameCtrl = TextEditingController(text: customer.name);
     final orgCtrl = TextEditingController(
@@ -1179,12 +1154,10 @@ class _OpReferralManagementScreenState
     final locCtrl = TextEditingController(
       text: customer.location == 'N/A' ? '' : customer.location,
     );
-    // Special offers (discount)
     final specFeesCtrl = TextEditingController(text: customer.specialFees);
     final specLabCtrl = TextEditingController(text: customer.specialLab);
     final specPharmCtrl = TextEditingController(text: customer.specialPharmacy);
     final notesCtrl = TextEditingController(text: customer.notes);
-    // Consultant fee (numeric string)
     final serviceCtrl = TextEditingController(
       text: customer.serviceRate.replaceAll('%', '').trim(),
     );
@@ -1229,7 +1202,6 @@ class _OpReferralManagementScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 12, 12),
                 child: Row(
@@ -1283,14 +1255,12 @@ class _OpReferralManagementScreenState
               ),
               const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
 
-              // Scrollable Body
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // BASIC INFORMATION
                       Text(
                         'BASIC INFORMATION',
                         style: portalText(
@@ -1331,7 +1301,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // SPECIAL OFFERS (DISCOUNT) Box
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -1397,7 +1366,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // CONSULTANT FEE
                       Text(
                         'CONSULTANT FEE',
                         style: portalText(
@@ -1449,7 +1417,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // ADDITIONAL DETAILS
                       Text(
                         'ADDITIONAL DETAILS',
                         style: portalText(
@@ -1462,7 +1429,6 @@ class _OpReferralManagementScreenState
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          // ONBOARD DATE
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1531,7 +1497,6 @@ class _OpReferralManagementScreenState
                             ),
                           ),
                           const SizedBox(width: 10),
-                          // STATUS
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1606,7 +1571,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // NOTES
                       Text(
                         'NOTES',
                         style: portalText(
@@ -1648,7 +1612,6 @@ class _OpReferralManagementScreenState
                 ),
               ),
 
-              // Bottom Actions: Cancel & Update Customer
               const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -1921,7 +1884,6 @@ class _OpReferralManagementScreenState
     _snack('Doctor "${doc.name}" removed');
   }
 
-  // Doctor Referral Details Modal (Matching Reference Image 2)
   void _showDoctorDetail(OpDoctorReferralUi doc) {
     showModalBottomSheet<void>(
       context: context,
@@ -1945,7 +1907,6 @@ class _OpReferralManagementScreenState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with Blue Share/Referral Icon, Title, and ID
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 12, 12),
                 child: Row(
@@ -1999,7 +1960,6 @@ class _OpReferralManagementScreenState
               ),
               const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
 
-              // Inner Card Container
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Container(
@@ -2012,7 +1972,6 @@ class _OpReferralManagementScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Avatar & Doctor Name + Clinic/Phone
                       Row(
                         children: [
                           Container(
@@ -2065,7 +2024,6 @@ class _OpReferralManagementScreenState
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
                       const SizedBox(height: 12),
 
-                      // ADDRESS
                       Text(
                         'ADDRESS',
                         style: portalText(
@@ -2088,7 +2046,6 @@ class _OpReferralManagementScreenState
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
                       const SizedBox(height: 12),
 
-                      // SPECIALIZATION
                       Text(
                         'SPECIALIZATION',
                         style: portalText(
@@ -2111,7 +2068,6 @@ class _OpReferralManagementScreenState
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
                       const SizedBox(height: 12),
 
-                      // CONSULTANT FEE
                       Text(
                         'CONSULTANT FEE',
                         style: portalText(
@@ -2169,7 +2125,6 @@ class _OpReferralManagementScreenState
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
                       const SizedBox(height: 12),
 
-                      // OP METRICS
                       Text(
                         'OP METRICS',
                         style: portalText(
@@ -2251,7 +2206,6 @@ class _OpReferralManagementScreenState
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
                       const SizedBox(height: 12),
 
-                      // ONBOARD DATE
                       Text(
                         'ONBOARD DATE',
                         style: portalText(
@@ -2275,13 +2229,11 @@ class _OpReferralManagementScreenState
                 ),
               ),
 
-              // Bottom Action Buttons: Print, Edit, Close
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Print
                     GestureDetector(
                       onTap: () {
                         _snack('Printing details for ${doc.name}...');
@@ -2315,7 +2267,6 @@ class _OpReferralManagementScreenState
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Edit
                     GestureDetector(
                       onTap: () {
                         Navigator.pop(ctx);
@@ -2350,7 +2301,6 @@ class _OpReferralManagementScreenState
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Close
                     GestureDetector(
                       onTap: () => Navigator.pop(ctx),
                       child: Container(
@@ -2379,7 +2329,6 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // Edit Doctor Referral Modal (Matching Reference Edit Image)
   void _showEditDoctorSheet(OpDoctorReferralUi doc) {
     final nameCtrl = TextEditingController(text: doc.name);
     final clinicCtrl = TextEditingController(text: doc.clinic);
@@ -2387,11 +2336,9 @@ class _OpReferralManagementScreenState
     final locCtrl = TextEditingController(text: doc.location);
     final addrCtrl = TextEditingController(text: doc.address);
     final specCtrl = TextEditingController(text: doc.specialization);
-    // Special offers (discount)
     final specFeesCtrl = TextEditingController(text: doc.specialFees);
     final specLabCtrl = TextEditingController(text: doc.specialLab);
     final specPharmCtrl = TextEditingController(text: doc.specialPharmacy);
-    // Consultant fee (numeric string)
     final serviceCtrl = TextEditingController(text: doc.serviceRate.replaceAll('%', '').trim());
     final pharmacyCtrl = TextEditingController(text: doc.pharmacyRate.replaceAll('%', '').trim());
     final labCtrl = TextEditingController(text: doc.labRate.replaceAll('%', '').trim());
@@ -2429,7 +2376,6 @@ class _OpReferralManagementScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 12, 12),
                 child: Row(
@@ -2483,14 +2429,12 @@ class _OpReferralManagementScreenState
               ),
               const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
 
-              // Scrollable Body
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // BASIC INFORMATION
                       Text(
                         'BASIC INFORMATION',
                         style: portalText(
@@ -2538,7 +2482,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // SPECIAL OFFERS (DISCOUNT) Box
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -2604,7 +2547,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // CONSULTANT FEE
                       Text(
                         'CONSULTANT FEE',
                         style: portalText(
@@ -2656,7 +2598,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // ADDITIONAL DETAILS
                       Text(
                         'ADDITIONAL DETAILS',
                         style: portalText(
@@ -2669,7 +2610,6 @@ class _OpReferralManagementScreenState
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          // ONBOARD DATE
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2734,7 +2674,6 @@ class _OpReferralManagementScreenState
                             ),
                           ),
                           const SizedBox(width: 10),
-                          // STATUS
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2797,7 +2736,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // NOTES
                       Text(
                         'NOTES',
                         style: portalText(
@@ -2839,7 +2777,6 @@ class _OpReferralManagementScreenState
                 ),
               ),
 
-              // Bottom Actions: Cancel & Update Doctor
               const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -2944,11 +2881,9 @@ class _OpReferralManagementScreenState
     final phoneCtrl = TextEditingController();
     final specCtrl = TextEditingController();
     final locCtrl = TextEditingController();
-    // Special offers (discount)
     final specFeesCtrl = TextEditingController();
     final specLabCtrl = TextEditingController();
     final specPharmCtrl = TextEditingController();
-    // Consultant fee (numeric string)
     final serviceCtrl = TextEditingController();
     final pharmacyCtrl = TextEditingController();
     final labCtrl = TextEditingController();
@@ -2986,7 +2921,6 @@ class _OpReferralManagementScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 12, 12),
                 child: Row(
@@ -3040,14 +2974,12 @@ class _OpReferralManagementScreenState
               ),
               const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
 
-              // Scrollable Body
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // BASIC INFORMATION
                       Text(
                         'BASIC INFORMATION',
                         style: portalText(
@@ -3095,7 +3027,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // SPECIAL OFFERS (DISCOUNT) Box
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -3164,7 +3095,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // CONSULTANT FEE
                       Text(
                         'CONSULTANT FEE',
                         style: portalText(
@@ -3220,7 +3150,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // ADDITIONAL DETAILS
                       Text(
                         'ADDITIONAL DETAILS',
                         style: portalText(
@@ -3233,7 +3162,6 @@ class _OpReferralManagementScreenState
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          // ONBOARD DATE
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -3303,7 +3231,6 @@ class _OpReferralManagementScreenState
                             ),
                           ),
                           const SizedBox(width: 10),
-                          // STATUS
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -3364,7 +3291,6 @@ class _OpReferralManagementScreenState
                       ),
                       const SizedBox(height: 14),
 
-                      // NOTES
                       Text(
                         'NOTES',
                         style: portalText(
@@ -3406,7 +3332,6 @@ class _OpReferralManagementScreenState
                 ),
               ),
 
-              // Bottom Action Buttons: Cancel and Add Doctor
               const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -3517,9 +3442,7 @@ class _OpReferralManagementScreenState
         statusBarColor: Colors.white,
         child: Column(
           children: [
-            // Top App Bar
             _buildTopAppBar(),
-            // Main Scrollable Content
             Expanded(
               child: RefreshIndicator(
                 color: const Color(0xFF26204A),
@@ -3534,29 +3457,22 @@ class _OpReferralManagementScreenState
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
                   children: [
-                    // Segmented Tabs: Customer Referrals (15) / Doctor Referrals (3)
                     _buildSegmentedTabs(),
                     const SizedBox(height: 14),
-                    // Action Buttons: Referred OP / + Add Customer
                     _buildActionButtons(),
                     const SizedBox(height: 14),
-                    // KPI / Stats Grid (Row of 4)
                     _buildKpiRow(),
                     const SizedBox(height: 14),
-                    // Search Bar
                     _buildSearchBar(),
                     const SizedBox(height: 10),
-                    // Filter Row: Date / Status / Export CSV
                     _buildFilterPillsRow(),
                     const SizedBox(height: 14),
-                    // Records Header
                     _buildRecordsHeader(
                       _selectedTab == 0
                           ? filteredCustomers.length
                           : filteredDoctors.length,
                     ),
                     const SizedBox(height: 12),
-                    // List of Cards
                     if (_selectedTab == 0) ...[
                       for (final customer in filteredCustomers) ...[
                         _buildCustomerCard(customer),
@@ -3580,7 +3496,6 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // Top App Bar
   Widget _buildTopAppBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
@@ -3590,7 +3505,6 @@ class _OpReferralManagementScreenState
       ),
       child: Row(
         children: [
-          // App standard back button
           const PortalBackButton(),
           const SizedBox(width: 12),
           Expanded(
@@ -3645,7 +3559,6 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // Segmented Tabs: Customer Referrals / Doctor Referrals (Exact original style, slightly bigger height: 48)
   Widget _buildSegmentedTabs() {
     return Container(
       height: 48,
@@ -3784,12 +3697,10 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // Action Buttons: Referred OP / + Add Customer (or Doctor Referred OP / + Add Doctor)
   Widget _buildActionButtons() {
     final isCustomerTab = _selectedTab == 0;
     return Row(
       children: [
-        // Left Button: Referred OP / Doctor Referred OP
         Expanded(
           child: GestureDetector(
             onTap: () {
@@ -3837,7 +3748,6 @@ class _OpReferralManagementScreenState
           ),
         ),
         const SizedBox(width: 10),
-        // Right Button: + Add Customer / + Add Doctor
         Expanded(
           child: GestureDetector(
             onTap: isCustomerTab ? _showAddCustomerSheet : _showAddDoctorSheet,
@@ -3884,7 +3794,6 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // KPI Row of 4 cards: TOTAL, ACTIVE, INACTI..., OPS
   Widget _buildKpiRow() {
     final isCustomerTab = _selectedTab == 0;
     final totalCount = isCustomerTab ? _customers.length : _doctors.length;
@@ -4024,7 +3933,6 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // Search Bar
   Widget _buildSearchBar() {
     return Container(
       height: 42,
@@ -4177,12 +4085,10 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // Filter Row: 1. Month Filter | 2. Status | 3. Export CSV (All in 1 line)
   Widget _buildFilterPillsRow() {
     final isMonthFiltered = _monthFilter != 'All Months';
     return Row(
       children: [
-        // 1st: Month Filter
         Expanded(
           flex: 4,
           child: GestureDetector(
@@ -4249,7 +4155,6 @@ class _OpReferralManagementScreenState
           ),
         ),
         const SizedBox(width: 6),
-        // 2nd: Status Filter
         Expanded(
           flex: 3,
           child: GestureDetector(
@@ -4295,7 +4200,6 @@ class _OpReferralManagementScreenState
           ),
         ),
         const SizedBox(width: 6),
-        // 3rd: Export CSV
         Expanded(
           flex: 3,
           child: GestureDetector(
@@ -4337,7 +4241,6 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // Header: CUSTOMER RECORDS (5 of 15)
   Widget _buildRecordsHeader(int count) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -4361,7 +4264,6 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // Customer Card
   Widget _buildCustomerCard(OpCustomerReferralUi customer) {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
@@ -4380,7 +4282,6 @@ class _OpReferralManagementScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row 1: Avatar + Name & Organization + Active Status Badge
           Row(
             children: [
               Container(
@@ -4481,7 +4382,6 @@ class _OpReferralManagementScreenState
           ),
           const SizedBox(height: 10),
 
-          // Row 2: Phone & Location in rounded pill
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
@@ -4538,7 +4438,6 @@ class _OpReferralManagementScreenState
           ),
           const SizedBox(height: 10),
 
-          // Row 3: Rates & Commission
           Text(
             'RATES & COMMISSION',
             style: portalText(
@@ -4596,7 +4495,6 @@ class _OpReferralManagementScreenState
           ),
           const SizedBox(height: 10),
 
-          // Row 4: Onboard Date & Action Icons (View, Edit, Delete)
           Row(
             children: [
               Flexible(
@@ -4627,7 +4525,6 @@ class _OpReferralManagementScreenState
               ),
               const SizedBox(width: 8),
               const Spacer(),
-              // View Icon
               GestureDetector(
                 onTap: () => _showCustomerDetail(customer),
                 behavior: HitTestBehavior.opaque,
@@ -4641,7 +4538,6 @@ class _OpReferralManagementScreenState
                 ),
               ),
               const SizedBox(width: 8),
-              // Edit Icon
               GestureDetector(
                 onTap: () => _showEditCustomerSheet(customer),
                 behavior: HitTestBehavior.opaque,
@@ -4655,7 +4551,6 @@ class _OpReferralManagementScreenState
                 ),
               ),
               const SizedBox(width: 8),
-              // Delete Icon
               GestureDetector(
                 onTap: () => _deleteCustomer(customer),
                 behavior: HitTestBehavior.opaque,
@@ -4675,7 +4570,6 @@ class _OpReferralManagementScreenState
     );
   }
 
-  // Doctor Card (Matching Customer Card style with Doctor Data)
   Widget _buildDoctorCard(OpDoctorReferralUi doc) {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
@@ -4694,7 +4588,6 @@ class _OpReferralManagementScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row 1: Avatar + Name & Clinic/Specialization + Active Status Badge
           Row(
             children: [
               Container(
@@ -4790,7 +4683,6 @@ class _OpReferralManagementScreenState
           ),
           const SizedBox(height: 10),
 
-          // Row 2: Phone & Location in rounded pill
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
@@ -4852,7 +4744,6 @@ class _OpReferralManagementScreenState
           ),
           const SizedBox(height: 10),
 
-          // Row 3: Rates & Commission
           Text(
             'RATES & COMMISSION',
             style: portalText(
@@ -4910,7 +4801,6 @@ class _OpReferralManagementScreenState
           ),
           const SizedBox(height: 10),
 
-          // Row 4: Onboard Date & Action Icons (View, Edit, Delete)
           Row(
             children: [
               Flexible(
@@ -4941,7 +4831,6 @@ class _OpReferralManagementScreenState
               ),
               const SizedBox(width: 8),
               const Spacer(),
-              // View Icon
               GestureDetector(
                 onTap: () => _showDoctorDetail(doc),
                 behavior: HitTestBehavior.opaque,
@@ -4955,7 +4844,6 @@ class _OpReferralManagementScreenState
                 ),
               ),
               const SizedBox(width: 8),
-              // Edit Icon
               GestureDetector(
                 onTap: () => _showEditDoctorSheet(doc),
                 behavior: HitTestBehavior.opaque,
@@ -4969,7 +4857,6 @@ class _OpReferralManagementScreenState
                 ),
               ),
               const SizedBox(width: 8),
-              // Delete Icon
               GestureDetector(
                 onTap: () => _deleteDoctor(doc),
                 behavior: HitTestBehavior.opaque,

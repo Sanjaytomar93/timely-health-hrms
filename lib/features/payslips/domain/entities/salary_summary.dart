@@ -42,6 +42,7 @@ class SalaryMonth {
     required this.compOffBalance,
     required this.isCurrentMonth,
     required this.canDownload,
+    required this.invoiceUrl,
     required this.joiningDate,
     required this.bankName,
     required this.bankAccount,
@@ -82,6 +83,7 @@ class SalaryMonth {
   final double compOffBalance;
   final bool isCurrentMonth;
   final bool canDownload;
+  final String invoiceUrl;
   final String joiningDate;
   final String bankName;
   final String bankAccount;

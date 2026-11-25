@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
+import 'package:timelay_health/core/theme/portal_system_ui.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
-import 'package:timelay_health/core/widgets/portal_back_button.dart';
 import 'package:timelay_health/features/auth/data/auth_session.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 import 'package:timelay_health/features/events/data/datasources/event_remote_datasource.dart';
 import 'package:timelay_health/features/events/data/models/my_event.dart';
 import 'package:timelay_health/features/events/presentation/widgets/event_form_dialog.dart';
@@ -19,6 +24,7 @@ class MyEventsScreen extends StatefulWidget {
 }
 
 class _MyEventsScreenState extends State<MyEventsScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _api = EventRemoteDataSource();
   final _searchController = TextEditingController();
 
@@ -155,153 +161,226 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
   Widget build(BuildContext context) {
     final visible = _visible;
 
-    return Scaffold(
-      backgroundColor: PortalColors.background,
-      body: PortalSafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            _EventsAppBar(onAddEvent: () => _openForm()),
-            Expanded(
-              child: RefreshIndicator(
-                color: PortalColors.purple,
-                onRefresh: _load,
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.only(bottom: 24),
-                  children: [
-                    _SpotlightCard(event: _spotlight, loading: _loading),
-                    _StatsRow(
-                      total: _events.length,
-                      upcoming: _count(EventStatus.upcoming),
-                      today: _count(EventStatus.today),
-                      completed: _count(EventStatus.completed),
-                      selected: _status,
-                      onSelect: (s) => setState(() => _status = s),
-                    ),
-                    _SearchBar(
-                      controller: _searchController,
-                      onChanged: (v) => setState(() => _query = v),
-                    ),
-                    _TypeFilter(
-                      selected: _type,
-                      onChanged: (t) => setState(() => _type = t),
-                    ),
-                    const SizedBox(height: 6),
-                    if (_loading)
-                      const _LoadingList()
-                    else if (_error != null && _events.isEmpty)
-                      _ErrorState(message: _error!, onRetry: _load)
-                    else if (visible.isEmpty)
-                      _EmptyState(
-                        filtered: _events.isNotEmpty,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: PortalSystemUi.darkStatusBar.copyWith(
+        statusBarColor: PortalColors.brand,
+        statusBarIconBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const HomeSideDrawer(),
+        backgroundColor: PortalColors.background,
+        body: PortalSafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              _MyEventsTopBar(
+                onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+              ),
+              Expanded(
+                child: RefreshIndicator(
+                  color: PortalColors.purple,
+                  onRefresh: _load,
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                    children: [
+                      _SpotlightCard(
+                        event: _spotlight,
+                        loading: _loading,
                         onAdd: () => _openForm(),
-                      )
-                    else ...[
-                      for (var i = 0; i < visible.length; i++)
-                        _AnimatedEntry(
-                          key: ValueKey(visible[i].id),
-                          index: i,
-                          child: _EventCard(
-                            event: visible[i],
-                            onEdit: () => _openForm(visible[i]),
-                            onDelete: () => _delete(visible[i]),
+                      ),
+                      const SizedBox(height: 12),
+                      _StatsRow(
+                        total: _events.length,
+                        upcoming: _count(EventStatus.upcoming),
+                        today: _count(EventStatus.today),
+                        completed: _count(EventStatus.completed),
+                        selected: _status,
+                        onSelect: (s) => setState(() => _status = s),
+                      ),
+                      const SizedBox(height: 12),
+                      _SearchBar(
+                        controller: _searchController,
+                        onChanged: (v) => setState(() => _query = v),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _TypeFilterDropdown(
+                              selected: _type,
+                              onChanged: (t) => setState(() => _type = t),
+                            ),
                           ),
-                        ),
-                      _ListFooter(shown: visible.length, total: _events.length),
-                      _AddEventBanner(onTap: () => _openForm()),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _AddNewInlineButton(
+                              onTap: () => _openForm(),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.event_note_outlined,
+                            size: 14,
+                            color: Color(0xFF64748B),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'MY CELEBRATIONS',
+                            style: portalText(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF64748B),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${visible.length}',
+                              style: portalText(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF475569),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      if (_loading)
+                        const _LoadingList()
+                      else if (_error != null && _events.isEmpty)
+                        _ErrorState(message: _error!, onRetry: _load)
+                      else if (visible.isEmpty)
+                        _EmptyState(
+                          filtered: _events.isNotEmpty,
+                          onAdd: () => _openForm(),
+                        )
+                      else
+                        for (var i = 0; i < visible.length; i++) ...[
+                          if (i > 0) const SizedBox(height: 8),
+                          _AnimatedEntry(
+                            key: ValueKey(visible[i].id),
+                            index: i,
+                            child: _EventCard(
+                              event: visible[i],
+                              onEdit: () => _openForm(visible[i]),
+                              onDelete: () => _delete(visible[i]),
+                            ),
+                          ),
+                        ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+        bottomNavigationBar: EmployeeBottomNav(
+          currentIndex: 3,
+          onTap: (i) => EmployeeHomeShell.goToTab(context, i),
         ),
       ),
     );
   }
 }
 
-class _EventsAppBar extends StatelessWidget {
-  const _EventsAppBar({required this.onAddEvent});
+class _MyEventsTopBar extends StatelessWidget {
+  const _MyEventsTopBar({required this.onMenuTap});
 
-  final VoidCallback onAddEvent;
+  final VoidCallback onMenuTap;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: PortalColors.surface,
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      color: PortalColors.brand,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox.square(dimension: 32, child: PortalBackButton()),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text(
-              'My Events',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: PortalColors.heading,
-                letterSpacing: 0.1,
+          GestureDetector(
+            onTap: onMenuTap,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: PortalColors.brandTint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                'assets/icons/top_bar/ic_top_menu.svg',
+                width: 18,
+                height: 18,
               ),
             ),
           ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'My Events',
+                  style: portalText(
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Personal celebrations & milestones',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 11.5,
+                    color: Colors.white.withValues(alpha: 0.72),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
           const TopNotificationButton(
             asset: 'assets/icons/payslips/ic_notification.svg',
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
           const TopCalendarButton(
             asset: 'assets/icons/payslips/ic_notification_cal.svg',
           ),
-          const SizedBox(width: 8),
-          _AddIconButton(onTap: onAddEvent),
         ],
       ),
     );
   }
 }
 
-class _AddIconButton extends StatelessWidget {
-  const _AddIconButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 34,
-        height: 34,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: PortalColors.brandGradient,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: PortalColors.brand.withValues(alpha: 0.25),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-      ),
-    );
-  }
-}
-
-
 class _SpotlightCard extends StatelessWidget {
-  const _SpotlightCard({required this.event, required this.loading});
+  const _SpotlightCard({
+    required this.event,
+    required this.loading,
+    required this.onAdd,
+  });
 
   final MyEvent? event;
   final bool loading;
+  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -309,162 +388,285 @@ class _SpotlightCard extends StatelessWidget {
     final days = e?.daysToNext ?? 0;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      padding: const EdgeInsets.all(18),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
-          begin: Alignment(-0.92, -0.4),
-          end: Alignment(0.92, 0.4),
-          colors: PortalColors.brandGradient,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF1E143E),
+            Color(0xFF2A1550),
+            Color(0xFF381A6B),
+          ],
         ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1E143E).withValues(alpha: 0.22),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Positioned(right: -50, top: -60, child: _bubble(150, 0.08)),
-          Positioned(right: 40, bottom: -70, child: _bubble(110, 0.06)),
-          const Positioned(
-            right: 6,
-            top: 0,
-            child: Text('✨', style: TextStyle(fontSize: 18)),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                e == null ? 'YOUR MOMENTS' : 'NEXT CELEBRATION',
-                style: portalText(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.75),
-                  letterSpacing: 1.2,
-                ),
+          Positioned(
+            right: -30,
+            top: -40,
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(17),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.25),
+            ),
+          ),
+          Positioned(
+            right: 40,
+            bottom: -50,
+            child: Container(
+              width: 110,
+              height: 110,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF34D399).withValues(alpha: 0.08),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            e == null
+                                ? Icons.celebration_outlined
+                                : Icons.auto_awesome_rounded,
+                            size: 11,
+                            color: const Color(0xFFFBBF24),
+                          ),
+                          const SizedBox(width: 4.5),
+                          Text(
+                            e == null ? 'YOUR MOMENTS' : 'NEXT CELEBRATION',
+                            style: portalText(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white.withValues(alpha: 0.9),
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      e?.type.emoji ?? '🗓️',
-                      style: const TextStyle(fontSize: 26),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          e?.title ??
-                              (loading ? 'Loading…' : 'Plan your first event'),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                    if (e != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 3.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: (days == 0
+                                  ? const Color(0xFFF59E0B)
+                                  : const Color(0xFF34D399))
+                              .withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: (days == 0
+                                    ? const Color(0xFFF59E0B)
+                                    : const Color(0xFF34D399))
+                                .withValues(alpha: 0.5),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          days == 0
+                              ? '🎉 Today!'
+                              : (days == 1 ? 'Tomorrow!' : 'In $days days'),
                           style: portalText(
-                            fontSize: 18,
+                            fontSize: 10,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            height: 1.2,
+                            color: days == 0
+                                ? const Color(0xFFFDE68A)
+                                : const Color(0xFF6EE7B7),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          e == null
-                              ? 'Birthdays, anniversaries, appointments & wins — all in one place.'
-                              : '${e.type.label} · ${formatEventDate(e.nextOccurrence)}',
-                          style: portalText(
-                            fontSize: 11.5,
-                            color: Colors.white.withValues(alpha: 0.88),
-                            height: 1.35,
+                      )
+                    else
+                      GestureDetector(
+                        onTap: onAdd,
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 3.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.add_rounded,
+                                size: 12,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                'Add',
+                                style: portalText(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0.2),
+                            Colors.white.withValues(alpha: 0.08),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          width: 1,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        e?.type.emoji ?? '🗓️',
+                        style: const TextStyle(fontSize: 24),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            e?.title ??
+                                (loading ? 'Loading…' : 'Plan your first event'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: portalText(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            e == null
+                                ? 'Track birthdays, anniversaries & milestones with ease.'
+                                : '${e.type.label} · ${formatEventDate(e.nextOccurrence)}',
+                            style: portalText(
+                              fontSize: 11.5,
+                              color: Colors.white.withValues(alpha: 0.78),
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (e != null) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.notifications_active_outlined,
+                          size: 14,
+                          color: Colors.white70,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Reminder: ${reminderLabel(e.reminderBefore)}',
+                            style: portalText(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
+                          ),
+                        ),
+                        if (e.repeat == EventRepeat.yearly)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Yearly',
+                              style: portalText(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
                 ],
-              ),
-              if (e != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        days == 0 ? '🎉' : '$days',
-                        style: portalText(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          height: 1,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          switch (days) {
-                            0 => 'It\'s today! Time to celebrate',
-                            1 => 'day to go — it\'s tomorrow!',
-                            _ => 'days to go',
-                          },
-                          style: portalText(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white.withValues(alpha: 0.92),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.notifications_active_outlined,
-                        size: 15,
-                        color: Colors.white70,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        reminderLabel(e.reminderBefore),
-                        style: portalText(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
-            ],
+            ),
           ),
         ],
       ),
     );
   }
-
-  Widget _bubble(double size, double alpha) => Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      color: Colors.white.withValues(alpha: alpha),
-    ),
-  );
 }
 
 class _StatsRow extends StatelessWidget {
@@ -486,59 +688,65 @@ class _StatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: _StatCard(
-              label: 'Total',
-              value: total,
-              icon: Icons.insights_rounded,
-              color: const Color(0xFF3B6FE0),
-              tint: const Color(0xFFEAF1FD),
-              selected: selected == null,
-              onTap: () => onSelect(null),
-            ),
+    return Row(
+      children: [
+        Expanded(
+          child: _StatCard(
+            label: 'Total',
+            value: total,
+            icon: Icons.calendar_view_day_rounded,
+            accentColor: const Color(0xFF6366F1),
+            selected: selected == null,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onSelect(null);
+            },
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _StatCard(
-              label: 'Upcoming',
-              value: upcoming,
-              icon: Icons.schedule_rounded,
-              color: PortalColors.green,
-              tint: PortalColors.greenTint,
-              selected: selected == EventStatus.upcoming,
-              onTap: () => onSelect(EventStatus.upcoming),
-            ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _StatCard(
+            label: 'Upcoming',
+            value: upcoming,
+            icon: Icons.access_time_rounded,
+            accentColor: const Color(0xFF10B981),
+            selected: selected == EventStatus.upcoming,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onSelect(EventStatus.upcoming);
+            },
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _StatCard(
-              label: 'Today',
-              value: today,
-              icon: Icons.card_giftcard_rounded,
-              color: PortalColors.orange,
-              tint: PortalColors.orangeTint,
-              selected: selected == EventStatus.today,
-              onTap: () => onSelect(EventStatus.today),
-            ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _StatCard(
+            label: 'Today',
+            value: today,
+            icon: Icons.cake_rounded,
+            accentColor: const Color(0xFFF59E0B),
+            showBadge: today > 0,
+            selected: selected == EventStatus.today,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onSelect(EventStatus.today);
+            },
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _StatCard(
-              label: 'Done',
-              value: completed,
-              icon: Icons.emoji_events_outlined,
-              color: PortalColors.brandLight,
-              tint: PortalColors.brandTint,
-              selected: selected == EventStatus.completed,
-              onTap: () => onSelect(EventStatus.completed),
-            ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _StatCard(
+            label: 'Past',
+            value: completed,
+            icon: Icons.history_rounded,
+            accentColor: const Color(0xFF8B5CF6),
+            selected: selected == EventStatus.completed,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onSelect(EventStatus.completed);
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -548,72 +756,89 @@ class _StatCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.icon,
-    required this.color,
-    required this.tint,
+    required this.accentColor,
     required this.selected,
     required this.onTap,
+    this.showBadge = false,
   });
 
   final String label;
   final int value;
   final IconData icon;
-  final Color color;
-  final Color tint;
+  final Color accentColor;
   final bool selected;
   final VoidCallback onTap;
+  final bool showBadge;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         decoration: BoxDecoration(
-          color: selected ? tint : PortalColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          color: selected
+              ? accentColor.withValues(alpha: 0.08)
+              : PortalColors.surface,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? color : PortalColors.border,
-            width: selected ? 1.3 : 1,
+            color: selected ? accentColor : const Color(0xFFE2E8F0),
+            width: selected ? 1.4 : 1.0,
           ),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 26,
-              height: 26,
-              decoration: BoxDecoration(
-                color: selected ? PortalColors.surface : tint,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Icon(icon, size: 14, color: color),
-            ),
-            const SizedBox(height: 6),
-            TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: value.toDouble()),
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.easeOutCubic,
-              builder: (_, v, _) => Text(
-                '${v.round()}',
-                style: portalText(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                  height: 1.1,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(icon, size: 12, color: accentColor),
                 ),
+                if (showBadge)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEF4444),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$value',
+              style: portalText(
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                color: selected ? accentColor : const Color(0xFF1E293B),
+                height: 1.1,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 1),
             Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: portalText(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: selected ? color : PortalColors.muted,
+                fontSize: 9.5,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                color: selected ? accentColor : const Color(0xFF64748B),
               ),
             ),
           ],
@@ -632,44 +857,41 @@ class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(12),
       borderSide: const BorderSide(color: PortalColors.border),
     );
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      child: ValueListenableBuilder<TextEditingValue>(
-        valueListenable: controller,
-        builder: (context, value, _) => TextField(
-          controller: controller,
-          onChanged: onChanged,
-          style: portalText(fontSize: 13, fontWeight: FontWeight.w600),
-          decoration: InputDecoration(
-            hintText: 'Search events…',
-            hintStyle: portalText(fontSize: 12.5, color: PortalColors.muted),
-            prefixIcon: const Icon(
-              Icons.search_rounded,
-              size: 20,
-              color: PortalColors.muted,
-            ),
-            suffixIcon: value.text.isEmpty
-                ? null
-                : IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 18),
-                    color: PortalColors.muted,
-                    onPressed: () {
-                      controller.clear();
-                      onChanged('');
-                    },
-                  ),
-            isDense: true,
-            filled: true,
-            fillColor: PortalColors.surface,
-            contentPadding: const EdgeInsets.symmetric(vertical: 13),
-            border: border,
-            enabledBorder: border,
-            focusedBorder: border.copyWith(
-              borderSide: const BorderSide(color: PortalColors.brand),
-            ),
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, value, _) => TextField(
+        controller: controller,
+        onChanged: onChanged,
+        style: portalText(fontSize: 13, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          hintText: 'Search events…',
+          hintStyle: portalText(fontSize: 12.5, color: PortalColors.muted),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            size: 18,
+            color: PortalColors.muted,
+          ),
+          suffixIcon: value.text.isEmpty
+              ? null
+              : IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 16),
+                  color: PortalColors.muted,
+                  onPressed: () {
+                    controller.clear();
+                    onChanged('');
+                  },
+                ),
+          isDense: true,
+          filled: true,
+          fillColor: PortalColors.surface,
+          contentPadding: const EdgeInsets.symmetric(vertical: 11),
+          border: border,
+          enabledBorder: border,
+          focusedBorder: border.copyWith(
+            borderSide: const BorderSide(color: PortalColors.brand),
           ),
         ),
       ),
@@ -677,74 +899,255 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-class _TypeFilter extends StatelessWidget {
-  const _TypeFilter({required this.selected, required this.onChanged});
+class _TypeFilterDropdown extends StatelessWidget {
+  const _TypeFilterDropdown({
+    required this.selected,
+    required this.onChanged,
+  });
 
   final EventType? selected;
   final ValueChanged<EventType?> onChanged;
 
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-      child: Row(
-        children: [
-          _chip(
-            label: 'All',
-            emoji: null,
-            color: PortalColors.brand,
-            isSelected: selected == null,
-            onTap: () => onChanged(null),
-          ),
-          for (final t in EventType.values) ...[
-            const SizedBox(width: 8),
-            _chip(
-              label: t.label,
-              emoji: t.emoji,
-              color: t.color,
-              isSelected: selected == t,
-              onTap: () => onChanged(selected == t ? null : t),
-            ),
-          ],
-        ],
+  Future<void> _pick(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (ctx) => _TypePickerSheet(
+        selected: selected,
+        onPick: (t) {
+          Navigator.of(ctx).pop();
+          onChanged(t);
+        },
       ),
     );
   }
 
-  Widget _chip({
-    required String label,
-    required String? emoji,
-    required Color color,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? color : PortalColors.surface,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: isSelected ? color : PortalColors.border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (emoji != null) ...[
-              Text(emoji, style: const TextStyle(fontSize: 13)),
-              const SizedBox(width: 5),
+  @override
+  Widget build(BuildContext context) {
+    final isActive = selected != null;
+    final label = selected == null
+        ? 'All Types'
+        : '${selected!.emoji} ${selected!.label}';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _pick(context),
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          height: 40,
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: isActive ? PortalColors.brandTint : Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isActive
+                  ? PortalColors.brand.withValues(alpha: 0.35)
+                  : PortalColors.border,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isActive
+                        ? PortalColors.brand
+                        : PortalColors.secondaryText,
+                  ),
+                ),
+              ),
+              if (isActive)
+                GestureDetector(
+                  onTap: () => onChanged(null),
+                  behavior: HitTestBehavior.opaque,
+                  child: const Padding(
+                    padding: EdgeInsets.only(left: 4),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 14,
+                      color: PortalColors.brand,
+                    ),
+                  ),
+                )
+              else
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 16,
+                  color: PortalColors.muted,
+                ),
             ],
-            Text(
-              label,
-              style: portalText(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w700,
-                color: isSelected ? Colors.white : PortalColors.secondaryText,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TypePickerSheet extends StatelessWidget {
+  const _TypePickerSheet({
+    required this.selected,
+    required this.onPick,
+  });
+
+  final EventType? selected;
+  final ValueChanged<EventType?> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final options = <(EventType?, String, String)>[
+      (null, 'All', '✨'),
+      for (final t in EventType.values) (t, t.label, t.emoji),
+    ];
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: PortalColors.border,
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
             ),
+            const SizedBox(height: 14),
+            Text(
+              'Filter by type',
+              style: portalText(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: PortalColors.heading,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Choose an event category',
+              style: portalText(
+                fontSize: 12,
+                color: PortalColors.muted,
+              ),
+            ),
+            const SizedBox(height: 14),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: options.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 1.35,
+              ),
+              itemBuilder: (_, i) {
+                final (type, label, emoji) = options[i];
+                final active = selected == type;
+                final color = type?.color ?? PortalColors.brand;
+                return Material(
+                  color: active ? color.withValues(alpha: 0.1) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    onTap: () => onPick(type),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: active
+                              ? color.withValues(alpha: 0.45)
+                              : PortalColors.border,
+                          width: active ? 1.4 : 1,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 8,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(emoji, style: const TextStyle(fontSize: 18)),
+                          const SizedBox(height: 4),
+                          Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: portalText(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: active ? color : PortalColors.heading,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AddNewInlineButton extends StatelessWidget {
+  const _AddNewInlineButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          height: 40,
+          width: double.infinity,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: PortalColors.brandGradient,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+              const SizedBox(width: 4),
+              Text(
+                'Add Event',
+                style: portalText(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -799,24 +1202,23 @@ class _EventCard extends StatelessWidget {
     ].join('  ·  ');
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-      padding: const EdgeInsets.fromLTRB(12, 12, 6, 12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PortalColors.border),
         boxShadow: [
           BoxShadow(
             color: PortalColors.brand.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
           _DateBadge(date: event.date, type: type),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1059,46 +1461,6 @@ class _CardMenu extends StatelessWidget {
   );
 }
 
-class _ListFooter extends StatelessWidget {
-  const _ListFooter({required this.shown, required this.total});
-
-  final int shown;
-  final int total;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
-      child: Row(
-        children: [
-          Text.rich(
-            TextSpan(
-              style: portalText(fontSize: 11, color: PortalColors.muted),
-              children: [
-                const TextSpan(text: 'Showing '),
-                TextSpan(
-                  text: '$shown',
-                  style: portalText(fontSize: 11, fontWeight: FontWeight.w700),
-                ),
-                TextSpan(text: ' of $total event${total == 1 ? '' : 's'}'),
-              ],
-            ),
-          ),
-          const Spacer(),
-          for (final t in EventType.values) ...[
-            if (t != EventType.values.first) const SizedBox(width: 6),
-            Container(
-              width: 7,
-              height: 7,
-              decoration: BoxDecoration(color: t.color, shape: BoxShape.circle),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
 class _LoadingList extends StatelessWidget {
   const _LoadingList();
 
@@ -1106,13 +1468,13 @@ class _LoadingList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        for (var i = 0; i < 3; i++)
+        for (var i = 0; i < 3; i++) ...[
+          if (i > 0) const SizedBox(height: 8),
           Container(
             height: 72,
-            margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
             decoration: BoxDecoration(
               color: PortalColors.surface,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(color: PortalColors.border),
             ),
             child: const Center(
@@ -1126,6 +1488,7 @@ class _LoadingList extends StatelessWidget {
               ),
             ),
           ),
+        ],
       ],
     );
   }
@@ -1140,11 +1503,10 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PortalColors.border),
       ),
       child: Column(
@@ -1203,11 +1565,10 @@ class _ErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PortalColors.border),
       ),
       child: Column(
@@ -1239,57 +1600,6 @@ class _ErrorState extends StatelessWidget {
   }
 }
 
-class _AddEventBanner extends StatelessWidget {
-  const _AddEventBanner({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: PortalColors.brandTint,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: PortalColors.brandLight.withValues(alpha: 0.25),
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: PortalColors.brandGradient,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.add_rounded, color: Colors.white, size: 18),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Add New Event',
-              style: portalText(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w700,
-                color: PortalColors.brandLight,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _DeleteDialog extends StatelessWidget {
   const _DeleteDialog({required this.event});

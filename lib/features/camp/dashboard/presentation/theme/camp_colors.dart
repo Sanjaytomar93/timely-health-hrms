@@ -7,7 +7,6 @@ abstract final class CampColors {
   static const Color surface = PortalColors.surface;
   static const Color border = PortalColors.border;
 
-  // HRMS Signature Brand Color
   static const Color primary = PortalColors.brand;
   static const Color primaryLight = PortalColors.brandLight;
   static const Color primaryTint = Color(0xFFEBE9F5);

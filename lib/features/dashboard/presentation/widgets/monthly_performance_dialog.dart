@@ -45,7 +45,6 @@ class MonthlyPerformanceDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 22),
@@ -108,7 +107,6 @@ class MonthlyPerformanceDialog extends StatelessWidget {
                 ),
               ),
 
-              // Body
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 22, 16, 22),
                 child: Column(

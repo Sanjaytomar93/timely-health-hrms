@@ -63,7 +63,6 @@ class _CampBpAnalysisCardState extends State<CampBpAnalysisCard> {
             ],
           ),
           const SizedBox(height: 14),
-          // Toggle switcher
           Container(
             height: 42,
             padding: const EdgeInsets.all(4),
@@ -185,4 +184,3 @@ class _AnalysisSegmentButton extends StatelessWidget {
   }
 }
 
-// ── Chart Painters ──────────────────────────────────────────────────────────

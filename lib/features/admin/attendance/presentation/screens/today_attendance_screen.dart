@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/core/widgets/shimmer.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/bloc/today_attendance_cubit.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/bloc/today_attendance_state.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/models/today_attendance_ui.dart';
@@ -180,6 +181,7 @@ class _TodayAttendanceScreenState extends State<TodayAttendanceScreen> {
       await _cubit.load(
         month: monthStr,
         date: _selectedDateString,
+        dateEnd: _selectedDateEndString ?? _selectedDateString,
         isRefresh: isRefresh,
       );
     } else if (_monthActive) {
@@ -218,7 +220,7 @@ class _TodayAttendanceScreenState extends State<TodayAttendanceScreen> {
           '${PortalFilterPickers.chipDate(start)}-${PortalFilterPickers.chipDate(end)}';
       _monthOnly = PortalFilterPickers.monthAbbr(start.month);
     });
-    _cubit.load(month: monthStr, date: from);
+    _cubit.load(month: monthStr, date: from, dateEnd: to);
   }
 
   Future<void> _pickMonthOnly() async {
@@ -470,14 +472,9 @@ class _TodayAttendanceScreenState extends State<TodayAttendanceScreen> {
                             const SizedBox(height: 12),
 
                             if (isLoading)
-                              Container(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 48),
-                                alignment: Alignment.center,
-                                child: const CircularProgressIndicator(
-                                  color: Color(0xFF4F46E5),
-                                  strokeWidth: 2.5,
-                                ),
+                              const Padding(
+                                padding: EdgeInsets.only(top: 8, bottom: 16),
+                                child: AdminListCardsShimmer(cardCount: 5),
                               )
                             else if (isFailure)
                               Container(

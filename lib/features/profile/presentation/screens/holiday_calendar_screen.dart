@@ -9,8 +9,10 @@ import 'package:timelay_health/features/holidays/presentation/bloc/holidays_stat
 import 'package:timelay_health/features/holidays/presentation/models/holiday_ui_model.dart';
 import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
-import 'package:timelay_health/core/widgets/portal_back_button.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 
 class HolidayCalendarScreen extends StatelessWidget {
   const HolidayCalendarScreen({super.key});
@@ -32,6 +34,7 @@ class _HolidayCalendarView extends StatefulWidget {
 }
 
 class _HolidayCalendarViewState extends State<_HolidayCalendarView> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _search = TextEditingController();
   late int _month;
   late int _year;
@@ -84,12 +87,17 @@ class _HolidayCalendarViewState extends State<_HolidayCalendarView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: PortalColors.background,
+      drawer: const HomeSideDrawer(),
+      drawerScrimColor: PortalColors.brand.withValues(alpha: 0.28),
       body: PortalSafeArea(
         bottom: false,
         child: Column(
           children: [
-            const _HolidayAppBar(),
+            _HolidayAppBar(
+              onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
             Expanded(
               child: BlocBuilder<HolidaysCubit, HolidaysState>(
                 builder: (context, state) {
@@ -160,12 +168,19 @@ class _HolidayCalendarViewState extends State<_HolidayCalendarView> {
           ],
         ),
       ),
+    
+      bottomNavigationBar: EmployeeBottomNav(
+        currentIndex: 3,
+        onTap: (i) => EmployeeHomeShell.goToTab(context, i),
+      ),
     );
   }
 }
 
 class _HolidayAppBar extends StatelessWidget {
-  const _HolidayAppBar();
+  const _HolidayAppBar({required this.onMenuTap});
+
+  final VoidCallback onMenuTap;
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +190,24 @@ class _HolidayAppBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 2, 26, 0),
       child: Row(
         children: [
-          const PortalBackButton(),
+          GestureDetector(
+            onTap: onMenuTap,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: PortalColors.brandTint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                'assets/icons/top_bar/ic_top_menu.svg',
+                width: 18,
+                height: 18,
+              ),
+            ),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -204,6 +236,7 @@ class _HolidayAppBar extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(width: 8),
           const TopNotificationButton(
             asset: 'assets/icons/holiday/ic_notification.svg',
           ),

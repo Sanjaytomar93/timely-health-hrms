@@ -51,7 +51,6 @@ class HealthReportPdf {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,
             children: [
-              // Header
               pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
@@ -81,11 +80,9 @@ class HealthReportPdf {
               pw.Container(height: 1.5, color: _blue),
               pw.SizedBox(height: 12),
 
-              // Patient info
               _infoGrid(data),
               pw.SizedBox(height: 14),
 
-              // CLINICAL VITALS — title + double blue underline
               pw.SizedBox(height: 4),
               pw.Center(
                 child: pw.Text(
@@ -149,7 +146,6 @@ class HealthReportPdf {
 
               if (data.bmi != null) ...[
                 pw.SizedBox(height: 16),
-                // BMI orange + arrow + scale in ONE box
                 pw.Container(
                   decoration: pw.BoxDecoration(
                     border: pw.Border.all(
@@ -239,7 +235,6 @@ class HealthReportPdf {
 
               pw.Spacer(),
 
-              // Signature + stamp
               pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
@@ -265,7 +260,6 @@ class HealthReportPdf {
               ),
               pw.SizedBox(height: 10),
 
-              // Teal footer
               pw.Container(
                 color: _teal,
                 padding: const pw.EdgeInsets.fromLTRB(10, 7, 10, 7),
@@ -399,7 +393,6 @@ class HealthReportPdf {
     return pw.CustomPaint(
       size: const PdfPoint(12, 9),
       painter: (PdfGraphics canvas, PdfPoint size) {
-        // PDF y-up: tip at y=0 → ▼ pointing down.
         canvas
           ..setFillColor(_arrow)
           ..moveTo(size.x / 2, 0)

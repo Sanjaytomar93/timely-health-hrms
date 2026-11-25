@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
@@ -22,19 +23,23 @@ import 'package:timelay_health/core/widgets/portal_back_button.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ProfileCubit()..load(),
-      child: const _ProfileView(),
+      child: _ProfileView(embedded: embedded),
     );
   }
 }
 
 class _ProfileView extends StatefulWidget {
-  const _ProfileView();
+  const _ProfileView({required this.embedded});
+
+  final bool embedded;
 
   @override
   State<_ProfileView> createState() => _ProfileViewState();
@@ -45,35 +50,38 @@ class _ProfileViewState extends State<_ProfileView> {
 
   @override
   Widget build(BuildContext context) {
+    final content = Column(
+      children: [
+        _ProfileAppBar(embedded: widget.embedded),
+        Expanded(
+          child: BlocConsumer<ProfileCubit, ProfileState>(
+            listenWhen: (previous, current) =>
+                current is ProfileFailure && current.employee != null,
+            listener: (context, state) {
+              if (state is ProfileFailure) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              return _buildBody(context, state);
+            },
+          ),
+        ),
+      ],
+    );
+
+    if (widget.embedded) {
+      return ColoredBox(color: PortalColors.background, child: content);
+    }
+
     return Scaffold(
       backgroundColor: PortalColors.background,
-      body: PortalSafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            const _ProfileAppBar(),
-            Expanded(
-              child: BlocConsumer<ProfileCubit, ProfileState>(
-                listenWhen: (previous, current) =>
-                    current is ProfileFailure && current.employee != null,
-                listener: (context, state) {
-                  if (state is ProfileFailure) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(state.message),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
-                },
-                builder: (context, state) {
-                  return _buildBody(context, state);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+      body: PortalSafeArea(bottom: false, child: content),
     );
   }
 
@@ -151,7 +159,6 @@ class _ProfileViewState extends State<_ProfileView> {
   }
 
   void _onTabChanged(int index) {
-    // My Letters → Relieving Letters screen
     if (index == 2) {
       AppRoutes.push(context, AppRoutes.letters);
       return;
@@ -196,7 +203,9 @@ class _TabBody extends StatelessWidget {
 }
 
 class _ProfileAppBar extends StatelessWidget {
-  const _ProfileAppBar();
+  const _ProfileAppBar({required this.embedded});
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +224,27 @@ class _ProfileAppBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 10, 18, 10),
       child: Row(
         children: [
-          const PortalBackButton(),
+          if (embedded)
+            GestureDetector(
+              onTap: () => Scaffold.of(context).openDrawer(),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: PortalColors.brandTint,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: SvgPicture.asset(
+                  'assets/icons/top_bar/ic_top_menu.svg',
+                  width: 18,
+                  height: 18,
+                ),
+              ),
+            )
+          else
+            const PortalBackButton(),
           const SizedBox(width: 10),
           Expanded(
             child: Column(

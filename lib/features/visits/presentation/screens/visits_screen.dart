@@ -5,15 +5,18 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/shimmer.dart';
-import 'package:timelay_health/features/visits/presentation/widgets/my_target_sheet.dart';
 import 'package:timelay_health/features/visits/presentation/bloc/visits_cubit.dart';
 import 'package:timelay_health/features/visits/presentation/bloc/visits_state.dart';
 import 'package:timelay_health/features/visits/presentation/models/visit_ui_model.dart';
 import 'package:timelay_health/features/visits/presentation/widgets/add_visit_sheet.dart';
+import 'package:timelay_health/features/visits/presentation/widgets/my_target_sheet.dart';
 import 'package:timelay_health/features/visits/domain/failures/visit_failure.dart';
+import 'package:timelay_health/features/holidays/presentation/widgets/top_calendar_button.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
-import 'package:timelay_health/core/widgets/portal_back_button.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 
 class VisitsScreen extends StatelessWidget {
   const VisitsScreen({super.key});
@@ -35,6 +38,7 @@ class _VisitsView extends StatefulWidget {
 }
 
 class _VisitsViewState extends State<_VisitsView> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _search = TextEditingController();
 
   @override
@@ -88,95 +92,82 @@ class _VisitsViewState extends State<_VisitsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: PortalColors.background,
+      drawer: const HomeSideDrawer(),
+      drawerScrimColor: PortalColors.brand.withValues(alpha: 0.28),
       body: PortalSafeArea(
         bottom: false,
         child: Column(
           children: [
-            BlocBuilder<VisitsCubit, VisitsState>(
-              buildWhen: (prev, next) =>
-                  prev.month != next.month ||
-                  prev.monthOptions != next.monthOptions,
-              builder: (context, state) {
-                final month = state.month.isEmpty
-                    ? (VisitUiMapper.monthLabel(DateTime.now()) ?? 'All Months')
-                    : state.month;
-                return _VisitsFigmaHeader(
-                  monthLabel: month,
-                  monthOptions: state.monthOptions,
-                  onMonthSelected: (v) =>
-                      context.read<VisitsCubit>().setMonth(v),
-                );
-              },
+            _VisitsAppBar(
+              onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
             ),
             Expanded(
               child: BlocBuilder<VisitsCubit, VisitsState>(
                 builder: (context, state) {
                   final loading =
                       state is VisitsLoading && state.visits.isEmpty;
-                  final refreshing =
-                      state is VisitsLoading && state.visits.isNotEmpty;
 
                   if (loading) {
                     return const VisitsShimmer();
                   }
 
-                  return ListView(
-                    padding: const EdgeInsets.only(bottom: 32),
-                    children: [
-                      if (state is VisitsFailureState && state.visits.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-                          child: Text(
-                            state.message,
-                            textAlign: TextAlign.center,
-                            style: portalText(
-                              fontSize: 12,
-                              color: PortalColors.muted,
+                  return RefreshIndicator(
+                    color: PortalColors.purple,
+                    onRefresh: () => context.read<VisitsCubit>().load(
+                      keepExisting: true,
+                    ),
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(bottom: 32),
+                      children: [
+                        if (state is VisitsFailureState && state.visits.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                            child: Text(
+                              state.message,
+                              textAlign: TextAlign.center,
+                              style: portalText(
+                                fontSize: 12,
+                                color: PortalColors.muted,
+                              ),
                             ),
                           ),
+                        const _VisitActionsRow(),
+                        _StatCardsRow(stats: state.stats),
+                        _FiltersCard(
+                          search: _search,
+                          month: state.month.isEmpty
+                              ? (VisitUiMapper.monthLabel(DateTime.now()) ??
+                                    'All Months')
+                              : state.month,
+                          monthOptions: state.monthOptions,
+                          status: state.status,
+                          onSearch: (v) =>
+                              context.read<VisitsCubit>().setSearch(v),
+                          onMonth: (v) =>
+                              context.read<VisitsCubit>().setMonth(v),
+                          onStatus: (v) =>
+                              context.read<VisitsCubit>().setStatus(v),
                         ),
-                      _StatCardsRow(stats: state.stats),
-                      _FiltersCard(
-                        search: _search,
-                        month: state.month.isEmpty
-                            ? (VisitUiMapper.monthLabel(DateTime.now()) ??
-                                  'All Months')
-                            : state.month,
-                        monthOptions: state.monthOptions,
-                        status: state.status,
-                        shown: state.visits.length,
-                        total: state.allVisits.length,
-                        isRefreshing: refreshing,
-                        onSearch: (v) =>
-                            context.read<VisitsCubit>().setSearch(v),
-                        onMonth: (v) => context.read<VisitsCubit>().setMonth(v),
-                        onStatus: (v) =>
-                            context.read<VisitsCubit>().setStatus(v),
-                        onRefresh: () => context.read<VisitsCubit>().load(
-                          keepExisting: true,
+                        _VisitRecordsSection(
+                          visits: state.visits,
+                          onEdit: (visit) =>
+                              showAddVisitSheet(context, visit: visit),
+                          onDelete: (visit) => _confirmDelete(context, visit),
+                          onAddVisit: () => showAddVisitSheet(context),
                         ),
-                      ),
-                      _VisitRecordsSection(
-                        visits: state.visits,
-                        month: state.month.isEmpty
-                            ? (VisitUiMapper.monthLabel(DateTime.now()) ??
-                                  'All Months')
-                            : state.month,
-                        onEdit: (visit) =>
-                            showAddVisitSheet(context, visit: visit),
-                        onDelete: (visit) => _confirmDelete(context, visit),
-                        onAddVisit: () => showAddVisitSheet(context),
-                      ),
-                      _VisitsFooter(
-                        shown: state.visits.length,
-                        month: state.month.isEmpty
-                            ? (VisitUiMapper.monthLabel(DateTime.now()) ??
-                                  'All Months')
-                            : state.month,
-                        stats: state.stats,
-                      ),
-                    ],
+                        _VisitsFooter(
+                          shown: state.visits.length,
+                          month: state.month.isEmpty
+                              ? (VisitUiMapper.monthLabel(DateTime.now()) ??
+                                    'All Months')
+                              : state.month,
+                          stats: state.stats,
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
@@ -184,188 +175,88 @@ class _VisitsViewState extends State<_VisitsView> {
           ],
         ),
       ),
+      bottomNavigationBar: EmployeeBottomNav(
+        currentIndex: 3,
+        onTap: (i) => EmployeeHomeShell.goToTab(context, i),
+      ),
     );
   }
 }
 
-class _VisitsFigmaHeader extends StatelessWidget {
-  const _VisitsFigmaHeader({
-    required this.monthLabel,
-    required this.monthOptions,
-    required this.onMonthSelected,
-  });
-
-  final String monthLabel;
-  final List<String> monthOptions;
-  final ValueChanged<String> onMonthSelected;
+class _VisitActionsRow extends StatelessWidget {
+  const _VisitActionsRow();
 
   @override
   Widget build(BuildContext context) {
-    final chipLabel = monthLabel == 'All Months' ? 'All Months' : monthLabel;
-
-    return ColoredBox(
-      color: PortalColors.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Row(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-            child: Row(
-              children: [
-                const PortalBackButton(),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'My Visits',
-                        style: portalText(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: PortalColors.heading,
-                          letterSpacing: 0.1,
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Field visits and location logs',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: portalText(
-                          fontSize: 11.5,
-                          color: PortalColors.muted,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
+          Expanded(
+            child: SizedBox(
+              height: 36,
+              child: OutlinedButton.icon(
+                onPressed: () => showMyTargetSheet(context),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF26204A),
+                  backgroundColor: const Color(0xFFF3F2F8),
+                  side: const BorderSide(color: Color(0xFFD9D6E8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
+                icon: SvgPicture.asset(
+                  'assets/icons/visits/target/ic_target_purple.svg',
+                  width: 12,
+                  height: 12,
+                ),
+                label: Text(
+                  'View Targets',
+                  style: portalText(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF26204A),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => openNotificationsScreen(context),
-                  child: SvgPicture.asset(
-                    'assets/icons/visits/ic_notification.svg',
-                    width: 34,
-                    height: 34,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                _MonthMenu(
-                  options: monthOptions,
-                  onSelected: onMonthSelected,
-                  child: SvgPicture.asset(
-                    'assets/icons/visits/ic_notification_cal.svg',
-                    width: 34,
-                    height: 34,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-          SizedBox(
-            height: 61,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 11),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _MonthMenu(
-                      options: monthOptions,
-                      onSelected: onMonthSelected,
-                      child: Container(
-                        width: double.infinity,
-                        height: 40,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF6F5FB),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SvgPicture.asset(
-                              'assets/icons/visits/ic_calendar_chip.svg',
-                              width: 15,
-                              height: 15,
-                            ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                chipLabel,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: portalText(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF000000),
-                                  height: 14 / 11.5,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: SizedBox(
+              height: 36,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(11),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF26204A), Color(0xFF4B4285)],
                   ),
-                  const SizedBox(width: 9),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => showMyTargetSheet(context),
-                      child: Container(
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF26204A),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SvgPicture.asset(
-                              'assets/icons/visits/target/ic_target_white.svg',
-                              width: 12,
-                              height: 12,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'View Targets',
-                              style: portalText(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                height: 14 / 11.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 9),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => showAddVisitSheet(context),
-                      child: Container(
-                        height: 40,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: PortalColors.brand,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '+Add Visit',
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => showAddVisitSheet(context),
+                    borderRadius: BorderRadius.circular(11),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.add, size: 14, color: Colors.white),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Add Visit',
                           style: portalText(
-                            fontSize: 11.5,
+                            fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
-                            height: 14 / 11.5,
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -375,35 +266,82 @@ class _VisitsFigmaHeader extends StatelessWidget {
   }
 }
 
-class _MonthMenu extends StatelessWidget {
-  const _MonthMenu({
-    required this.options,
-    required this.onSelected,
-    required this.child,
-  });
+class _VisitsAppBar extends StatelessWidget {
+  const _VisitsAppBar({required this.onMenuTap});
 
-  final List<String> options;
-  final ValueChanged<String> onSelected;
-  final Widget child;
+  final VoidCallback onMenuTap;
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      padding: EdgeInsets.zero,
-      offset: const Offset(0, 42),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      onSelected: onSelected,
-      itemBuilder: (_) => [
-        for (final o in options)
-          PopupMenuItem(
-            value: o,
-            child: Text(
-              o,
-              style: portalText(fontSize: 12, color: PortalColors.heading),
+    return Container(
+      decoration: BoxDecoration(
+        color: PortalColors.surface,
+        border: const Border(bottom: BorderSide(color: PortalColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: PortalColors.brand.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onMenuTap,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: PortalColors.brandTint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                'assets/icons/top_bar/ic_top_menu.svg',
+                width: 18,
+                height: 18,
+              ),
             ),
           ),
-      ],
-      child: child,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'My Visits',
+                  style: portalText(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: PortalColors.heading,
+                    letterSpacing: 0.1,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Field visits and location logs',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 11.5,
+                    color: PortalColors.muted,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          const TopNotificationButton(),
+          const SizedBox(width: 12),
+          const TopCalendarButton(),
+        ],
+      ),
     );
   }
 }
@@ -412,6 +350,10 @@ class _StatCardsRow extends StatelessWidget {
   const _StatCardsRow({required this.stats});
 
   final VisitStatsUiModel stats;
+
+  static const double _sidePad = 16;
+  static const double _gap = 8;
+  static const int _visibleCount = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -446,17 +388,23 @@ class _StatCardsRow extends StatelessWidget {
       ),
     ];
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardWidth =
+        (screenWidth - (_sidePad * 2) - (_gap * (_visibleCount - 1))) /
+        _visibleCount;
+
     return Padding(
-      padding: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.only(top: 12),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(13, 0, 13, 4),
+        padding: const EdgeInsets.fromLTRB(_sidePad, 0, _sidePad, 2),
+        physics: const BouncingScrollPhysics(),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (var i = 0; i < items.length; i++) ...[
-              if (i > 0) const SizedBox(width: 10),
-              _StatCard(item: items[i]),
+              if (i > 0) const SizedBox(width: _gap),
+              SizedBox(width: cardWidth, child: _StatCard(item: items[i])),
             ],
           ],
         ),
@@ -489,65 +437,58 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 128,
-      padding: const EdgeInsets.all(13),
+      padding: const EdgeInsets.fromLTRB(10, 10, 8, 9),
       decoration: BoxDecoration(
         color: PortalColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PortalColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: item.iconBg,
-                  borderRadius: BorderRadius.circular(9),
-                ),
-                alignment: Alignment.center,
-                child: SvgPicture.asset(item.iconAsset, width: 13, height: 13),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                item.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: portalText(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w700,
-                  color: PortalColors.muted,
-                  letterSpacing: 0.4,
-                  height: 1.1,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                item.value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: portalText(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: PortalColors.green,
-                  height: 1.05,
-                ),
-              ),
-            ],
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: item.iconBg,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: SvgPicture.asset(item.iconAsset, width: 11, height: 11),
           ),
           const SizedBox(height: 6),
+          Text(
+            item.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: portalText(
+              fontSize: 8.5,
+              fontWeight: FontWeight.w700,
+              color: PortalColors.muted,
+              letterSpacing: 0.3,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 1),
+          Text(
+            item.value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: portalText(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: PortalColors.green,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 2),
           Text(
             item.subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 9.5,
+              fontSize: 8.5,
               fontWeight: FontWeight.w400,
               color: PortalColors.muted,
               height: 1.1,
@@ -565,34 +506,24 @@ class _FiltersCard extends StatelessWidget {
     required this.month,
     required this.monthOptions,
     required this.status,
-    required this.shown,
-    required this.total,
-    required this.isRefreshing,
     required this.onSearch,
     required this.onMonth,
     required this.onStatus,
-    required this.onRefresh,
   });
 
   final TextEditingController search;
   final String month;
   final List<String> monthOptions;
   final String status;
-  final int shown;
-  final int total;
-  final bool isRefreshing;
   final ValueChanged<String> onSearch;
   final ValueChanged<String> onMonth;
   final ValueChanged<String> onStatus;
-  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
-    final monthLabel = month == 'All Months' ? 'all months' : month;
-
     return Container(
-      margin: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-      padding: const EdgeInsets.fromLTRB(17, 17, 17, 16),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       decoration: BoxDecoration(
         color: PortalColors.surface,
         borderRadius: BorderRadius.circular(18),
@@ -611,7 +542,7 @@ class _FiltersCard extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                'Filters & Actions',
+                'Filters',
                 style: portalText(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
@@ -676,8 +607,12 @@ class _FiltersCard extends StatelessWidget {
                 child: _DropdownLook(
                   label: 'MONTH',
                   value: month,
+                  hint: 'All Months',
                   options: monthOptions,
                   onChanged: onMonth,
+                  onClear: month != 'All Months'
+                      ? () => onMonth('All Months')
+                      : null,
                 ),
               ),
               const SizedBox(width: 10),
@@ -685,107 +620,15 @@ class _FiltersCard extends StatelessWidget {
                 child: _DropdownLook(
                   label: 'STATUS',
                   value: status,
+                  hint: 'All Status',
                   options: const ['All Status', 'Pending', 'Lead', 'Rejected'],
                   onChanged: onStatus,
+                  onClear: status != 'All Status'
+                      ? () => onStatus('All Status')
+                      : null,
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: isRefreshing ? null : onRefresh,
-                  child: Container(
-                    height: 36,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: PortalColors.background,
-                      borderRadius: BorderRadius.circular(11),
-                      border: Border.all(color: PortalColors.border),
-                    ),
-                    child: isRefreshing
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.refresh_rounded,
-                                size: 15,
-                                color: PortalColors.muted,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Refresh',
-                                style: portalText(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                  color: PortalColors.muted,
-                                  height: 15 / 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => showAddVisitSheet(context),
-                  child: Container(
-                    height: 36,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF26204A),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '+Add Visit',
-                      style: portalText(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        height: 14 / 11.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text.rich(
-            TextSpan(
-              style: portalText(
-                fontSize: 8,
-                fontWeight: FontWeight.w400,
-                color: Colors.black.withValues(alpha: 0.61),
-                height: 10 / 8,
-              ),
-              children: [
-                const TextSpan(text: 'Showing '),
-                TextSpan(
-                  text: '$shown',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const TextSpan(text: ' of '),
-                TextSpan(
-                  text: '$total',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const TextSpan(text: ' records for '),
-                TextSpan(
-                  text: monthLabel,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -804,17 +647,23 @@ class _DropdownLook extends StatelessWidget {
   const _DropdownLook({
     required this.label,
     required this.value,
+    required this.hint,
     required this.options,
     required this.onChanged,
+    this.onClear,
   });
 
   final String label;
   final String value;
+  final String hint;
   final List<String> options;
   final ValueChanged<String> onChanged;
+  final VoidCallback? onClear;
 
   @override
   Widget build(BuildContext context) {
+    final isDefault = value == hint;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -830,55 +679,79 @@ class _DropdownLook extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        PopupMenuButton<String>(
-          onSelected: onChanged,
-          offset: const Offset(0, 40),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+        Container(
+          width: double.infinity,
+          height: 36,
+          padding: const EdgeInsets.only(left: 12, right: 8),
+          decoration: BoxDecoration(
+            color: PortalColors.background,
+            borderRadius: BorderRadius.circular(11),
+            border: Border.all(color: PortalColors.border),
           ),
-          itemBuilder: (_) => [
-            for (final o in options)
-              PopupMenuItem(
-                value: o,
-                child: Text(
-                  o,
-                  style: portalText(fontSize: 12, color: PortalColors.heading),
+          child: Row(
+            children: [
+              Expanded(
+                child: PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  onSelected: onChanged,
+                  offset: const Offset(0, 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  itemBuilder: (_) => [
+                    for (final o in options)
+                      PopupMenuItem(
+                        value: o,
+                        child: Text(
+                          o,
+                          style: portalText(
+                            fontSize: 12,
+                            color: PortalColors.heading,
+                          ),
+                        ),
+                      ),
+                  ],
+                  child: SizedBox(
+                    height: 36,
+                    width: double.infinity,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        value,
+                        overflow: TextOverflow.ellipsis,
+                        style: portalText(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: isDefault
+                              ? PortalColors.muted
+                              : PortalColors.heading,
+                          height: 15 / 12,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-          ],
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: PortalColors.background,
-              borderRadius: BorderRadius.circular(11),
-              border: Border.all(color: PortalColors.border),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    value == 'All Status' ? 'All Status ⌄' : value,
-                    overflow: TextOverflow.ellipsis,
-                    style: portalText(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
+              if (onClear != null)
+                InkWell(
+                  onTap: onClear,
+                  borderRadius: BorderRadius.circular(12),
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 15,
                       color: PortalColors.muted,
-                      height: 15 / 12,
                     ),
                   ),
+                )
+              else
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 18,
+                  color: PortalColors.muted,
                 ),
-                if (value != 'All Status')
-                  Text(
-                    '⌄',
-                    style: portalText(
-                      fontSize: 14,
-                      color: PortalColors.muted,
-                      height: 1,
-                    ),
-                  ),
-              ],
-            ),
+            ],
           ),
         ),
       ],
@@ -889,22 +762,18 @@ class _DropdownLook extends StatelessWidget {
 class _VisitRecordsSection extends StatelessWidget {
   const _VisitRecordsSection({
     required this.visits,
-    required this.month,
     required this.onEdit,
     required this.onDelete,
     required this.onAddVisit,
   });
 
   final List<VisitUiModel> visits;
-  final String month;
   final ValueChanged<VisitUiModel> onEdit;
   final ValueChanged<VisitUiModel> onDelete;
   final VoidCallback onAddVisit;
 
   @override
   Widget build(BuildContext context) {
-    final monthLabel = month == 'All Months' ? 'all months' : month;
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 22, 16, 0),
       child: Column(
@@ -958,15 +827,6 @@ class _VisitRecordsSection extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'All your visit and client interactions for $monthLabel.',
-            style: portalText(
-              fontSize: 11,
-              fontWeight: FontWeight.w400,
-              color: PortalColors.muted,
-            ),
           ),
           const SizedBox(height: 14),
           if (visits.isEmpty)
@@ -1038,29 +898,41 @@ class _EmptyVisitsCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          InkWell(
-            onTap: onAddVisit,
-            borderRadius: BorderRadius.circular(10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-              decoration: BoxDecoration(
-                color: PortalColors.brand,
-                borderRadius: BorderRadius.circular(10),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(11),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF26204A), Color(0xFF4B4285)],
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.add_rounded, size: 16, color: Colors.white),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Add Visit',
-                    style: portalText(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onAddVisit,
+                borderRadius: BorderRadius.circular(11),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 9,
                   ),
-                ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.add, size: 14, color: Colors.white),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Add Visit',
+                        style: portalText(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -1119,13 +991,11 @@ class _VisitRecordCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Top Header: Index & Date on left, Status chip on right
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Index Badge
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
@@ -1145,7 +1015,6 @@ class _VisitRecordCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Date
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -1166,7 +1035,6 @@ class _VisitRecordCard extends StatelessWidget {
                   ],
                 ),
                 const Spacer(),
-                // Status Pill with dot
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
@@ -1205,13 +1073,11 @@ class _VisitRecordCard extends StatelessWidget {
 
           const Divider(height: 1, thickness: 1, color: PortalColors.border),
 
-          // Main Card Content
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Center / Clinic Title
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1271,7 +1137,6 @@ class _VisitRecordCard extends StatelessWidget {
                   ],
                 ),
 
-                // Phone Row (if available)
                 if (hasValidPhone) ...[
                   const SizedBox(height: 10),
                   InkWell(
@@ -1322,7 +1187,6 @@ class _VisitRecordCard extends StatelessWidget {
                   ),
                 ],
 
-                // Location / Address Row
                 if (hasValidAddress) ...[
                   const SizedBox(height: 10),
                   Row(
@@ -1384,7 +1248,6 @@ class _VisitRecordCard extends StatelessWidget {
                   ),
                 ],
 
-                // Remarks Box (if present)
                 if (hasRemark) ...[
                   const SizedBox(height: 10),
                   Container(
@@ -1443,7 +1306,6 @@ class _VisitRecordCard extends StatelessWidget {
                   ),
                 ],
 
-                // Bottom Actions
                 const SizedBox(height: 12),
                 const Divider(height: 1, thickness: 1, color: PortalColors.border),
                 const SizedBox(height: 10),

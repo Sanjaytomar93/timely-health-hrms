@@ -1342,7 +1342,6 @@ class _StatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    // 3 cards visible: side padding 18*2 + gaps 8*2
     final cardWidth = ((width - 36 - 16) / 3).clamp(100.0, 140.0);
 
     final items = [

@@ -6,6 +6,7 @@ import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_system_ui.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/core/widgets/shimmer.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/bloc/absent_today_cubit.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/bloc/absent_today_state.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/models/absent_today_ui.dart';
@@ -282,12 +283,10 @@ class _AbsentTodayScreenState extends State<AbsentTodayScreen> {
                 statusBarColor: PortalColors.surface,
                 child: Column(
                   children: [
-                    // White Navbar (Leaves Screen Style)
                     _WhiteTopBar(
                       onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
                     ),
 
-                    // Main Body Content
                     Expanded(
                       child: RefreshIndicator(
                         color: const Color(0xFF4F46E5),
@@ -296,7 +295,6 @@ class _AbsentTodayScreenState extends State<AbsentTodayScreen> {
                           padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
                           physics: const AlwaysScrollableScrollPhysics(),
                           children: [
-                            // Search bar
                             _SearchInput(
                               controller: _searchCtrl,
                               onChanged: (v) {
@@ -306,7 +304,6 @@ class _AbsentTodayScreenState extends State<AbsentTodayScreen> {
                             ),
                             const SizedBox(height: 10),
 
-                            // Filter chips row with cross (clear) icons
                             _FilterChipsRow(
                               dateLabel: _dateLabel,
                               monthLabel: _monthOnly,
@@ -344,14 +341,12 @@ class _AbsentTodayScreenState extends State<AbsentTodayScreen> {
                             ),
                             const SizedBox(height: 14),
 
-                            // SNAPSHOT SUMMARY Section (3 Cards visible in one line, rest on scroll)
                             _SnapshotSummarySection(
                               ui: ui,
                               filteredCount: records.length,
                             ),
                             const SizedBox(height: 18),
 
-                            // Absent Employees Section Header
                             Row(
                               children: [
                                 const SizedBox(width: 4),
@@ -382,17 +377,11 @@ class _AbsentTodayScreenState extends State<AbsentTodayScreen> {
                             ),
                             const SizedBox(height: 12),
 
-                            // Loading state
                             if (isLoading)
-                              Container(
-                                padding: const EdgeInsets.symmetric(vertical: 48),
-                                alignment: Alignment.center,
-                                child: const CircularProgressIndicator(
-                                  color: Color(0xFF4F46E5),
-                                  strokeWidth: 2.5,
-                                ),
+                              const Padding(
+                                padding: EdgeInsets.only(top: 8, bottom: 16),
+                                child: AdminListCardsShimmer(cardCount: 5),
                               )
-                            // Failure state
                             else if (isFailure)
                               Container(
                                 padding: const EdgeInsets.all(28),
@@ -445,7 +434,6 @@ class _AbsentTodayScreenState extends State<AbsentTodayScreen> {
                                   ],
                                 ),
                               )
-                            // Empty state
                             else if (records.isEmpty)
                               Container(
                                 padding: const EdgeInsets.symmetric(vertical: 40),
@@ -469,7 +457,6 @@ class _AbsentTodayScreenState extends State<AbsentTodayScreen> {
                                   ],
                                 ),
                               )
-                            // Records List
                             else
                               ...records.map(
                                 (item) => _AbsentEmployeeCard(item: item),
@@ -495,9 +482,6 @@ class _AbsentTodayScreenState extends State<AbsentTodayScreen> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// White Navbar like Leaves Screen
-// ---------------------------------------------------------------------------
 class _WhiteTopBar extends StatelessWidget {
   const _WhiteTopBar({
     required this.onMenuTap,
@@ -589,9 +573,6 @@ class _WhiteTopBar extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Search Input Field
-// ---------------------------------------------------------------------------
 class _SearchInput extends StatelessWidget {
   const _SearchInput({
     required this.controller,
@@ -661,9 +642,6 @@ class _SearchInput extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Filter Chips Row (Exact same width as Search Bar, 4 equal columns)
-// ---------------------------------------------------------------------------
 class _FilterChipsRow extends StatelessWidget {
   const _FilterChipsRow({
     required this.dateLabel,
@@ -705,7 +683,6 @@ class _FilterChipsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // 1. Date filter
         Expanded(
           child: _FilterItemButton(
             icon: Icons.calendar_today_outlined,
@@ -721,7 +698,6 @@ class _FilterChipsRow extends StatelessWidget {
         ),
         const SizedBox(width: 6),
 
-        // 2. Month filter (shows only month)
         Expanded(
           child: _FilterItemButton(
             icon: Icons.calendar_month_rounded,
@@ -737,7 +713,6 @@ class _FilterChipsRow extends StatelessWidget {
         ),
         const SizedBox(width: 6),
 
-        // 3. Dept filter
         Expanded(
           child: _FilterItemButton(
             icon: Icons.apartment_rounded,
@@ -753,7 +728,6 @@ class _FilterChipsRow extends StatelessWidget {
         ),
         const SizedBox(width: 6),
 
-        // 4. Design filter
         Expanded(
           child: _FilterItemButton(
             icon: Icons.badge_outlined,
@@ -871,9 +845,6 @@ class _FilterItemButton extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Snapshot Summary Section (3 cards visible at once in one line, rest on scroll)
-// ---------------------------------------------------------------------------
 class _SnapshotSummarySection extends StatelessWidget {
   const _SnapshotSummarySection({
     required this.ui,
@@ -898,7 +869,6 @@ class _SnapshotSummarySection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        // Row 1: 2 cards
         Row(
           children: [
             Expanded(
@@ -925,7 +895,6 @@ class _SnapshotSummarySection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        // Row 2: 2 cards
         Row(
           children: [
             Expanded(
@@ -1050,9 +1019,6 @@ class _MetricSnapshotCard extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Absent Employee Card
-// ---------------------------------------------------------------------------
 class _AbsentEmployeeCard extends StatelessWidget {
   const _AbsentEmployeeCard({required this.item});
 
@@ -1078,11 +1044,9 @@ class _AbsentEmployeeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Row: Avatar, Name + ID, ABSENT Badge
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Circle Avatar with brand gradient
               Container(
                 width: 40,
                 height: 40,
@@ -1129,12 +1093,10 @@ class _AbsentEmployeeCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
 
-              // Info Column
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Name + Employee ID badge
                     Row(
                       children: [
                         Flexible(
@@ -1173,7 +1135,6 @@ class _AbsentEmployeeCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
 
-                    // Designation
                     Text(
                       item.designation,
                       maxLines: 1,
@@ -1189,7 +1150,6 @@ class _AbsentEmployeeCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
 
-              // ABSENT Badge with red indicator dot
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 7,
@@ -1228,7 +1188,6 @@ class _AbsentEmployeeCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Bottom Info Row: Department and Date
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
@@ -1237,7 +1196,6 @@ class _AbsentEmployeeCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Department
                 const Icon(
                   Icons.apartment_rounded,
                   size: 13,
@@ -1258,7 +1216,6 @@ class _AbsentEmployeeCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
 
-                // Date & Full Day
                 const Icon(
                   Icons.calendar_today_rounded,
                   size: 12,

@@ -12,24 +12,62 @@ class TodayAttendanceCubit extends Cubit<TodayAttendanceState> {
 
   final TodayAttendanceRepository _repository;
 
+  String? _fromDate;
+  String? _toDate;
+
+  static String _ymd(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  static String _todayYmd() => _ymd(DateTime.now());
+
+  static String _monthRangeEnd(String month) {
+    final parts = month.split('-');
+    final year = int.tryParse(parts[0]) ?? DateTime.now().year;
+    final m =
+        int.tryParse(parts.length > 1 ? parts[1] : '') ?? DateTime.now().month;
+    final last = DateTime(year, m + 1, 0);
+    final now = DateTime.now();
+    if (year == now.year && m == now.month && last.isAfter(now)) {
+      return _ymd(now);
+    }
+    return _ymd(last);
+  }
+
   Future<void> load({
     bool isRefresh = false,
     String? month,
     String? date,
+    String? dateEnd,
   }) async {
-    final String? targetDate = date != null
-        ? (date.trim().isEmpty ? null : date.trim())
-        : state.selectedDate;
+    String? targetMonth = state.selectedMonth;
+    String? targetDate = state.selectedDate;
 
-    String? targetMonth = month != null
-        ? (month.trim().isEmpty ? null : month.trim())
-        : state.selectedMonth;
-
-    if (targetDate != null) {
-      targetMonth = targetDate.substring(0, 7);
+    if (date != null || month != null) {
+      if (date != null && date.trim().isNotEmpty) {
+        final from = date.trim();
+        final to = (dateEnd != null && dateEnd.trim().isNotEmpty)
+            ? dateEnd.trim()
+            : from;
+        _fromDate = from;
+        _toDate = to;
+        targetDate = from;
+        targetMonth = from.substring(0, 7);
+      } else if (month != null && month.trim().isNotEmpty) {
+        final m = month.trim();
+        _fromDate = '$m-01';
+        _toDate = _monthRangeEnd(m);
+        targetMonth = m;
+        targetDate = null;
+      } else {
+        _fromDate = _todayYmd();
+        _toDate = _fromDate;
+        targetMonth = null;
+        targetDate = null;
+      }
+    } else {
+      _fromDate ??= _todayYmd();
+      _toDate ??= _fromDate;
     }
-
-    final usePagedMonth = targetMonth != null && targetDate == null;
 
     emit(TodayAttendanceLoading(
       ui: isRefresh ? state.ui : TodayAttendanceUi.empty,
@@ -39,32 +77,18 @@ class TodayAttendanceCubit extends Cubit<TodayAttendanceState> {
       page: 1,
       isFetchingMore: false,
       hasReachedMax: false,
-      usePagedMonth: usePagedMonth,
+      usePagedMonth: true,
     ));
 
     try {
-      final TodayAttendanceUi ui;
-      if (targetDate != null) {
-        ui = await _repository.getByMonth(
-          month: targetMonth!,
-          date: targetDate,
-        );
-      } else if (targetMonth != null) {
-        ui = await _repository.getByMonth(
-          month: targetMonth,
-          page: 1,
-          limit: 15,
-        );
-      } else {
-        ui = await _repository.getTodayAttendance();
-      }
+      final ui = await _repository.getTodayAttendance(
+        fromDate: _fromDate,
+        toDate: _toDate,
+        page: 1,
+        limit: 100,
+      );
 
       if (isClosed) return;
-      final reachedMax = !usePagedMonth ||
-          1 >= ui.totalPages ||
-          ui.records.length < 15 ||
-          ui.records.length >= ui.totalRecords;
-
       emit(TodayAttendanceLoaded(
         ui: ui,
         searchQuery: state.searchQuery,
@@ -72,8 +96,8 @@ class TodayAttendanceCubit extends Cubit<TodayAttendanceState> {
         selectedDate: targetDate,
         page: 1,
         isFetchingMore: false,
-        hasReachedMax: reachedMax,
-        usePagedMonth: usePagedMonth,
+        hasReachedMax: !ui.hasMore,
+        usePagedMonth: true,
       ));
     } on AttendanceRecordsFailure catch (e) {
       if (isClosed) return;
@@ -83,7 +107,7 @@ class TodayAttendanceCubit extends Cubit<TodayAttendanceState> {
         searchQuery: state.searchQuery,
         selectedMonth: targetMonth,
         selectedDate: targetDate,
-        usePagedMonth: usePagedMonth,
+        usePagedMonth: true,
       ));
     } catch (_) {
       if (isClosed) return;
@@ -93,7 +117,7 @@ class TodayAttendanceCubit extends Cubit<TodayAttendanceState> {
         searchQuery: state.searchQuery,
         selectedMonth: targetMonth,
         selectedDate: targetDate,
-        usePagedMonth: usePagedMonth,
+        usePagedMonth: true,
       ));
     }
   }
@@ -101,23 +125,18 @@ class TodayAttendanceCubit extends Cubit<TodayAttendanceState> {
   Future<void> loadMore() async {
     final current = state;
     if (current is! TodayAttendanceLoaded) return;
-    if (!current.usePagedMonth) return;
     if (current.isFetchingMore || current.hasReachedMax) return;
-    if (current.selectedMonth == null) return;
+    if (_fromDate == null || _toDate == null) return;
 
     final nextPage = current.page + 1;
-    if (nextPage > current.ui.totalPages) {
-      emit(current.copyWith(hasReachedMax: true));
-      return;
-    }
-
     emit(current.copyWith(isFetchingMore: true));
 
     try {
-      final newUi = await _repository.getByMonth(
-        month: current.selectedMonth!,
+      final newUi = await _repository.getTodayAttendance(
+        fromDate: _fromDate,
+        toDate: _toDate,
         page: nextPage,
-        limit: 15,
+        limit: 100,
       );
 
       if (isClosed) return;
@@ -128,13 +147,12 @@ class TodayAttendanceCubit extends Cubit<TodayAttendanceState> {
         currentPage: nextPage,
         totalPages: newUi.totalPages,
         totalRecords: newUi.totalRecords,
-        totalCheckIn:
-            newUi.totalRecords > 0 ? newUi.totalRecords : merged.length,
+        totalCheckIn: newUi.totalCheckIn,
+        activeWorking: newUi.activeWorking,
+        onsiteCount: newUi.onsiteCount,
+        remoteCount: newUi.remoteCount,
+        hasMore: newUi.hasMore,
       );
-
-      final reachedMax = nextPage >= newUi.totalPages ||
-          newUi.records.isEmpty ||
-          merged.length >= newUi.totalRecords;
 
       emit(TodayAttendanceLoaded(
         ui: updated,
@@ -143,7 +161,7 @@ class TodayAttendanceCubit extends Cubit<TodayAttendanceState> {
         selectedDate: current.selectedDate,
         page: nextPage,
         isFetchingMore: false,
-        hasReachedMax: reachedMax,
+        hasReachedMax: !newUi.hasMore,
         usePagedMonth: true,
       ));
     } catch (_) {

@@ -7,13 +7,14 @@ import 'package:timelay_health/features/attendance/presentation/screens/attendan
 import 'package:timelay_health/features/dashboard/presentation/bloc/dashboard_cubit.dart';
 import 'package:timelay_health/features/dashboard/presentation/bloc/monthly_performance_cubit.dart';
 import 'package:timelay_health/features/dashboard/presentation/bloc/monthly_performance_state.dart';
-import 'package:timelay_health/features/dashboard/presentation/screens/admin_dashboard_screen.dart';
+import 'package:timelay_health/features/admin/dashboard/presentation/screens/admin_dashboard_screen.dart';
 import 'package:timelay_health/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/monthly_performance_dialog.dart';
 import 'package:timelay_health/features/leaves/presentation/screens/leaves_screen.dart';
 import 'package:timelay_health/features/profile/presentation/screens/profile_hub_screen.dart';
+import 'package:timelay_health/features/profile/presentation/screens/profile_screen.dart';
 import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 
@@ -25,14 +26,29 @@ class EmployeeHomeShell extends StatefulWidget {
 
   static const int dashboardTab = 0;
 
+  static final ValueNotifier<int> tabIndex = ValueNotifier<int>(0);
+
   static final ValueNotifier<int?> _tabRequest = ValueNotifier<int?>(null);
 
   /// Closes every route above the home shell and switches it to [tab].
   static void goToTab(BuildContext context, int tab) {
-    Navigator.of(
-      context,
-      rootNavigator: true,
-    ).popUntil(ModalRoute.withName(AppRoutes.home));
+    final nav = Navigator.of(context, rootNavigator: true);
+    final isAdmin =
+        kForceAdminHome || (AuthSession.currentEmployee?.isAdmin ?? false);
+
+    if (isAdmin && (tab == 1 || tab == 2)) {
+      final target =
+          tab == 1 ? AppRoutes.attendanceSummary : AppRoutes.leaveList;
+      final current = ModalRoute.of(context)?.settings.name;
+      if (current == target) return;
+      nav.popUntil(ModalRoute.withName(AppRoutes.home));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        nav.pushNamed(target);
+      });
+      return;
+    }
+
+    nav.popUntil(ModalRoute.withName(AppRoutes.home));
     _tabRequest.value = null;
     _tabRequest.value = tab;
   }
@@ -139,7 +155,9 @@ class _EmployeeHomeShellState extends State<EmployeeHomeShell> {
                     ? const LeavesScreen()
                     : const SizedBox.shrink(),
                 _visited.contains(3)
-                    ? const ProfileHubScreen()
+                    ? (isAdmin
+                        ? const ProfileHubScreen()
+                        : const ProfileScreen(embedded: true))
                     : const SizedBox.shrink(),
               ],
             ),
@@ -167,9 +185,18 @@ class _EmployeeHomeShellState extends State<EmployeeHomeShell> {
   }
 
   void _openTab(int value) {
+    final isAdmin =
+        kForceAdminHome || (AuthSession.currentEmployee?.isAdmin ?? false);
+    if (isAdmin && (value == 1 || value == 2)) {
+      final target =
+          value == 1 ? AppRoutes.attendanceSummary : AppRoutes.leaveList;
+      Navigator.of(context).pushNamed(target);
+      return;
+    }
     setState(() {
       _visited.add(value);
       _index = value;
     });
+    EmployeeHomeShell.tabIndex.value = value;
   }
 }

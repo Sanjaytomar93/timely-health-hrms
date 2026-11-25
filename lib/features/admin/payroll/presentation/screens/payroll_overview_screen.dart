@@ -1,11 +1,12 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:timelay_health/core/routes/app_routes.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/theme/portal_system_ui.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/core/widgets/shimmer.dart';
 import 'package:timelay_health/features/admin/payroll/presentation/models/payroll_overview_ui.dart';
 import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
@@ -25,6 +26,7 @@ class _PayrollOverviewScreenState extends State<PayrollOverviewScreen> {
 
   late PayrollOverviewUi _ui;
   late List<EmployeePayrollRecord> _records;
+  bool _ready = false;
 
   String _monthFilter = 'Nov 2026';
   String _deptFilter = 'All Depts';
@@ -68,6 +70,10 @@ class _PayrollOverviewScreenState extends State<PayrollOverviewScreen> {
     super.initState();
     _ui = PayrollOverviewUi.sample();
     _records = List.from(_ui.records);
+    Future.delayed(const Duration(milliseconds: 700), () {
+      if (!mounted) return;
+      setState(() => _ready = true);
+    });
   }
 
   @override
@@ -102,206 +108,580 @@ class _PayrollOverviewScreenState extends State<PayrollOverviewScreen> {
     }).toList();
   }
 
-  Future<void> _pickFromSheet({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color accent,
-    required Color accentTint,
-    required List<String> items,
-    required String selected,
-    required ValueChanged<String> onPick,
-  }) async {
+  Future<void> _pickMonthSheet() async {
     final picked = await showModalBottomSheet<String>(
       context: context,
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-      ),
+      builder: (ctx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Select Month',
+                          style: portalText(
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Payroll tracking period',
+                          style: portalText(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close_rounded,
+                          size: 16,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 2.6,
+                  ),
+                  itemCount: months.length,
+                  itemBuilder: (ctx, i) {
+                    final month = months[i];
+                    final isSelected = month == _monthFilter;
+                    return InkWell(
+                      onTap: () => Navigator.pop(ctx, month),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? PortalColors.brandTint
+                              : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected
+                                ? PortalColors.brand
+                                : const Color(0xFFE2E8F0),
+                            width: isSelected ? 1.5 : 1.0,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 15,
+                              color: isSelected
+                                  ? PortalColors.brand
+                                  : const Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                month,
+                                style: portalText(
+                                  fontSize: 13,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w600,
+                                  color: isSelected
+                                      ? PortalColors.brand
+                                      : const Color(0xFF1E293B),
+                                ),
+                              ),
+                            ),
+                            if (isSelected)
+                              const Icon(
+                                Icons.check_circle_rounded,
+                                size: 16,
+                                color: PortalColors.brand,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() => _monthFilter = picked);
+    }
+  }
+
+  Future<void> _pickDepartmentSheet() async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (ctx) {
         var query = '';
         return StatefulBuilder(
           builder: (ctx, setSheet) {
-            final filtered = items
+            final filtered = departments
                 .where((e) => e.toLowerCase().contains(query.toLowerCase()))
                 .toList();
-            return SafeArea(
-              child: SizedBox(
-                height: MediaQuery.sizeOf(ctx).height * 0.62,
+
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(ctx).height * 0.72,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+              child: SafeArea(
+                top: false,
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 10),
-                    Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: PortalColors.border,
-                        borderRadius: BorderRadius.circular(4),
+                    Center(
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                    const SizedBox(height: 14),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Select Department',
+                              style: portalText(
+                                fontSize: 16.5,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Filter employees by unit',
+                              style: portalText(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.pop(ctx),
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF1F5F9),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close_rounded,
+                              size: 16,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: Row(
                         children: [
-                          Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(
-                              color: accentTint,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            alignment: Alignment.center,
-                            child: Icon(icon, size: 20, color: accent),
+                          const Icon(
+                            Icons.search_rounded,
+                            size: 18,
+                            color: Color(0xFF94A3B8),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  title,
-                                  style: portalText(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                    color: PortalColors.heading,
-                                  ),
+                            child: TextField(
+                              onChanged: (v) => setSheet(() => query = v),
+                              style: portalText(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF0F172A),
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'Search department...',
+                                hintStyle: portalText(
+                                  fontSize: 13,
+                                  color: const Color(0xFF94A3B8),
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  subtitle,
-                                  style: portalText(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: PortalColors.muted,
-                                  ),
-                                ),
-                              ],
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                      child: Container(
-                        height: 42,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: PortalColors.background,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: PortalColors.border),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.search_rounded,
-                                size: 18, color: accent),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                onChanged: (v) => setSheet(() => query = v),
-                                style: portalText(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: PortalColors.heading,
-                                ),
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.zero,
-                                  hintText: 'Search $title...',
-                                  hintStyle: portalText(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: PortalColors.muted,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Expanded(
+                    const SizedBox(height: 12),
+                    Flexible(
                       child: ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                        shrinkWrap: true,
                         itemCount: filtered.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 8),
-                        itemBuilder: (_, i) {
-                          final item = filtered[i];
-                          final active = item == selected;
-                          return Material(
-                            color: active ? accentTint : Colors.white,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (ctx, i) {
+                          final dept = filtered[i];
+                          final isSelected = dept == _deptFilter;
+                          final isAll = dept == 'All Depts';
+
+                          return InkWell(
+                            onTap: () => Navigator.pop(ctx, dept),
                             borderRadius: BorderRadius.circular(12),
-                            child: InkWell(
-                              onTap: () => Navigator.of(ctx).pop(item),
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: active ? accent : PortalColors.border,
-                                    width: active ? 1.3 : 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 28,
-                                      height: 28,
-                                      decoration: BoxDecoration(
-                                        color: active
-                                            ? accent
-                                            : PortalColors.background,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Icon(
-                                        active
-                                            ? Icons.check_rounded
-                                            : Icons.circle_outlined,
-                                        size: active ? 15 : 12,
-                                        color: active
-                                            ? Colors.white
-                                            : PortalColors.muted,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        item,
-                                        style: portalText(
-                                          fontSize: 13.5,
-                                          fontWeight: active
-                                              ? FontWeight.w700
-                                              : FontWeight.w600,
-                                          color: active
-                                              ? accent
-                                              : PortalColors.heading,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 11,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? PortalColors.brandTint
+                                    : const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? PortalColors.brand
+                                      : const Color(0xFFE2E8F0),
+                                  width: isSelected ? 1.5 : 1.0,
                                 ),
                               ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 30,
+                                    height: 30,
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? PortalColors.brand
+                                          : const Color(0xFFE2E8F0),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Icon(
+                                      isAll
+                                          ? Icons.apps_rounded
+                                          : Icons.apartment_rounded,
+                                      size: 16,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      dept,
+                                      style: portalText(
+                                        fontSize: 13.5,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.w600,
+                                        color: isSelected
+                                            ? PortalColors.brand
+                                            : const Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    const Icon(
+                                      Icons.check_circle_rounded,
+                                      size: 18,
+                                      color: PortalColors.brand,
+                                    )
+                                else
+                                  const Icon(
+                                    Icons.radio_button_unchecked_rounded,
+                                    size: 18,
+                                    color: Color(0xFFCBD5E1),
+                                  ),
+                              ],
                             ),
-                          );
-                        },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+  if (picked != null) {
+    setState(() => _deptFilter = picked);
+  }
+}
+
+  Future<void> _pickStatusSheet() async {
+    final options = [
+      {
+        'id': 'ALL',
+        'label': 'All Employees',
+        'count': '65 Staff Records',
+        'icon': Icons.group_outlined,
+        'color': const Color(0xFF6366F1),
+        'tint': const Color(0xFFEEF2FF),
+      },
+      {
+        'id': 'ACTIVE',
+        'label': 'Active Employees',
+        'count': '25 Active Staff',
+        'icon': Icons.check_circle_outline_rounded,
+        'color': const Color(0xFF10B981),
+        'tint': const Color(0xFFECFDF5),
+      },
+      {
+        'id': 'INACTIVE',
+        'label': 'Inactive / On-Hold',
+        'count': '40 Clearance Req.',
+        'icon': Icons.pause_circle_outline_rounded,
+        'color': const Color(0xFFEF4444),
+        'tint': const Color(0xFFFEF2F2),
+      },
+    ];
+
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Filter Status',
+                          style: portalText(
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Select status category to view',
+                          style: portalText(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close_rounded,
+                          size: 16,
+                          color: Color(0xFF64748B),
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            );
-          },
+                const SizedBox(height: 16),
+                for (final opt in options) ...[
+                  Builder(
+                    builder: (_) {
+                      final id = opt['id'] as String;
+                      final isSelected = _statusFilter == id;
+                      final color = opt['color'] as Color;
+                      final tint = opt['tint'] as Color;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: InkWell(
+                          onTap: () => Navigator.pop(ctx, id),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? tint.withValues(alpha: 0.6)
+                                  : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isSelected
+                                    ? color
+                                    : const Color(0xFFE2E8F0),
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    color: tint,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Icon(
+                                    opt['icon'] as IconData,
+                                    size: 18,
+                                    color: color,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        opt['label'] as String,
+                                        style: portalText(
+                                          fontSize: 13.5,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w700
+                                              : FontWeight.w600,
+                                          color: const Color(0xFF0F172A),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 1),
+                                      Text(
+                                        opt['count'] as String,
+                                        style: portalText(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w500,
+                                          color: const Color(0xFF64748B),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Icon(
+                                    Icons.check_circle_rounded,
+                                    size: 20,
+                                    color: color,
+                                  )
+                                else
+                                  const Icon(
+                                    Icons.radio_button_unchecked_rounded,
+                                    size: 20,
+                                    color: Color(0xFFCBD5E1),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
         );
       },
     );
-    if (picked != null) onPick(picked);
+    if (picked != null) {
+      setState(() => _statusFilter = picked);
+    }
   }
 
   @override
@@ -320,110 +700,49 @@ class _PayrollOverviewScreenState extends State<PayrollOverviewScreen> {
           statusBarColor: PortalColors.brand,
           child: Column(
             children: [
-              // --- 1. Top Navbar (Dark Purple Brand Style) ---
               _TopBar(
                 onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
               ),
 
-              // --- 2. Scrollable Body Content ---
               Expanded(
-                child: ListView(
+                child: !_ready
+                    ? const AdminListShimmer(statCount: 4, cardCount: 5)
+                    : ListView(
                   padding: const EdgeInsets.fromLTRB(14, 14, 14, 24),
                   children: [
-                    // Search Field
                     _PayrollSearchField(
                       controller: _searchCtrl,
                       onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 10),
 
-                    // Normal Filters Row (Month, Dept, Status Chips)
                     _PayrollFilterRow(
                       monthLabel: _monthFilter,
                       deptLabel: _deptFilter,
                       statusLabel: _statusFilterLabel,
                       deptActive: _deptFilter != 'All Depts',
                       statusActive: _statusFilter != 'ALL',
-                      onMonthTap: () => _pickFromSheet(
-                        title: 'Select Month',
-                        subtitle: 'Payroll tracking period',
-                        icon: Icons.calendar_month_rounded,
-                        accent: const Color(0xFF2563EB),
-                        accentTint: const Color(0xFFEFF6FF),
-                        items: months,
-                        selected: _monthFilter,
-                        onPick: (val) => setState(() => _monthFilter = val),
-                      ),
-                      onDeptTap: () => _pickFromSheet(
-                        title: 'Departments',
-                        subtitle: 'Filter employees by dept',
-                        icon: Icons.apartment_rounded,
-                        accent: const Color(0xFF7C3AED),
-                        accentTint: const Color(0xFFF5F3FF),
-                        items: departments,
-                        selected: _deptFilter,
-                        onPick: (val) => setState(() => _deptFilter = val),
-                      ),
-                      onStatusTap: () => _pickFromSheet(
-                        title: 'Filter Status',
-                        subtitle: 'Filter by employee status',
-                        icon: Icons.tune_rounded,
-                        accent: const Color(0xFF4F46E5),
-                        accentTint: const Color(0xFFEEF2FF),
-                        items: const [
-                          'All (65)',
-                          'Active (25)',
-                          'Inactive (40)',
-                        ],
-                        selected: _statusFilterLabel,
-                        onPick: (val) => setState(() {
-                          if (val.startsWith('Active')) {
-                            _statusFilter = 'ACTIVE';
-                          } else if (val.startsWith('Inactive')) {
-                            _statusFilter = 'INACTIVE';
-                          } else {
-                            _statusFilter = 'ALL';
-                          }
-                        }),
-                      ),
+                      onMonthTap: _pickMonthSheet,
+                      onDeptTap: _pickDepartmentSheet,
+                      onStatusTap: _pickStatusSheet,
+                      onClearDept: () => setState(() => _deptFilter = 'All Depts'),
+                      onClearStatus: () => setState(() => _statusFilter = 'ALL'),
+                      onClearAll: () => setState(() {
+                        _deptFilter = 'All Depts';
+                        _statusFilter = 'ALL';
+                      }),
                     ),
+                    const SizedBox(height: 12),
+
+                    const _PayrollStatsGrid(),
                     const SizedBox(height: 14),
 
-                    // 4 Stat Cards in 2x2 Grid
-                    _PayrollStatsGrid(stats: _ui.stats),
-                    const SizedBox(height: 14),
-
-                    // Payroll Trend Card (6 Months Bar Chart)
-                    _PayrollTrendCard(bars: _ui.trendBars),
-                    const SizedBox(height: 14),
-
-                    // Payment Status Donut Card
-                    const _PaymentStatusCard(),
-                    const SizedBox(height: 14),
-
-                    // Payroll Processing Progress
-                    const _PayrollProgressCard(),
-                    const SizedBox(height: 14),
-
-                    // Earnings Summary Card
-                    _EarningsSummaryCard(
-                      earnings: _ui.earnings,
-                      grossTotal: _ui.grossSalaryTotal,
+                    _PayrollAnalyticsCard(
+                      selectedMonth: _monthFilter,
+                      onMonthTap: _pickMonthSheet,
                     ),
-                    const SizedBox(height: 14),
-
-                    // Deductions Summary Card
-                    _DeductionsSummaryCard(
-                      deductions: _ui.deductions,
-                      totalDeductions: _ui.totalDeductions,
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Attendance Impact Card
-                    _AttendanceImpactCard(impact: _ui.impact),
                     const SizedBox(height: 18),
 
-                    // Employee Payroll List Section
                     _EmployeePayrollSection(
                       records: list,
                       totalCount: _records.length,
@@ -435,7 +754,7 @@ class _PayrollOverviewScreenState extends State<PayrollOverviewScreen> {
           ),
         ),
         bottomNavigationBar: EmployeeBottomNav(
-          currentIndex: 2,
+          currentIndex: 3,
           onTap: (i) => EmployeeHomeShell.goToTab(context, i),
         ),
       ),
@@ -443,9 +762,6 @@ class _PayrollOverviewScreenState extends State<PayrollOverviewScreen> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 1. Dark Top Bar (Original Dark Purple Brand Style)
-// ---------------------------------------------------------------------------
 class _TopBar extends StatelessWidget {
   const _TopBar({required this.onMenuTap});
 
@@ -495,37 +811,16 @@ class _TopBar extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF065F46),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: const Color(0xFF10B981),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 5,
-                            height: 5,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF34D399),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Live',
-                            style: portalText(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFFA7F3D0),
-                            ),
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF34D399),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x6634D399),
+                            blurRadius: 4,
+                            spreadRadius: 1,
                           ),
                         ],
                       ),
@@ -553,9 +848,6 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 2. Search Field
-// ---------------------------------------------------------------------------
 class _PayrollSearchField extends StatelessWidget {
   const _PayrollSearchField({
     required this.controller,
@@ -621,9 +913,6 @@ class _PayrollSearchField extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 3. Normal Filter Row (Month, Dept, Status Chips - Attendance Summary Style)
-// ---------------------------------------------------------------------------
 class _PayrollFilterRow extends StatelessWidget {
   const _PayrollFilterRow({
     required this.monthLabel,
@@ -634,6 +923,9 @@ class _PayrollFilterRow extends StatelessWidget {
     required this.onMonthTap,
     required this.onDeptTap,
     required this.onStatusTap,
+    this.onClearDept,
+    this.onClearStatus,
+    this.onClearAll,
   });
 
   final String monthLabel;
@@ -644,6 +936,9 @@ class _PayrollFilterRow extends StatelessWidget {
   final VoidCallback onMonthTap;
   final VoidCallback onDeptTap;
   final VoidCallback onStatusTap;
+  final VoidCallback? onClearDept;
+  final VoidCallback? onClearStatus;
+  final VoidCallback? onClearAll;
 
   @override
   Widget build(BuildContext context) {
@@ -664,6 +959,7 @@ class _PayrollFilterRow extends StatelessWidget {
             label: deptLabel,
             active: deptActive,
             onTap: onDeptTap,
+            onClear: deptActive ? onClearDept : null,
           ),
         ),
         const SizedBox(width: 8),
@@ -673,8 +969,44 @@ class _PayrollFilterRow extends StatelessWidget {
             label: statusLabel,
             active: statusActive,
             onTap: onStatusTap,
+            onClear: statusActive ? onClearStatus : null,
           ),
         ),
+        if (deptActive || statusActive) ...[
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: onClearAll,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              height: 34,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFCA5A5)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.close_rounded,
+                    size: 14,
+                    color: Color(0xFFDC2626),
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    'Clear',
+                    style: portalText(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFDC2626),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -686,12 +1018,14 @@ class _Chip extends StatelessWidget {
     required this.label,
     required this.active,
     required this.onTap,
+    this.onClear,
   });
 
   final IconData icon;
   final String label;
   final bool active;
   final VoidCallback onTap;
+  final VoidCallback? onClear;
 
   @override
   Widget build(BuildContext context) {
@@ -733,11 +1067,25 @@ class _Chip extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 2),
-              Icon(
-                Icons.arrow_drop_down_rounded,
-                size: 16,
-                color: active ? PortalColors.brand : PortalColors.muted,
-              ),
+              if (onClear != null)
+                GestureDetector(
+                  onTap: onClear,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 14,
+                      color: active ? PortalColors.brand : PortalColors.muted,
+                    ),
+                  ),
+                )
+              else
+                Icon(
+                  Icons.arrow_drop_down_rounded,
+                  size: 16,
+                  color: active ? PortalColors.brand : PortalColors.muted,
+                ),
             ],
           ),
         ),
@@ -746,65 +1094,132 @@ class _Chip extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 4. 2x2 Stat Cards Grid
-// ---------------------------------------------------------------------------
 class _PayrollStatsGrid extends StatelessWidget {
-  const _PayrollStatsGrid({required this.stats});
-
-  final PayrollStatCardData stats;
+  const _PayrollStatsGrid();
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         Row(
-          children: [
+          children: const [
             Expanded(
               child: _StatCard(
-                title: 'TOTAL PAYROLL',
-                value: stats.totalPayroll,
-                subtitle: stats.totalPayrollSubtitle,
-                icon: Icons.trending_up_rounded,
-                iconColor: const Color(0xFF2563EB),
-                iconBg: const Color(0xFFEFF6FF),
+                title: 'TOTAL EMPLOYEES',
+                value: '26',
+                badgeText: 'Active',
+                badgeBg: Color(0xFFDCFCE7),
+                badgeColor: Color(0xFF15803D),
+                subtitle: 'All 65 • Active 26',
+                icon: Icons.group_outlined,
+                iconColor: Color(0xFF7C3AED),
+                iconBg: Color(0xFFF5F3FF),
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 8),
             Expanded(
               child: _StatCard(
-                title: 'PAID AMOUNT',
-                value: stats.paidAmount,
-                subtitle: stats.paidSubtitle,
-                icon: Icons.check_circle_outline_rounded,
-                iconColor: const Color(0xFF059669),
-                iconBg: const Color(0xFFECFDF5),
+                title: 'SALARY PAID',
+                value: '0',
+                badgeText: '0.0%',
+                badgeBg: Color(0xFFDCFCE7),
+                badgeColor: Color(0xFF16A34A),
+                subtitle: '0 records cleared',
+                icon: Icons.check_rounded,
+                iconColor: Color(0xFF16A34A),
+                iconBg: Color(0xFFDCFCE7),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
+
         Row(
-          children: [
+          children: const [
             Expanded(
               child: _StatCard(
-                title: 'PENDING AMOUNT',
-                value: stats.pendingAmount,
-                subtitle: stats.pendingSubtitle,
+                title: 'SALARY PENDING',
+                value: '0',
+                badgeText: '0.0%',
+                badgeBg: Color(0xFFFEF3C7),
+                badgeColor: Color(0xFFD97706),
+                subtitle: 'Awaiting release batch',
                 icon: Icons.access_time_rounded,
-                iconColor: const Color(0xFFD97706),
-                iconBg: const Color(0xFFFEF3C7),
+                iconColor: Color(0xFFD97706),
+                iconBg: Color(0xFFFEF3C7),
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 8),
             Expanded(
               child: _StatCard(
-                title: 'TOTAL EMPLOYEES',
-                value: '${stats.totalEmployees}',
-                subtitle: stats.employeesSubtitle,
-                icon: Icons.people_outline_rounded,
-                iconColor: const Color(0xFF7C3AED),
-                iconBg: const Color(0xFFF5F3FF),
+                title: 'ON HOLD / INACTIVE',
+                value: '6',
+                badgeText: '23.1%',
+                badgeBg: Color(0xFFDBEAFE),
+                badgeColor: Color(0xFF2563EB),
+                subtitle: 'Clearance verification req.',
+                icon: Icons.pause_circle_outline_rounded,
+                iconColor: Color(0xFF2563EB),
+                iconBg: Color(0xFFDBEAFE),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        Row(
+          children: const [
+            Expanded(
+              child: _StatCard(
+                title: 'WITH DEDUCTIONS',
+                value: '20',
+                badgeText: '76.9%',
+                badgeBg: Color(0xFFFEE2E2),
+                badgeColor: Color(0xFFDC2626),
+                subtitle: 'LOP & deductions',
+                icon: Icons.warning_amber_rounded,
+                iconColor: Color(0xFFDC2626),
+                iconBg: Color(0xFFFEE2E2),
+              ),
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              child: _StatCard(
+                title: 'GROSS PAYROLL',
+                value: '₹2,12,208',
+                subtitle: '6 Active Depts',
+                icon: Icons.payments_outlined,
+                iconColor: Color(0xFF059669),
+                iconBg: Color(0xFFECFDF5),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        Row(
+          children: const [
+            Expanded(
+              child: _StatCard(
+                title: 'NET DISBURSED',
+                value: '₹0',
+                subtitle: 'Pending release',
+                icon: Icons.credit_card_rounded,
+                iconColor: Color(0xFF6366F1),
+                iconBg: Color(0xFFEEF2FF),
+              ),
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              child: _StatCard(
+                title: 'DISBURSEMENT %',
+                value: '0.0%',
+                hasValueDot: true,
+                valueDotColor: Color(0xFF10B981),
+                subtitle: 'Clearance: 0.0%',
+                icon: Icons.percent_rounded,
+                iconColor: Color(0xFF64748B),
+                iconBg: Color(0xFFF1F5F9),
               ),
             ),
           ],
@@ -822,6 +1237,11 @@ class _StatCard extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.iconBg,
+    this.badgeText,
+    this.badgeBg,
+    this.badgeColor,
+    this.hasValueDot = false,
+    this.valueDotColor,
   });
 
   final String title;
@@ -830,20 +1250,25 @@ class _StatCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final Color iconBg;
+  final String? badgeText;
+  final Color? badgeBg;
+  final Color? badgeColor;
+  final bool hasValueDot;
+  final Color? valueDotColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(13),
         border: Border.all(color: PortalColors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 1.5),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -858,42 +1283,81 @@ class _StatCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: portalText(
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.w700,
                     color: const Color(0xFF64748B),
-                    letterSpacing: 0.3,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ),
               Container(
-                width: 26,
-                height: 26,
+                width: 23,
+                height: 23,
                 decoration: BoxDecoration(
                   color: iconBg,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 alignment: Alignment.center,
-                child: Icon(icon, size: 14, color: iconColor),
+                child: Icon(icon, size: 12.5, color: iconColor),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: portalText(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: PortalColors.heading,
-              letterSpacing: -0.2,
-            ),
+          const SizedBox(height: 4),
+
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (hasValueDot) ...[
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: valueDotColor ?? const Color(0xFF10B981),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 4),
+              ],
+              Text(
+                value,
+                style: portalText(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w800,
+                  color: PortalColors.heading,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              if (badgeText != null) ...[
+                const SizedBox(width: 5),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: badgeBg ?? const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    badgeText!,
+                    style: portalText(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                      color: badgeColor ?? const Color(0xFF15803D),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 2),
+
           Text(
             subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 10.5,
+              fontSize: 9.5,
               fontWeight: FontWeight.w500,
               color: const Color(0xFF94A3B8),
             ),
@@ -904,433 +1368,173 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 5. Payroll Trend Card (Bar Chart)
-// ---------------------------------------------------------------------------
-class _PayrollTrendCard extends StatelessWidget {
-  const _PayrollTrendCard({required this.bars});
+class _PayrollAnalyticsCard extends StatelessWidget {
+  const _PayrollAnalyticsCard({
+    required this.selectedMonth,
+    required this.onMonthTap,
+  });
 
-  final List<PayrollTrendBar> bars;
+  final String selectedMonth;
+  final VoidCallback onMonthTap;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: PortalColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Payroll Trend',
-                      style: portalText(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: PortalColors.heading,
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      'Last 6 Months',
-                      style: portalText(
-                        fontSize: 11,
-                        color: PortalColors.muted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: PortalColors.border),
-                ),
-                child: Text(
-                  '6 Months ▾',
+          _buildPayrollStatusSection(),
+
+          const SizedBox(height: 20),
+          const Divider(
+            height: 1,
+            thickness: 1,
+            color: Color(0xFFF1F5F9),
+          ),
+          const SizedBox(height: 18),
+
+          _buildGrossVsNetSection(),
+
+          const SizedBox(height: 20),
+          const Divider(
+            height: 1,
+            thickness: 1,
+            color: Color(0xFFF1F5F9),
+          ),
+          const SizedBox(height: 18),
+
+          _buildDepartmentDisbursementSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPayrollStatusSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'PAYROLL STATUS',
                   style: portalText(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: PortalColors.secondaryText,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF0F172A),
+                    letterSpacing: 0.4,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Custom Rendered Bar Chart
-          SizedBox(
-            height: 120,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // Y-axis labels
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final lbl in ['20M', '15M', '10M', '5M', '0'])
-                      Text(
-                        lbl,
+                const SizedBox(height: 3),
+                RichText(
+                  text: TextSpan(
+                    style: portalText(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF64748B),
+                    ),
+                    children: [
+                      const TextSpan(text: 'Disbursed Clearance: '),
+                      TextSpan(
+                        text: '0.0%',
                         style: portalText(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFF94A3B8),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF10B981),
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      for (final b in bars)
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Container(
-                              width: 22,
-                              height: (b.grossMillion / 20.0) * 95,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(5),
-                                color: b.isHighlighted
-                                    ? const Color(0xFF1E1B4B)
-                                    : const Color(0xFF6366F1),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              b.month,
-                              style: portalText(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF64748B),
-                              ),
-                            ),
-                          ],
-                        ),
                     ],
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1, color: PortalColors.border),
-          const SizedBox(height: 10),
-
-          // Legend
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 9,
-                height: 9,
+            GestureDetector(
+              onTap: onMonthTap,
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 5),
-              Text(
-                'Gross Payroll',
-                style: portalText(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Container(
-                width: 9,
-                height: 9,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 5),
-              Text(
-                'Net Payout',
-                style: portalText(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// 6. Payment Status Donut Card
-// ---------------------------------------------------------------------------
-class _PaymentStatusCard extends StatelessWidget {
-  const _PaymentStatusCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: PortalColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Payment Status',
-                style: portalText(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: PortalColors.heading,
-                ),
-              ),
-              Text(
-                'Current month',
-                style: portalText(
-                  fontSize: 11,
-                  color: PortalColors.muted,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              // Circular Donut
-              SizedBox(
-                width: 80,
-                height: 80,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 74,
-                      height: 74,
-                      child: CircularProgressIndicator(
-                        value: 0.0,
-                        strokeWidth: 9,
-                        backgroundColor: const Color(0xFFF59E0B),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Color(0xFF10B981),
-                        ),
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '0%',
-                          style: portalText(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: PortalColors.heading,
-                          ),
-                        ),
-                        Text(
-                          'PAID',
-                          style: portalText(
-                            fontSize: 8.5,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF94A3B8),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 18),
-
-              // Legend and values
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF10B981),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 7),
-                        Text(
-                          'Paid: 0 (0%)',
-                          style: portalText(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: PortalColors.heading,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15),
-                      child: Text(
-                        '₹0 Disbursed',
-                        style: portalText(
-                          fontSize: 11,
-                          color: const Color(0xFF94A3B8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF59E0B),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 7),
-                        Text(
-                          'Pending: 65 (100%)',
-                          style: portalText(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: PortalColors.heading,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15),
-                      child: Text(
-                        '₹2,18,068 Net Due',
-                        style: portalText(
-                          fontSize: 11,
-                          color: const Color(0xFF94A3B8),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// 7. Payroll Processing Progress Card
-// ---------------------------------------------------------------------------
-class _PayrollProgressCard extends StatelessWidget {
-  const _PayrollProgressCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: PortalColors.border),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.change_history_rounded,
-                  size: 16, color: Color(0xFFF59E0B)),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'Payroll Processing Progress',
-                  style: portalText(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w800,
-                    color: PortalColors.heading,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
+                  color: const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Step 2 of 4',
+                  selectedMonth,
                   style: portalText(
-                    fontSize: 10.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFFB45309),
+                    color: const Color(0xFF475569),
                   ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 14),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        const Divider(
+          height: 1,
+          thickness: 1,
+          color: Color(0xFFF1F5F9),
+        ),
+        const SizedBox(height: 14),
 
-          // Central Progress Ring
-          Center(
-            child: SizedBox(
-              width: 70,
-              height: 70,
+        Row(
+          children: [
+            SizedBox(
+              width: 104,
+              height: 104,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  const SizedBox(
-                    width: 66,
-                    height: 66,
-                    child: CircularProgressIndicator(
-                      value: 0.0,
-                      strokeWidth: 6,
-                      backgroundColor: Color(0xFFF1F5F9),
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFFF59E0B),
-                      ),
+                  CustomPaint(
+                    size: const Size(104, 104),
+                    painter: const _DonutChartPainter(
+                      sections: [
+                        _ChartSection(
+                          percentage: 76.9,
+                          color: Color(0xFFEF4444), // With Deductions
+                        ),
+                        _ChartSection(
+                          percentage: 23.1,
+                          color: Color(0xFF3B82F6), // On Hold / Inactive
+                        ),
+                      ],
                     ),
                   ),
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '0%',
+                        '0.0%',
                         style: portalText(
-                          fontSize: 14,
+                          fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: PortalColors.heading,
+                          color: const Color(0xFF0F172A),
                         ),
                       ),
                       Text(
-                        'COMPLETED',
+                        'DISBURSED',
                         style: portalText(
-                          fontSize: 7.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF94A3B8),
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF64748B),
+                          letterSpacing: 0.3,
                         ),
                       ),
                     ],
@@ -1338,438 +1542,365 @@ class _PayrollProgressCard extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(width: 16),
 
-          // 4-step row
-          Row(
-            children: [
-              Expanded(
-                child: _StepItem(
-                  title: 'Attendance',
-                  isDone: true,
-                ),
-              ),
-              Expanded(
-                child: _StepItem(
-                  title: 'Calculations',
-                  isDone: true,
-                ),
-              ),
-              Expanded(
-                child: _StepItem(
-                  title: 'Deductions',
-                  isDone: true,
-                ),
-              ),
-              Expanded(
-                child: _StepItem(
-                  title: 'Approval',
-                  isDone: false,
-                  stepNumber: 4,
-                  isActive: true,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StepItem extends StatelessWidget {
-  const _StepItem({
-    required this.title,
-    this.isDone = false,
-    this.isActive = false,
-    this.stepNumber,
-  });
-
-  final String title;
-  final bool isDone;
-  final bool isActive;
-  final int? stepNumber;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: isActive
-            ? const Color(0xFFFEF3C7).withValues(alpha: 0.4)
-            : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isActive ? const Color(0xFFF59E0B) : const Color(0xFFE2E8F0),
-          width: isActive ? 1.2 : 0.8,
-        ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: isDone
-                  ? const Color(0xFF10B981)
-                  : (isActive ? const Color(0xFFF59E0B) : Colors.grey),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: isDone
-                ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
-                : Text(
-                    '${stepNumber ?? 1}',
-                    style: portalText(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+            Expanded(
+              child: Column(
+                children: const [
+                  _LegendRow(
+                    dotColor: Color(0xFF10B981),
+                    title: 'Salary Paid',
+                    valueText: '0 (0.0%)',
                   ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: portalText(
-              fontSize: 10,
-              fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
-              color: isActive ? const Color(0xFFB45309) : const Color(0xFF64748B),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// 8. Earnings Summary Card
-// ---------------------------------------------------------------------------
-class _EarningsSummaryCard extends StatelessWidget {
-  const _EarningsSummaryCard({
-    required this.earnings,
-    required this.grossTotal,
-  });
-
-  final List<PayrollLineItem> earnings;
-  final String grossTotal;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: PortalColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text('💰', style: TextStyle(fontSize: 16)),
-              const SizedBox(width: 8),
-              Text(
-                'EARNINGS SUMMARY',
-                style: portalText(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w800,
-                  color: PortalColors.heading,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          for (final item in earnings) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    item.title,
-                    style: portalText(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF64748B),
-                    ),
+                  SizedBox(height: 7),
+                  _LegendRow(
+                    dotColor: Color(0xFFF59E0B),
+                    title: 'Salary Pending',
+                    valueText: '0 (0.0%)',
                   ),
-                  Text(
-                    item.amount,
-                    style: portalText(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: item.isHighlight
-                          ? const Color(0xFF059669)
-                          : PortalColors.heading,
-                    ),
+                  SizedBox(height: 7),
+                  _LegendRow(
+                    dotColor: Color(0xFFEF4444),
+                    title: 'With Deductions',
+                    valueText: '20 (76.9%)',
+                  ),
+                  SizedBox(height: 7),
+                  _LegendRow(
+                    dotColor: Color(0xFF3B82F6),
+                    title: 'On Hold / Inactive',
+                    valueText: '6 (23.1%)',
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1, color: Color(0xFFF1F5F9)),
           ],
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGrossVsNetSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Gross Salary',
+                  'GROSS VS NET PAYROLL',
                   style: portalText(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1E3A8A),
+                    color: const Color(0xFF0F172A),
+                    letterSpacing: 0.3,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
-                  grossTotal,
+                  'Active Departments (6 Units)',
                   style: portalText(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF10B981),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Gross',
+                  style: portalText(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF059669),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF3B82F6),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Net (₹0)',
+                  style: portalText(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
                     color: const Color(0xFF2563EB),
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        const _DepartmentPayrollBar(
+          deptName: 'Developer',
+          grossText: '₹62k',
+          netText: 'Net 0',
+          progress: 1.0,
+        ),
+        const SizedBox(height: 12),
+        const _DepartmentPayrollBar(
+          deptName: 'Consultant',
+          grossText: '₹45k',
+          netText: 'Net 0',
+          progress: 45 / 62,
+        ),
+        const SizedBox(height: 12),
+        const _DepartmentPayrollBar(
+          deptName: 'Medical',
+          grossText: '₹38k',
+          netText: 'Net 0',
+          progress: 38 / 62,
+        ),
+        const SizedBox(height: 12),
+        const _DepartmentPayrollBar(
+          deptName: 'Laboratory Medicine',
+          grossText: '₹32k',
+          netText: 'Net 0',
+          progress: 32 / 62,
+        ),
+        const SizedBox(height: 12),
+        const _DepartmentPayrollBar(
+          deptName: 'Marketing',
+          grossText: '₹19k',
+          netText: 'Net 0',
+          progress: 19 / 62,
+        ),
+        const SizedBox(height: 12),
+        const _DepartmentPayrollBar(
+          deptName: 'Digital Marketing',
+          grossText: '₹16k',
+          netText: 'Net 0',
+          progress: 16 / 62,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDepartmentDisbursementSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'DEPARTMENT DISBURSEMENT (%)',
+              style: portalText(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF0F172A),
+                letterSpacing: 0.3,
+              ),
+            ),
+            Text(
+              'All 0%',
+              style: portalText(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF94A3B8),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        Row(
+          children: const [
+            Expanded(child: _DeptPercentTile(name: 'Developer', percent: '0%')),
+            SizedBox(width: 8),
+            Expanded(child: _DeptPercentTile(name: 'Consultant', percent: '0%')),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: const [
+            Expanded(child: _DeptPercentTile(name: 'Medical', percent: '0%')),
+            SizedBox(width: 8),
+            Expanded(child: _DeptPercentTile(name: 'Lab Medicine', percent: '0%')),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: const [
+            Expanded(child: _DeptPercentTile(name: 'Marketing', percent: '0%')),
+            SizedBox(width: 8),
+            Expanded(child: _DeptPercentTile(name: 'Digital Marketing', percent: '0%')),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: const [
+            Expanded(child: _DeptPercentTile(name: 'Nursing', percent: '0%')),
+            SizedBox(width: 8),
+            Expanded(child: _DeptPercentTile(name: 'Management', percent: '0%')),
+          ],
+        ),
+      ],
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// 9. Deductions Summary Card
-// ---------------------------------------------------------------------------
-class _DeductionsSummaryCard extends StatelessWidget {
-  const _DeductionsSummaryCard({
-    required this.deductions,
-    required this.totalDeductions,
+class _LegendRow extends StatelessWidget {
+  const _LegendRow({
+    required this.dotColor,
+    required this.title,
+    required this.valueText,
   });
 
-  final List<PayrollLineItem> deductions;
-  final String totalDeductions;
+  final Color dotColor;
+  final String title;
+  final String valueText;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: PortalColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 14,
-                height: 14,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFEF4444),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'DEDUCTIONS SUMMARY',
-                style: portalText(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w800,
-                  color: PortalColors.heading,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
+    return Row(
+      children: [
+        Container(
+          width: 7.5,
+          height: 7.5,
+          decoration: BoxDecoration(
+            color: dotColor,
+            shape: BoxShape.circle,
           ),
-          const SizedBox(height: 12),
-          for (final item in deductions) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: portalText(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF334155),
+            ),
+          ),
+        ),
+        Text(
+          valueText,
+          style: portalText(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF0F172A),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DepartmentPayrollBar extends StatelessWidget {
+  const _DepartmentPayrollBar({
+    required this.deptName,
+    required this.grossText,
+    required this.netText,
+    required this.progress,
+  });
+
+  final String deptName;
+  final String grossText;
+  final String netText;
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              deptName,
+              style: portalText(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF334155),
+              ),
+            ),
+            RichText(
+              text: TextSpan(
+                style: portalText(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF0F172A),
+                ),
                 children: [
-                  Text(
-                    item.title,
+                  TextSpan(text: grossText),
+                  TextSpan(
+                    text: ' / $netText',
                     style: portalText(
-                      fontSize: 12.5,
+                      fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: const Color(0xFF64748B),
-                    ),
-                  ),
-                  Text(
-                    item.amount,
-                    style: portalText(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: item.isDeduction
-                          ? const Color(0xFFDC2626)
-                          : const Color(0xFF64748B),
                     ),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1, color: Color(0xFFF1F5F9)),
           ],
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF2F2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ),
+        const SizedBox(height: 6),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final barWidth = constraints.maxWidth * progress.clamp(0.0, 1.0);
+            return Stack(
               children: [
-                Text(
-                  'Total Deductions',
-                  style: portalText(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF991B1B),
+                Container(
+                  height: 6.5,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(3.5),
                   ),
                 ),
-                Text(
-                  totalDeductions,
-                  style: portalText(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFFDC2626),
+                Container(
+                  height: 6.5,
+                  width: barWidth,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981),
+                    borderRadius: BorderRadius.circular(3.5),
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
+            );
+          },
+        ),
+      ],
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// 10. Attendance Impact Card
-// ---------------------------------------------------------------------------
-class _AttendanceImpactCard extends StatelessWidget {
-  const _AttendanceImpactCard({required this.impact});
-
-  final AttendanceImpactSummary impact;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: PortalColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.wifi_tethering_rounded,
-                  size: 16, color: Color(0xFFEF4444)),
-              const SizedBox(width: 8),
-              Text(
-                'ATTENDANCE IMPACT',
-                style: portalText(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w800,
-                  color: PortalColors.heading,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _ImpactCell(
-                  label: 'Present Days',
-                  value: impact.presentDays,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _ImpactCell(
-                  label: 'Half Days',
-                  value: impact.halfDays,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _ImpactCell(
-                  label: 'Weekoffs',
-                  value: impact.weekoffs,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _ImpactCell(
-                  label: 'Comp-offs',
-                  value: impact.compOffs,
-                  valueColor: const Color(0xFF059669),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _ImpactCell(
-                  label: 'Overtime Hours',
-                  value: impact.overtimeHours,
-                  valueColor: const Color(0xFF2563EB),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _ImpactCell(
-                  label: 'Active Processed',
-                  value: impact.activeStaff,
-                  valueColor: const Color(0xFF7C3AED),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ImpactCell extends StatelessWidget {
-  const _ImpactCell({
-    required this.label,
-    required this.value,
-    this.valueColor,
+class _DeptPercentTile extends StatelessWidget {
+  const _DeptPercentTile({
+    required this.name,
+    required this.percent,
   });
 
-  final String label;
-  final String value;
-  final Color? valueColor;
+  final String name;
+  final String percent;
 
   @override
   Widget build(BuildContext context) {
@@ -1777,27 +1908,32 @@ class _ImpactCell extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: const Color(0xFFE2E8F0).withValues(alpha: 0.7),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: portalText(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF64748B),
+          Expanded(
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: portalText(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF475569),
+              ),
             ),
           ),
-          const SizedBox(height: 3),
           Text(
-            value,
+            percent,
             style: portalText(
-              fontSize: 13,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: valueColor ?? PortalColors.heading,
+              color: const Color(0xFF0F172A),
             ),
           ),
         ],
@@ -1806,9 +1942,66 @@ class _ImpactCell extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 11. Employee Payroll List Section
-// ---------------------------------------------------------------------------
+class _DonutChartPainter extends CustomPainter {
+  const _DonutChartPainter({
+    required this.sections,
+  });
+
+  final List<_ChartSection> sections;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - 14) / 2;
+    const strokeWidth = 12.0;
+
+    final bgPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..color = const Color(0xFFF1F5F9);
+
+    canvas.drawCircle(center, radius, bgPaint);
+
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    var startAngle = -math.pi / 2; // Start from top (12 o'clock)
+
+    for (final section in sections) {
+      if (section.percentage <= 0) continue;
+      final sweepAngle = (section.percentage / 100) * 2 * math.pi;
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round
+        ..color = section.color;
+
+      const gap = 0.05;
+      if (sweepAngle > gap) {
+        canvas.drawArc(
+          rect,
+          startAngle + gap / 2,
+          sweepAngle - gap,
+          false,
+          paint,
+        );
+      }
+      startAngle += sweepAngle;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DonutChartPainter oldDelegate) => true;
+}
+
+class _ChartSection {
+  const _ChartSection({
+    required this.percentage,
+    required this.color,
+  });
+
+  final double percentage;
+  final Color color;
+}
+
 class _EmployeePayrollSection extends StatelessWidget {
   const _EmployeePayrollSection({
     required this.records,
@@ -1825,13 +2018,19 @@ class _EmployeePayrollSection extends StatelessWidget {
       children: [
         Row(
           children: [
+            const Icon(
+              Icons.receipt_long_rounded,
+              size: 16,
+              color: Color(0xFF475569),
+            ),
+            const SizedBox(width: 6),
             Text(
-              'EMPLOYEE PAYROLL LIST',
+              'Employee Payroll List',
               style: portalText(
-                fontSize: 12,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w800,
-                color: const Color(0xFF475569),
-                letterSpacing: 0.3,
+                color: const Color(0xFF334155),
+                letterSpacing: 0.2,
               ),
             ),
             const SizedBox(width: 8),
@@ -1847,19 +2046,6 @@ class _EmployeePayrollSection extends StatelessWidget {
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   color: const Color(0xFF475569),
-                ),
-              ),
-            ),
-            const Spacer(),
-            GestureDetector(
-              onTap: () => AppRoutes.push(context, AppRoutes.employeePayroll),
-              behavior: HitTestBehavior.opaque,
-              child: Text(
-                'Full Records',
-                style: portalText(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF2563EB),
                 ),
               ),
             ),
@@ -1906,7 +2092,6 @@ class _EmployeePayrollCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Row 1: Avatar, Name, Code, Role, Status Pill
           Row(
             children: [
               Container(
@@ -2001,7 +2186,6 @@ class _EmployeePayrollCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Row 2: Attendance metrics (Present, Half, OT)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
@@ -2075,7 +2259,6 @@ class _EmployeePayrollCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Row 3: Basic / LOP Ded & NET SALARY
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

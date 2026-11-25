@@ -182,7 +182,6 @@ class OpPeriodFiltersRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Exactly 4 filter items fit across the visible width
         final itemWidth = (constraints.maxWidth - (3 * 6)) / 4;
 
         return SizedBox(
@@ -400,7 +399,6 @@ class OpQuickActionsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Exactly 4 items fit across the visible width just like before
         final itemWidth = (constraints.maxWidth - (3 * 8)) / 4;
 
         return SingleChildScrollView(

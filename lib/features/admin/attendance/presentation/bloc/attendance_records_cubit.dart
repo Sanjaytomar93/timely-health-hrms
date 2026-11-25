@@ -133,23 +133,33 @@ class AttendanceRecordsCubit extends Cubit<AttendanceRecordsState> {
     String? department,
     String? designation,
   }) async {
-    final all = <PunchRecordItem>[];
-    var page = 1;
-    var totalPages = 1;
-    AttendanceRecordsUi last = AttendanceRecordsUi.empty;
+    final first = await _repository.getPageData(
+      month: month,
+      page: 1,
+      limit: 100,
+      department: department,
+      designation: designation,
+    );
 
-    do {
-      last = await _repository.getPageData(
-        month: month,
-        page: page,
-        limit: 100,
-        department: department,
-        designation: designation,
-      );
-      all.addAll(last.records);
-      totalPages = last.totalPages < 1 ? 1 : last.totalPages;
-      page++;
-    } while (page <= totalPages && page <= 50);
+    final all = <PunchRecordItem>[...first.records];
+    final totalPages = first.totalPages < 1 ? 1 : first.totalPages;
+
+    if (totalPages > 1) {
+      final maxPage = totalPages > 50 ? 50 : totalPages;
+      final rest = await Future.wait([
+        for (var p = 2; p <= maxPage; p++)
+          _repository.getPageData(
+            month: month,
+            page: p,
+            limit: 100,
+            department: department,
+            designation: designation,
+          ),
+      ]);
+      for (final pageUi in rest) {
+        all.addAll(pageUi.records);
+      }
+    }
 
     final end = dateEnd ?? date;
     final filtered = all.where((r) {
@@ -161,7 +171,7 @@ class AttendanceRecordsCubit extends Cubit<AttendanceRecordsState> {
     final onsite = filtered.where((r) => !r.isRemote).length;
     final active = filtered.where((r) => r.isActive).length;
 
-    return last.copyWith(
+    return first.copyWith(
       records: filtered,
       totalRecords: filtered.length,
       onsiteEntries: onsite,

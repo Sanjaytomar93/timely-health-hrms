@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:timelay_health/core/theme/portal_colors.dart';
+import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/screens/absent_today_screen.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/screens/attendance_records_screen.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/screens/attendance_summary_screen.dart';
@@ -15,9 +17,12 @@ import 'package:timelay_health/features/auth/presentation/screens/forgot_passwor
 import 'package:timelay_health/features/auth/presentation/screens/login_screen.dart';
 import 'package:timelay_health/features/auth/presentation/screens/splash_screen.dart';
 import 'package:timelay_health/features/camp/dashboard/presentation/screens/camp_management_shell.dart';
-import 'package:timelay_health/features/dashboard/presentation/screens/admin_dashboard_screen.dart';
+import 'package:timelay_health/features/admin/dashboard/presentation/screens/admin_dashboard_screen.dart';
 import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
+import 'package:timelay_health/features/admin/digital_leads/presentation/screens/digital_leads_screen.dart';
+import 'package:timelay_health/features/admin/location_management/presentation/screens/location_management_screen.dart';
 import 'package:timelay_health/features/leaves/presentation/screens/leaves_screen.dart';
+import 'package:timelay_health/features/events/presentation/screens/admin_events_screen.dart';
 import 'package:timelay_health/features/events/presentation/screens/my_events_screen.dart';
 import 'package:timelay_health/features/expense/presentation/screens/expense_screen.dart';
 import 'package:timelay_health/features/issues/presentation/screens/issues_screen.dart';
@@ -30,6 +35,7 @@ import 'package:timelay_health/features/permissions/presentation/screens/permiss
 import 'package:timelay_health/features/profile/presentation/screens/employee_details_screen.dart';
 import 'package:timelay_health/features/profile/presentation/screens/holiday_calendar_screen.dart';
 import 'package:timelay_health/features/profile/presentation/screens/payslips_screen.dart';
+import 'package:timelay_health/features/profile/presentation/screens/admin_profile_screen.dart';
 import 'package:timelay_health/features/profile/presentation/screens/profile_hub_screen.dart';
 import 'package:timelay_health/features/profile/presentation/screens/profile_section_placeholder_screen.dart';
 import 'package:timelay_health/features/profile/presentation/screens/profile_screen.dart';
@@ -45,6 +51,7 @@ abstract final class AppRoutes {
   static const permissions = '/permissions';
   static const notifications = '/notifications';
   static const profile = '/profile';
+  static const adminProfile = '/admin-profile';
   static const profileHub = '/profile-hub';
   static const employeeDetails = '/profile/details';
   static const holidayCalendar = '/profile/calendar';
@@ -55,6 +62,7 @@ abstract final class AppRoutes {
   static const letters = '/profile/letters';
   static const letterViewer = '/profile/letter-viewer';
   static const events = '/profile/events';
+  static const myEvents = '/profile/my-events';
   static const workRoster = '/profile/work-roster';
   static const placeholder = '/profile/placeholder';
   static const campManagement = '/camp-management';
@@ -78,7 +86,10 @@ abstract final class AppRoutes {
   static const payrollDashboard = '/admin/payroll-dashboard';
   static const employeePayroll = '/admin/employee-payroll';
   static const adminShift = '/admin/shift';
+  static const adminExpense = '/admin/expense';
   static const leaves = '/leaves';
+  static const digitalLeads = '/digital-leads';
+  static const locationManagement = '/admin/location-management';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -99,7 +110,13 @@ abstract final class AppRoutes {
 
       case adminDashboard:
         return MaterialPageRoute<void>(
-          builder: (_) => const Scaffold(body: AdminDashboardScreen()),
+          builder: (_) => const Scaffold(
+            body: PortalSafeArea(
+              bottom: false,
+              statusBarColor: PortalColors.brand,
+              child: AdminDashboardScreen(),
+            ),
+          ),
           settings: settings,
         );
 
@@ -118,6 +135,12 @@ abstract final class AppRoutes {
       case profile:
         return MaterialPageRoute<void>(
           builder: (_) => const ProfileScreen(),
+          settings: settings,
+        );
+
+      case adminProfile:
+        return MaterialPageRoute<void>(
+          builder: (_) => const AdminProfileScreen(),
           settings: settings,
         );
 
@@ -150,6 +173,12 @@ abstract final class AppRoutes {
         );
 
       case expense:
+        return MaterialPageRoute<void>(
+          builder: (_) => const ExpenseScreen(),
+          settings: settings,
+        );
+
+      case adminExpense:
         return MaterialPageRoute<void>(
           builder: (_) => const AdminExpenseManagementScreen(),
           settings: settings,
@@ -185,6 +214,12 @@ abstract final class AppRoutes {
 
       case events:
         return MaterialPageRoute<void>(
+          builder: (_) => const AdminEventsScreen(),
+          settings: settings,
+        );
+
+      case myEvents:
+        return MaterialPageRoute<void>(
           builder: (_) => const MyEventsScreen(),
           settings: settings,
         );
@@ -205,6 +240,18 @@ abstract final class AppRoutes {
         final title = (settings.arguments as String?) ?? 'Portal';
         return MaterialPageRoute<void>(
           builder: (_) => ProfileSectionPlaceholderScreen(title: title),
+          settings: settings,
+        );
+
+      case digitalLeads:
+        return MaterialPageRoute<void>(
+          builder: (_) => const DigitalLeadsScreen(),
+          settings: settings,
+        );
+
+      case locationManagement:
+        return MaterialPageRoute<void>(
+          builder: (_) => const LocationManagementScreen(),
           settings: settings,
         );
 
@@ -362,7 +409,6 @@ abstract final class AppRoutes {
     );
   }
 
-  // Helper shortcuts for navigation
   static Future<T?> push<T>(BuildContext context, String routeName, {Object? arguments}) {
     return Navigator.of(context).pushNamed<T>(routeName, arguments: arguments);
   }

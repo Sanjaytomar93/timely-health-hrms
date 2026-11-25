@@ -64,6 +64,7 @@ class SalarySummaryModel {
       compOffBalance: _asDouble(json['compOffBalance']),
       isCurrentMonth: json['isCurrentMonth'] == true,
       canDownload: json['canDownload'] == true,
+      invoiceUrl: _invoiceUrl(json['invoiceUrl']),
       joiningDate: _dateLabel(json['joiningDate']),
       bankName: _dash(json['bankName']),
       bankAccount: _dash(json['bankAccount']),
@@ -100,6 +101,15 @@ class SalarySummaryModel {
       effectiveWorkingDays: _asDouble(json['effectiveWorkingDays']),
       isEligibleForWeekoff: json['isEligibleForWeekoff'] == true,
     );
+  }
+
+  static String _invoiceUrl(dynamic value) {
+    final raw = value?.toString().trim() ?? '';
+    if (raw.isEmpty || raw == 'null') return '';
+    if (raw.startsWith('http://')) {
+      return 'https://${raw.substring('http://'.length)}';
+    }
+    return raw;
   }
 
   static String _leavesLabel(Map<String, dynamic> leaves) {

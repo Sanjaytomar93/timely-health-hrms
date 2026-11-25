@@ -464,7 +464,6 @@ class _ActionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Sort / Filter "Default" dropdown with modern UI
         Expanded(
           child: Container(
             height: 40,
@@ -824,7 +823,6 @@ class _ServiceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row 1: Avatar + Name & Category + Price Badge (Matching Referral Management Card)
             Row(
               children: [
                 Container(
@@ -911,7 +909,6 @@ class _ServiceCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
-            // Row 2: Description Box (pill container matching Referral Management)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -953,7 +950,6 @@ class _ServiceCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
-            // Row 3: Created Date on left & Action Icons on right
             Row(
               children: [
                 Flexible(
@@ -984,7 +980,6 @@ class _ServiceCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 const Spacer(),
-                // View Icon
                 GestureDetector(
                   onTap: onView,
                   behavior: HitTestBehavior.opaque,
@@ -998,7 +993,6 @@ class _ServiceCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Edit Icon
                 GestureDetector(
                   onTap: onEdit,
                   behavior: HitTestBehavior.opaque,
@@ -1012,7 +1006,6 @@ class _ServiceCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Delete Icon
                 GestureDetector(
                   onTap: onDelete,
                   behavior: HitTestBehavior.opaque,

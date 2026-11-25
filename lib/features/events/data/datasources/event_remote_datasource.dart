@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:timelay_health/features/events/data/endpoints/event_endpoints.dart';
+import 'package:timelay_health/features/events/data/models/celebration_event_model.dart';
 import 'package:timelay_health/features/events/data/models/my_event.dart';
 
 class EventFailure implements Exception {
@@ -33,6 +34,34 @@ class EventRemoteDataSource {
     final raw = body['events'] ?? body['data'];
     if (raw is! List) return const [];
     return raw.whereType<Map<String, dynamic>>().map(MyEvent.fromJson).toList();
+  }
+
+  /// Company birthdays & anniversaries.
+  /// [month] format: `YYYY-MM` (e.g. `2026-11`). Omit for all months.
+  Future<CompanyEventsResult> getCompanyEventsByEmployee({String? month}) async {
+    final body = await _send(
+      () => _client.get(
+        Uri.parse(EventEndpoints.companyByEmployee(month: month)),
+        headers: _headers,
+      ),
+      'Failed to load company events.',
+    );
+    final raw = body['events'];
+    final events = raw is List
+        ? raw
+            .whereType<Map<String, dynamic>>()
+            .map(CelebrationEvent.fromJson)
+            .toList()
+        : const <CelebrationEvent>[];
+    final statsRaw = body['stats'];
+    return CompanyEventsResult(
+      stats: statsRaw is Map<String, dynamic>
+          ? CompanyEventStats.fromJson(statsRaw)
+          : CompanyEventStats.empty,
+      events: events,
+      totalFiltered: int.tryParse('${body['totalFiltered'] ?? events.length}') ??
+          events.length,
+    );
   }
 
   Future<void> createEvent({

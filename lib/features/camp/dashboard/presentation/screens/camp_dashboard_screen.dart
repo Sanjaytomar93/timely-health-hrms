@@ -64,8 +64,8 @@ class _CampDashboardViewState extends State<_CampDashboardView> {
           Expanded(
             child: BlocBuilder<DashboardCubit, DashboardState>(
               builder: (context, state) {
-                final loading =
-                    state is DashboardLoading && state.data.stats.isEmpty;
+                final loading = state is DashboardInitial ||
+                    (state is DashboardLoading && state.data.title.isEmpty);
 
                 if (loading) {
                   return const CampDashboardShimmer();
@@ -81,8 +81,7 @@ class _CampDashboardViewState extends State<_CampDashboardView> {
                     padding: const EdgeInsets.only(bottom: 24),
                     children: [
                       CampHeroWithStats(data: data),
-                      if (state is DashboardFailureState &&
-                          data.stats.isEmpty)
+                      if (state is DashboardFailureState)
                         Padding(
                           padding: const EdgeInsets.fromLTRB(18, 12, 18, 8),
                           child: Text(
@@ -104,22 +103,18 @@ class _CampDashboardViewState extends State<_CampDashboardView> {
                           _to = null;
                         }),
                       ),
-                      if (data.distribution.isNotEmpty)
-                        CampDistributionCard(
-                          data: data,
-                          from: _from,
-                          to: _to,
-                        ),
-                      if (data.participation.isNotEmpty)
-                        CampParticipationCard(items: data.participation),
-                      if (data.bmi.isNotEmpty) CampBmiCard(items: data.bmi),
-                      if (data.bpSlices.isNotEmpty ||
-                          data.sugarSlices.isNotEmpty)
-                        CampBpAnalysisCard(
-                          data: data,
-                          showSugar: _showSugar,
-                          onToggle: (v) => setState(() => _showSugar = v),
-                        ),
+                      CampDistributionCard(
+                        data: data,
+                        from: _from,
+                        to: _to,
+                      ),
+                      CampParticipationCard(items: data.participation),
+                      CampBmiCard(items: data.bmi),
+                      CampBpAnalysisCard(
+                        data: data,
+                        showSugar: _showSugar,
+                        onToggle: (v) => setState(() => _showSugar = v),
+                      ),
                     ],
                   ),
                 );

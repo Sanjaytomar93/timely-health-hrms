@@ -200,6 +200,7 @@ class TodayAttendanceUi {
     this.totalPages = 1,
     this.currentPage = 1,
     this.totalRecords = 0,
+    this.hasMore = false,
   });
 
   final int totalCheckIn;
@@ -212,6 +213,7 @@ class TodayAttendanceUi {
   final int totalPages;
   final int currentPage;
   final int totalRecords;
+  final bool hasMore;
 
   static const empty = TodayAttendanceUi(
     totalCheckIn: 0,
@@ -232,6 +234,7 @@ class TodayAttendanceUi {
     int? totalPages,
     int? currentPage,
     int? totalRecords,
+    bool? hasMore,
   }) {
     return TodayAttendanceUi(
       totalCheckIn: totalCheckIn ?? this.totalCheckIn,
@@ -244,6 +247,7 @@ class TodayAttendanceUi {
       totalPages: totalPages ?? this.totalPages,
       currentPage: currentPage ?? this.currentPage,
       totalRecords: totalRecords ?? this.totalRecords,
+      hasMore: hasMore ?? this.hasMore,
     );
   }
 
@@ -258,10 +262,26 @@ class TodayAttendanceUi {
       }
     }
 
-    final total = list.length;
-    final active = list.where((r) => r.isActive).length;
-    final onsite = list.where((r) => r.isOnsite).length;
-    final remote = (total - onsite).clamp(0, total);
+    final stats = json['stats'] is Map<String, dynamic>
+        ? json['stats'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+    final pagination = json['pagination'] is Map<String, dynamic>
+        ? json['pagination'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+
+    final total = (stats['total'] as num?)?.toInt() ?? list.length;
+    final active = (stats['active'] as num?)?.toInt() ??
+        list.where((r) => r.isActive).length;
+    final onsite = (stats['onsite'] as num?)?.toInt() ??
+        list.where((r) => r.isOnsite).length;
+    final remote = (stats['remote'] as num?)?.toInt() ??
+        (total - onsite).clamp(0, total);
+
+    final currentPage = (pagination['page'] as num?)?.toInt() ?? 1;
+    final returned = (pagination['returned'] as num?)?.toInt() ?? list.length;
+    final limit = (pagination['limit'] as num?)?.toInt() ?? 100;
+    final hasMore = pagination['nextCursor'] != null ||
+        (returned >= limit && list.length < total);
 
     final depts = <String>{};
     final desigs = <String>{};
@@ -282,7 +302,10 @@ class TodayAttendanceUi {
       records: list,
       departments: depts.toList(),
       designations: desigs.toList(),
+      totalPages: hasMore ? currentPage + 1 : currentPage,
+      currentPage: currentPage,
       totalRecords: total,
+      hasMore: hasMore,
     );
   }
 

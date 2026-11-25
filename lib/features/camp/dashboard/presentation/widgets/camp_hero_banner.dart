@@ -81,4 +81,3 @@ class _CampHeroBannerState extends State<CampHeroBanner> {
   }
 }
 
-// ── Combined Date + 5 Stats Card ────────────────────────────────────────────

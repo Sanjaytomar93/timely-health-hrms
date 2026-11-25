@@ -1,12 +1,16 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
+import 'package:timelay_health/core/widgets/portal_back_button.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
 import 'package:timelay_health/features/dashboard/presentation/widgets/home_side_drawer.dart';
 import 'package:timelay_health/features/notifications/presentation/widgets/top_notification_button.dart';
+import 'package:timelay_health/features/dashboard/presentation/screens/employee_home_shell.dart';
+import 'package:timelay_health/features/dashboard/presentation/widgets/employee_bottom_nav.dart';
 import 'package:timelay_health/features/op/dashboard/presentation/theme/op_colors.dart';
+import 'package:timelay_health/features/op/walkin/data/datasources/op_walkin_remote_datasource.dart';
 import 'package:timelay_health/features/op/walkin/presentation/models/op_inactive_patient_ui.dart';
 
 class OpInactivePatientsScreen extends StatefulWidget {
@@ -22,17 +26,19 @@ class OpInactivePatientsScreen extends StatefulWidget {
 class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
+  final OpWalkinRemoteDataSource _dataSource = OpWalkinRemoteDataSource();
 
   late List<OpInactivePatientUi> _allPatients;
+  bool _isLoading = false;
+  String? _errorMessage;
   String _searchQuery = '';
+  DateTime? _selectedDate;
   String _selectedPayment = 'All Payment';
   String _selectedDoctor = 'All Doctors';
   String _selectedGender = 'All Genders';
-  int _navIndex = 0;
 
   static const Color _brandNavy = Color(0xFF1E1938);
   static const Color _brandDark = Color(0xFF26204A);
-  static const Color _iconCircleBg = Color(0xFF2E295E);
   static const Color _badgePurple = Color(0xFF3B356D);
   static const Color _activateGreen = Color(0xFF10B981);
   static const Color _doctorPurple = Color(0xFF7C3AED);
@@ -47,6 +53,45 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
         _searchQuery = _searchController.text.trim();
       });
     });
+    _fetchInactiveBookings();
+  }
+
+  Future<void> _fetchInactiveBookings({bool isRefresh = false}) async {
+    if (!isRefresh) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
+    try {
+      final list = await _dataSource.getInactiveBookings();
+      if (mounted) {
+        setState(() {
+          _allPatients = list;
+          _isLoading = false;
+          _errorMessage = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          if (_allPatients.isEmpty) {
+            _allPatients = List.of(OpInactivePatientUi.demoPatients);
+          }
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  List<String> get _doctorOptions {
+    final docs = _allPatients
+        .map((p) => p.doctor.trim())
+        .where((d) => d.isNotEmpty && d != 'N/A')
+        .toSet()
+        .toList();
+    docs.sort();
+    return ['All Doctors', ...docs, 'N/A'];
   }
 
   @override
@@ -64,8 +109,17 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
             p.doctor.toLowerCase().contains(q);
         if (!matches) return false;
       }
+      if (_selectedDate != null) {
+        final dStr =
+            '${_selectedDate!.day.toString().padLeft(2, '0')}/${_selectedDate!.month.toString().padLeft(2, '0')}/${_selectedDate!.year}';
+        final matchesDate = p.lastVisitDate.contains(dStr) ||
+            p.deactivatedSince.contains(dStr);
+        if (!matchesDate) return false;
+      }
       if (_selectedPayment == 'Paid' && !p.isPaid) return false;
       if (_selectedPayment == 'Due' && !p.isDue) return false;
+      if (_selectedPayment == 'Partial' && !p.isPartial) return false;
+      if (_selectedPayment == 'Pending' && !p.isPending) return false;
 
       if (_selectedDoctor != 'All Doctors') {
         if (_selectedDoctor == 'N/A' && p.doctor != 'N/A') return false;
@@ -87,7 +141,26 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
 
   int get _paidCount => _allPatients.where((p) => p.isPaid).length;
   int get _partialCount => _allPatients.where((p) => p.isPartial).length;
+  int get _pendingCount => _allPatients.where((p) => p.isPending).length;
+  int get _dueCount => _allPatients.where((p) => p.isDue).length;
   int get _totalInactive => _allPatients.length;
+  int get _totalValue =>
+      _allPatients.fold<int>(0, (sum, p) => sum + p.amount);
+
+  String _formatCurrency(int val) {
+    if (val == 0) return '0';
+    final s = val.toString();
+    final len = s.length;
+    if (len <= 3) return s;
+    final last3 = s.substring(len - 3);
+    var rest = s.substring(0, len - 3);
+    final buffer = StringBuffer();
+    while (rest.length > 2) {
+      buffer.write(',${rest.substring(rest.length - 2)}');
+      rest = rest.substring(0, rest.length - 2);
+    }
+    return '$rest$buffer,$last3';
+  }
 
   void _activatePatient(OpInactivePatientUi patient) {
     showDialog<void>(
@@ -245,7 +318,10 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
                         ],
                       ),
                     ),
-                    _StatusBadge(status: patient.paymentStatus),
+                    _StatusBadge(
+                      status: patient.paymentStatus,
+                      amount: patient.amount,
+                    ),
                   ],
                 ),
                 const Divider(height: 28),
@@ -326,25 +402,11 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
     );
   }
 
-  void _exportCsv() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Exporting inactive patients CSV...',
-          style: portalText(fontSize: 13, color: Colors.white),
-        ),
-        backgroundColor: _brandNavy,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
   void _pickDate() async {
     final now = DateTime.now();
-    await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
-      initialDate: now,
+      initialDate: _selectedDate ?? now,
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
       builder: (context, child) {
@@ -360,6 +422,11 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
         );
       },
     );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
   }
 
   @override
@@ -367,7 +434,7 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
     final filtered = _filteredPatients;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(
+      value: SystemUiOverlayStyle.dark.copyWith(
         statusBarColor: Colors.transparent,
       ),
       child: Scaffold(
@@ -377,22 +444,27 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
         drawerScrimColor: PortalColors.brand.withValues(alpha: 0.28),
         body: PortalSafeArea(
           bottom: false,
-          statusBarColor: _brandNavy,
+          statusBarColor: Colors.white,
           child: Column(
             children: [
               _buildTopBar(),
+              if (_isLoading)
+                const LinearProgressIndicator(
+                  minHeight: 2.5,
+                  color: _brandNavy,
+                  backgroundColor: Color(0xFFE2E8F0),
+                ),
               Expanded(
                 child: RefreshIndicator(
                   color: _brandNavy,
                   onRefresh: () async {
-                    setState(() {
-                      _allPatients = List.of(OpInactivePatientUi.demoPatients);
-                      _searchQuery = '';
-                      _searchController.clear();
-                      _selectedPayment = 'All Payment';
-                      _selectedDoctor = 'All Doctors';
-                      _selectedGender = 'All Genders';
-                    });
+                    _searchController.clear();
+                    _searchQuery = '';
+                    _selectedDate = null;
+                    _selectedPayment = 'All Payment';
+                    _selectedDoctor = 'All Doctors';
+                    _selectedGender = 'All Genders';
+                    await _fetchInactiveBookings(isRefresh: true);
                   },
                   child: CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -404,11 +476,12 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
                             _buildSegmentedTab(),
                             _buildStatsRow(),
                             const SizedBox(height: 14),
-                            _buildSearchAndExportRow(),
-                            const SizedBox(height: 10),
+                            _buildSearchRow(),
+                            const SizedBox(height: 8),
                             _buildFilterChipsRow(),
                             const SizedBox(height: 14),
-                            _buildSectionHeader(filtered.length),
+                            _buildSectionHeader(),
+                            const SizedBox(height: 8),
                           ],
                         ),
                       ),
@@ -469,112 +542,49 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
 
   Widget _buildTopBar() {
     return Container(
-      color: _brandNavy,
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: [
-          // Menu button
-          GestureDetector(
-            onTap: () {
-              if (widget.onMenuTap != null) {
-                widget.onMenuTap!();
-              } else {
-                _scaffoldKey.currentState?.openDrawer();
-              }
-            },
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 38,
-              height: 38,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: _iconCircleBg,
-                shape: BoxShape.circle,
-              ),
-              child: SvgPicture.asset(
-                'assets/icons/top_bar/ic_top_menu.svg',
-                width: 18,
-                height: 18,
-                colorFilter: const ColorFilter.mode(
-                  Colors.white,
-                  BlendMode.srcIn,
-                ),
-              ),
-            ),
-          ),
+          const PortalBackButton(),
           const SizedBox(width: 12),
-          // Title & subtitle
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      'Inactive Patients',
-                      style: portalText(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 20,
-                      height: 20,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: _badgePurple,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '$_totalInactive',
-                        style: portalText(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Inactive Patients',
+                  style: portalText(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF0F172A),
+                    height: 1.15,
+                  ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1),
                 Text(
                   'Manage deactivated patient accounts',
                   style: portalText(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFFA5B4FC),
+                    color: const Color(0xFF94A3B8),
                   ),
                 ),
               ],
             ),
           ),
-          // Bell notification button
-          GestureDetector(
-            onTap: () => openNotificationsScreen(context),
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 38,
-              height: 38,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: _iconCircleBg,
-                shape: BoxShape.circle,
-              ),
-              child: SvgPicture.asset(
-                'assets/icons/top_bar/ic_top_notification.svg',
-                width: 19,
-                height: 19,
-                colorFilter: const ColorFilter.mode(
-                  Colors.white,
-                  BlendMode.srcIn,
-                ),
-              ),
-            ),
-          ),
+          const TopNotificationButton(),
         ],
       ),
     );
@@ -666,128 +676,213 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
   }
 
   Widget _buildStatsRow() {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardWidth = ((screenWidth - 44) / 3).clamp(108.0, 160.0);
+
     return SizedBox(
-      height: 94,
+      height: 96,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         children: [
           _StatCard(
+            width: cardWidth,
             title: 'TOTAL INACTIVE',
-            titleColor: const Color(0xFFF59E0B),
             icon: Icons.person_off_rounded,
+            iconBg: const Color(0xFFFEF3C7),
+            iconColor: const Color(0xFFD97706),
             value: '$_totalInactive',
             subtitle: 'deactivated patients',
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           _StatCard(
+            width: cardWidth,
             title: 'PAID',
-            titleColor: _activateGreen,
-            icon: Icons.check_circle_outline_rounded,
+            icon: Icons.check_circle_rounded,
+            iconBg: const Color(0xFFD1FAE5),
+            iconColor: const Color(0xFF059669),
             value: '$_paidCount',
             subtitle: 'completed payments',
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           _StatCard(
+            width: cardWidth,
             title: 'PARTIAL',
-            titleColor: const Color(0xFF0EA5E9),
-            icon: Icons.pie_chart_outline_rounded,
+            icon: Icons.group_rounded,
+            iconBg: const Color(0xFFE0E7FF),
+            iconColor: const Color(0xFF4F46E5),
             value: '$_partialCount',
             subtitle: 'partially paid',
+          ),
+          const SizedBox(width: 8),
+          _StatCard(
+            width: cardWidth,
+            title: 'PENDING',
+            icon: Icons.access_time_rounded,
+            iconBg: const Color(0xFFFEF3C7),
+            iconColor: const Color(0xFFD97706),
+            value: '$_pendingCount',
+            subtitle: 'awaiting payment',
+          ),
+          const SizedBox(width: 8),
+          _StatCard(
+            width: cardWidth,
+            title: 'DUE',
+            icon: Icons.cancel_rounded,
+            iconBg: const Color(0xFFFFEDD5),
+            iconColor: const Color(0xFFEA580C),
+            value: '$_dueCount',
+            subtitle: 'overdue',
+          ),
+          const SizedBox(width: 8),
+          _StatCard(
+            width: cardWidth,
+            title: 'TOTAL VALUE',
+            icon: Icons.currency_rupee_rounded,
+            iconBg: const Color(0xFFD1FAE5),
+            iconColor: const Color(0xFF059669),
+            value: '₹${_formatCurrency(_totalValue)}',
+            subtitle: 'total inactive value',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSearchAndExportRow() {
+  Widget _buildSearchRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.search_rounded,
+              size: 18,
+              color: Color(0xFF94A3B8),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                style: portalText(
+                  fontSize: 12,
+                  color: const Color(0xFF0F172A),
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlignVertical: TextAlignVertical.center,
+                decoration: InputDecoration(
+                  hintText: 'Search inactive patients...',
+                  hintStyle: portalText(
+                    fontSize: 12,
+                    color: const Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ),
+            if (_searchQuery.isNotEmpty)
+              GestureDetector(
+                onTap: () => _searchController.clear(),
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 16,
+                  color: Color(0xFF94A3B8),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool get _hasActiveFilters =>
+      _selectedDate != null ||
+      _selectedPayment != 'All Payment' ||
+      _selectedDoctor != 'All Doctors' ||
+      _selectedGender != 'All Genders';
+
+  void _clearAllFilters() {
+    setState(() {
+      _selectedDate = null;
+      _selectedPayment = 'All Payment';
+      _selectedDoctor = 'All Doctors';
+      _selectedGender = 'All Genders';
+    });
+  }
+
+  Widget _buildFilterChipsRow() {
+    final paymentDisplay = _selectedPayment == 'All Payment'
+        ? 'Payment'
+        : _selectedPayment;
+
+    final doctorDisplay = _selectedDoctor == 'All Doctors'
+        ? 'Doctor'
+        : (_selectedDoctor.startsWith('DR ') || _selectedDoctor.startsWith('Dr ')
+            ? _selectedDoctor.substring(3).trim().split(' ').first
+            : _selectedDoctor);
+
+    final genderDisplay = _selectedGender == 'All Genders'
+        ? 'Gender'
+        : _selectedGender;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         children: [
           Expanded(
-            child: Container(
-              height: 42,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.search_rounded,
-                    size: 18,
-                    color: Color(0xFF94A3B8),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      style: portalText(
-                        fontSize: 12,
-                        color: const Color(0xFF0F172A),
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlignVertical: TextAlignVertical.center,
-                      decoration: InputDecoration(
-                        hintText: 'Search inactive patients...',
-                        hintStyle: portalText(
-                          fontSize: 12,
-                          color: const Color(0xFF94A3B8),
-                          fontWeight: FontWeight.w500,
-                        ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                  ),
-                  if (_searchQuery.isNotEmpty)
-                    GestureDetector(
-                      onTap: () => _searchController.clear(),
-                      child: const Icon(
-                        Icons.close_rounded,
-                        size: 16,
-                        color: Color(0xFF94A3B8),
-                      ),
-                    ),
-                ],
-              ),
+            child: _DateFilterChip(
+              selectedDate: _selectedDate,
+              onTap: _pickDate,
+              onClear: () => setState(() => _selectedDate = null),
             ),
           ),
-          const SizedBox(width: 10),
-          Material(
-            color: _brandNavy,
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              onTap: _exportCsv,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                height: 42,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.file_download_outlined,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Export CSV',
-                      style: portalText(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: _DropdownChip(
+              label: _selectedPayment,
+              displayLabel: paymentDisplay,
+              defaultLabel: 'All Payment',
+              options: const [
+                'All Payment',
+                'Paid',
+                'Due',
+                'Partial',
+                'Pending',
+              ],
+              onSelected: (val) => setState(() => _selectedPayment = val),
+              onClear: () => setState(() => _selectedPayment = 'All Payment'),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: _DropdownChip(
+              label: _selectedDoctor,
+              displayLabel: doctorDisplay,
+              defaultLabel: 'All Doctors',
+              options: _doctorOptions,
+              onSelected: (val) => setState(() => _selectedDoctor = val),
+              onClear: () => setState(() => _selectedDoctor = 'All Doctors'),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: _DropdownChip(
+              label: _selectedGender,
+              displayLabel: genderDisplay,
+              defaultLabel: 'All Genders',
+              options: const ['All Genders', 'Male', 'Female'],
+              onSelected: (val) => setState(() => _selectedGender = val),
+              onClear: () => setState(() => _selectedGender = 'All Genders'),
             ),
           ),
         ],
@@ -795,82 +890,32 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
     );
   }
 
-  Widget _buildFilterChipsRow() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Row(
-        children: [
-          // Refresh Button
-          _FilterIconButton(
-            icon: Icons.refresh_rounded,
-            onTap: () {
-              setState(() {
-                _selectedPayment = 'All Payment';
-                _selectedDoctor = 'All Doctors';
-                _selectedGender = 'All Genders';
-                _searchController.clear();
-              });
-            },
-          ),
-          const SizedBox(width: 8),
-          // Payment Dropdown
-          _DropdownChip(
-            label: _selectedPayment,
-            options: const ['All Payment', 'Paid', 'Due'],
-            onSelected: (val) => setState(() => _selectedPayment = val),
-          ),
-          const SizedBox(width: 8),
-          // Doctors Dropdown
-          _DropdownChip(
-            label: _selectedDoctor,
-            options: const [
-              'All Doctors',
-              'DR VAMSHI KRISHNA',
-              'Dr Abhigna jupaka',
-              'N/A',
-            ],
-            onSelected: (val) => setState(() => _selectedDoctor = val),
-          ),
-          const SizedBox(width: 8),
-          // Gender Dropdown
-          _DropdownChip(
-            label: _selectedGender,
-            options: const ['All Genders', 'Male', 'Female'],
-            onSelected: (val) => setState(() => _selectedGender = val),
-          ),
-          const SizedBox(width: 8),
-          // Calendar Picker Button
-          _FilterIconButton(
-            icon: Icons.calendar_today_outlined,
-            onTap: _pickDate,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(int count) {
+  Widget _buildSectionHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         children: [
-          Text(
-            'PATIENT LIST ($count)',
-            style: portalText(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF1E293B),
-              letterSpacing: 0.2,
+          Container(
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Icon(
+              Icons.people_alt_rounded,
+              size: 14,
+              color: Color(0xFF2563EB),
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           Text(
-            'Sorted by recent visit',
+            'Patient List',
             style: portalText(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF94A3B8),
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF1E293B),
             ),
           ),
         ],
@@ -879,94 +924,43 @@ class _OpInactivePatientsScreenState extends State<OpInactivePatientsScreen> {
   }
 
   Widget _buildBottomNav() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 10,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            children: [
-              Expanded(
-                child: _BottomNavItem(
-                  icon: Icons.groups_outlined,
-                  label: 'Patients',
-                  badge: '$_totalInactive',
-                  selected: _navIndex == 0,
-                  activeColor: const Color(0xFFE11D48),
-                  onTap: () => setState(() => _navIndex = 0),
-                ),
-              ),
-              Expanded(
-                child: _BottomNavItem(
-                  icon: Icons.alt_route_rounded,
-                  label: 'Referrals',
-                  selected: _navIndex == 1,
-                  onTap: () => setState(() => _navIndex = 1),
-                ),
-              ),
-              Expanded(
-                child: _BottomNavItem(
-                  icon: Icons.healing_outlined,
-                  label: 'Doctors',
-                  selected: _navIndex == 2,
-                  onTap: () => setState(() => _navIndex = 2),
-                ),
-              ),
-              Expanded(
-                child: _BottomNavItem(
-                  icon: Icons.bar_chart_rounded,
-                  label: 'Reports',
-                  selected: _navIndex == 3,
-                  onTap: () => setState(() => _navIndex = 3),
-                ),
-              ),
-              Expanded(
-                child: _BottomNavItem(
-                  icon: Icons.settings_outlined,
-                  label: 'Settings',
-                  selected: _navIndex == 4,
-                  onTap: () => setState(() => _navIndex = 4),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return EmployeeBottomNav(
+      currentIndex: 0,
+      onTap: (i) {
+        if (i == 0) {
+          EmployeeHomeShell.goToDashboard(context);
+          return;
+        }
+        EmployeeHomeShell.goToTab(context, i);
+      },
     );
   }
 }
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
+    required this.width,
     required this.title,
-    required this.titleColor,
     required this.icon,
+    required this.iconBg,
+    required this.iconColor,
     required this.value,
     required this.subtitle,
   });
 
+  final double width;
   final String title;
-  final Color titleColor;
   final IconData icon;
+  final Color iconBg;
+  final Color iconColor;
   final String value;
   final String subtitle;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 135,
-      padding: const EdgeInsets.all(12),
+      width: width,
+      padding: const EdgeInsets.fromLTRB(10, 10, 8, 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -974,7 +968,7 @@ class _StatCard extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: Color(0x06000000),
-            blurRadius: 8,
+            blurRadius: 6,
             offset: Offset(0, 2),
           ),
         ],
@@ -984,37 +978,61 @@ class _StatCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: portalText(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: titleColor,
-                  letterSpacing: 0.3,
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: portalText(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF64748B),
+                    letterSpacing: 0.2,
+                    height: 1.15,
+                  ),
                 ),
               ),
-              const Spacer(),
-              Icon(icon, size: 15, color: titleColor),
+              const SizedBox(width: 4),
+              Container(
+                width: 22,
+                height: 22,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(
+                  icon,
+                  size: 13,
+                  color: iconColor,
+                ),
+              ),
             ],
           ),
+          const SizedBox(height: 4),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
               color: const Color(0xFF0F172A),
               height: 1.1,
             ),
           ),
+          const SizedBox(height: 2),
           Text(
             subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: portalText(
-              fontSize: 10,
-              color: const Color(0xFF94A3B8),
+              fontSize: 9,
               fontWeight: FontWeight.w500,
+              color: const Color(0xFF94A3B8),
             ),
           ),
         ],
@@ -1023,29 +1041,80 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _FilterIconButton extends StatelessWidget {
-  const _FilterIconButton({required this.icon, required this.onTap});
+class _DateFilterChip extends StatelessWidget {
+  const _DateFilterChip({
+    required this.selectedDate,
+    required this.onTap,
+    required this.onClear,
+  });
 
-  final IconData icon;
+  final DateTime? selectedDate;
   final VoidCallback onTap;
+  final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          width: 36,
-          height: 36,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+    final hasDate = selectedDate != null;
+    final label = hasDate
+        ? '${selectedDate!.day}/${selectedDate!.month}'
+        : 'Date';
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 34,
+        padding: const EdgeInsets.symmetric(horizontal: 5),
+        decoration: BoxDecoration(
+          color: hasDate ? const Color(0xFFF5F3FF) : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: hasDate ? OpColors.primary : const Color(0xFFE2E8F0),
+            width: hasDate ? 1.3 : 1.0,
           ),
-          child: Icon(icon, size: 17, color: const Color(0xFF475569)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 11,
+              color: hasDate ? OpColors.primary : const Color(0xFF64748B),
+            ),
+            const SizedBox(width: 3),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: portalText(
+                  fontSize: 10.5,
+                  fontWeight: hasDate ? FontWeight.w700 : FontWeight.w600,
+                  color: hasDate ? OpColors.primary : const Color(0xFF334155),
+                ),
+              ),
+            ),
+            const SizedBox(width: 2),
+            if (hasDate)
+              GestureDetector(
+                onTap: onClear,
+                behavior: HitTestBehavior.opaque,
+                child: const Padding(
+                  padding: EdgeInsets.all(2),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 12,
+                    color: OpColors.primary,
+                  ),
+                ),
+              )
+            else
+              const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 14,
+                color: Color(0xFF64748B),
+              ),
+          ],
         ),
       ),
     );
@@ -1055,60 +1124,105 @@ class _FilterIconButton extends StatelessWidget {
 class _DropdownChip extends StatelessWidget {
   const _DropdownChip({
     required this.label,
+    required this.displayLabel,
     required this.options,
     required this.onSelected,
+    this.defaultLabel,
+    this.onClear,
   });
 
   final String label;
+  final String displayLabel;
   final List<String> options;
   final ValueChanged<String> onSelected;
+  final String? defaultLabel;
+  final VoidCallback? onClear;
 
   @override
   Widget build(BuildContext context) {
+    final isFiltered = defaultLabel != null && label != defaultLabel;
+
     return PopupMenuButton<String>(
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
       onSelected: onSelected,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       itemBuilder: (ctx) => options.map((opt) {
+        final isSelected = opt == label;
         return PopupMenuItem<String>(
           value: opt,
-          child: Text(
-            opt,
-            style: portalText(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: opt == label
-                  ? OpColors.primary
-                  : const Color(0xFF0F172A),
-            ),
+          height: 38,
+          child: Row(
+            children: [
+              Text(
+                opt,
+                style: portalText(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected
+                      ? OpColors.primary
+                      : const Color(0xFF0F172A),
+                ),
+              ),
+              if (isSelected) ...[
+                const Spacer(),
+                const Icon(
+                  Icons.check_rounded,
+                  size: 15,
+                  color: OpColors.primary,
+                ),
+              ],
+            ],
           ),
         );
       }).toList(),
       child: Container(
-        height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        height: 34,
+        padding: const EdgeInsets.symmetric(horizontal: 5),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          color: isFiltered ? const Color(0xFFF5F3FF) : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isFiltered ? OpColors.primary : const Color(0xFFE2E8F0),
+            width: isFiltered ? 1.3 : 1.0,
+          ),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              label,
-              style: portalText(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF334155),
+            Flexible(
+              child: Text(
+                displayLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: portalText(
+                  fontSize: 10.5,
+                  fontWeight: isFiltered ? FontWeight.w700 : FontWeight.w600,
+                  color: isFiltered ? OpColors.primary : const Color(0xFF334155),
+                ),
               ),
             ),
-            const SizedBox(width: 4),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: 16,
-              color: Color(0xFF64748B),
-            ),
+            const SizedBox(width: 2),
+            if (isFiltered && onClear != null)
+              GestureDetector(
+                onTap: onClear,
+                behavior: HitTestBehavior.opaque,
+                child: const Padding(
+                  padding: EdgeInsets.all(2),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 12,
+                    color: OpColors.primary,
+                  ),
+                ),
+              )
+            else
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 14,
+                color: isFiltered ? OpColors.primary : const Color(0xFF64748B),
+              ),
           ],
         ),
       ),
@@ -1129,22 +1243,22 @@ class _InactivePatientCard extends StatelessWidget {
 
   static const Color _activateGreen = Color(0xFF10B981);
   static const Color _doctorPurple = Color(0xFF7C3AED);
-  static const Color _timeBlue = Color(0xFF2563EB);
 
   @override
   Widget build(BuildContext context) {
     final p = patient;
+    final isFemale = p.gender.toLowerCase() == 'female';
 
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFEDF2F7), width: 1.2),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 10,
-            offset: Offset(0, 3),
+            color: Color(0x081E293B),
+            blurRadius: 16,
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -1152,27 +1266,42 @@ class _InactivePatientCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row: Avatar, Name, Age/Gender, Payment Status Pill
           Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF334155),
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isFemale
+                        ? [const Color(0xFFF472B6), const Color(0xFFDB2777)]
+                        : [const Color(0xFF60A5FA), const Color(0xFF2563EB)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isFemale
+                              ? const Color(0xFFF472B6)
+                              : const Color(0xFF60A5FA))
+                          .withValues(alpha: 0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
+                alignment: Alignment.center,
                 child: Text(
                   p.initial,
                   style: portalText(
-                    fontSize: 15,
+                    fontSize: 17,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1182,232 +1311,367 @@ class _InactivePatientCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: portalText(
-                        fontSize: 13,
+                        fontSize: 14.5,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      '${p.age} yrs • ${p.gender}',
-                      style: portalText(
-                        fontSize: 11,
-                        color: const Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _StatusBadge(status: p.paymentStatus),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Two-column layout
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Column 1: PHONE & LAST VISIT
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'PHONE',
-                      style: portalText(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF94A3B8),
-                        letterSpacing: 0.3,
+                        letterSpacing: -0.2,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.call_outlined,
-                          size: 13,
-                          color: Color(0xFF94A3B8),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          p.phone,
-                          style: portalText(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF0F172A),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${p.age} yrs • ${p.gender}',
+                            style: portalText(
+                              fontSize: 10.5,
+                              color: const Color(0xFF475569),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'LAST VISIT',
-                      style: portalText(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF94A3B8),
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      p.lastVisitDate,
-                      style: portalText(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F172A),
-                      ),
-                    ),
-                    if (p.lastVisitTime != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        p.lastVisitTime!,
-                        style: portalText(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: _timeBlue,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
-
-              const SizedBox(width: 14),
-
-              // Column 2: DOCTOR & DEACTIVATED SINCE
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'DOCTOR',
-                      style: portalText(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF94A3B8),
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      p.doctor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: portalText(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: p.doctor == 'N/A'
-                            ? const Color(0xFF7C3AED)
-                            : _doctorPurple,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'DEACTIVATED SINCE',
-                      style: portalText(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF94A3B8),
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      p.deactivatedSince,
-                      style: portalText(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _StatusBadge(status: p.paymentStatus, amount: p.amount),
             ],
           ),
 
           const SizedBox(height: 12),
 
-          // Bottom Row: City, View icon button, ACTIVATE button
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFF1F5F9)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 26,
+                            height: 26,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Icons.call_rounded,
+                              size: 13,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'PHONE',
+                                  style: portalText(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF94A3B8),
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 1),
+                                Text(
+                                  p.phone,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: portalText(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 26,
+                            height: 26,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF5F3FF),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Icons.medical_services_rounded,
+                              size: 13,
+                              color: _doctorPurple,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'DOCTOR',
+                                  style: portalText(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF94A3B8),
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 1),
+                                Text(
+                                  p.doctor,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: portalText(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 26,
+                            height: 26,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0FDF4),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Icons.calendar_today_rounded,
+                              size: 12,
+                              color: Color(0xFF059669),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'LAST VISIT',
+                                  style: portalText(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF94A3B8),
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 1),
+                                Text(
+                                  p.lastVisitDate,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: portalText(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 26,
+                            height: 26,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF1F2),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Icons.history_rounded,
+                              size: 13,
+                              color: Color(0xFFE11D48),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'DEACTIVATED',
+                                  style: portalText(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF94A3B8),
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 1),
+                                Text(
+                                  p.deactivatedSince,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: portalText(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF64748B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
           Row(
             children: [
-              Text(
-                'City: ${p.city}',
-                style: portalText(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF94A3B8),
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 14,
+                    color: Color(0xFF94A3B8),
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    p.city,
+                    style: portalText(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF94A3B8),
+                    ),
+                  ),
+                ],
               ),
               const Spacer(),
-              // View details icon
               Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.transparent,
                 child: InkWell(
                   onTap: onView,
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
-                    width: 32,
-                    height: 32,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 5,
                     ),
-                    child: const Icon(
-                      Icons.remove_red_eye_outlined,
-                      size: 16,
-                      color: Color(0xFF64748B),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.visibility_outlined,
+                          size: 14,
+                          color: Color(0xFF475569),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'View',
+                          style: portalText(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF475569),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              // Activate pill button
-              Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                child: InkWell(
-                  onTap: onActivate,
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    height: 32,
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: _activateGreen,
-                        width: 1.5,
+              GestureDetector(
+                onTap: onActivate,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  height: 26,
+                  padding: const EdgeInsets.only(left: 8, right: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECFDF5),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFFA7F3D0),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 5,
+                        height: 5,
+                        decoration: const BoxDecoration(
+                          color: _activateGreen,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: _activateGreen,
-                            shape: BoxShape.circle,
-                          ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Activate',
+                        style: portalText(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF065F46),
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'ACTIVATE',
-                          style: portalText(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            color: _activateGreen,
-                            letterSpacing: 0.5,
-                          ),
+                      ),
+                      const SizedBox(width: 2),
+                      Transform.scale(
+                        scale: 0.52,
+                        child: CupertinoSwitch(
+                          value: false,
+                          activeColor: _activateGreen,
+                          onChanged: (_) => onActivate(),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1420,125 +1684,71 @@ class _InactivePatientCard extends StatelessWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status});
+  const _StatusBadge({required this.status, this.amount = 0});
 
   final String status;
+  final int amount;
 
   @override
   Widget build(BuildContext context) {
-    final isDue = status.toUpperCase() == 'DUE';
-    final isPaid = status.toUpperCase() == 'PAID';
+    final upper = status.toUpperCase();
+    final isDue = upper == 'DUE';
+    final isPaid = upper == 'PAID';
+    final isPartial = upper == 'PARTIAL';
 
     final Color bgColor = isDue
         ? const Color(0xFFFEF2F2)
         : isPaid
             ? const Color(0xFFECFDF5)
-            : const Color(0xFFEFF6FF);
+            : isPartial
+                ? const Color(0xFFEFF6FF)
+                : const Color(0xFFFFFBEB);
 
     final Color borderColor = isDue
         ? const Color(0xFFFECACA)
         : isPaid
             ? const Color(0xFFA7F3D0)
-            : const Color(0xFFBFDBFE);
+            : isPartial
+                ? const Color(0xFFBFDBFE)
+                : const Color(0xFFFDE68A);
 
     final Color textColor = isDue
         ? const Color(0xFFEF4444)
         : isPaid
-            ? const Color(0xFF10B981)
-            : const Color(0xFF3B82F6);
+            ? const Color(0xFF059669)
+            : isPartial
+                ? const Color(0xFF2563EB)
+                : const Color(0xFFD97706);
+
+    final IconData icon = isDue
+        ? Icons.cancel_outlined
+        : isPaid
+            ? Icons.check_circle_outline_rounded
+            : isPartial
+                ? Icons.pie_chart_outline_rounded
+                : Icons.schedule_rounded;
+
+    final displayText = upper;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: borderColor),
       ),
-      child: Text(
-        status.toUpperCase(),
-        style: portalText(
-          fontSize: 10,
-          fontWeight: FontWeight.w800,
-          color: textColor,
-          letterSpacing: 0.3,
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomNavItem extends StatelessWidget {
-  const _BottomNavItem({
-    required this.icon,
-    required this.label,
-    this.badge,
-    required this.selected,
-    this.activeColor,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final String? badge;
-  final bool selected;
-  final Color? activeColor;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final effectiveColor =
-        selected ? (activeColor ?? const Color(0xFFE11D48)) : const Color(0xFF94A3B8);
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Icon(
-                icon,
-                size: 24,
-                color: effectiveColor,
-              ),
-              if (badge != null)
-                Positioned(
-                  top: -4,
-                  right: -7,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE11D48),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      badge!,
-                      style: portalText(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        height: 1,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 3),
+          Icon(icon, size: 11, color: textColor),
+          const SizedBox(width: 4),
           Text(
-            label,
+            displayText,
             style: portalText(
               fontSize: 10,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-              color: effectiveColor,
+              fontWeight: FontWeight.w800,
+              color: textColor,
+              letterSpacing: 0.2,
             ),
           ),
         ],
@@ -1546,3 +1756,4 @@ class _BottomNavItem extends StatelessWidget {
     );
   }
 }
+

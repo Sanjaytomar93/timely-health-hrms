@@ -142,7 +142,6 @@ class OpReferralBookingUi {
 
 class OpReferralBookingData {
   static const List<OpReferralBookingUi> demoBookings = [
-    // ---------------- CUSTOMER REFERRALS ----------------
     OpReferralBookingUi(
       id: 'TH2611100',
       bookingDate: '18/11/26 09:00 am',
@@ -318,7 +317,6 @@ class OpReferralBookingData {
       settledAt: '15/11/26 09:31 am',
     ),
 
-    // ---------------- DOCTOR REFERRALS (Exact from Image 3) ----------------
     OpReferralBookingUi(
       id: 'TH2611134',
       bookingDate: '04/11/26 10:48 am',

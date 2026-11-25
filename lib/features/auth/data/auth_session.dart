@@ -11,7 +11,9 @@ class AuthSession {
   static const _employeeKey = 'auth_employee';
   static const _fcmTokenKey = 'auth_fcm_token';
   static const _performanceShownKey = 'performance_popup_employee';
+  static const _campActivatedKey = 'auth_camp_activated';
   static Employee? currentEmployee;
+  static bool campActivated = false;
 
   static Future<void> save(Employee employee) async {
     currentEmployee = employee;
@@ -20,8 +22,15 @@ class AuthSession {
     await prefs.setString(_employeeKey, jsonEncode(model.toJson()));
   }
 
+  static Future<void> saveCampActivated(bool value) async {
+    campActivated = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_campActivatedKey, value);
+  }
+
   static Future<Employee?> load() async {
     final prefs = await SharedPreferences.getInstance();
+    campActivated = prefs.getBool(_campActivatedKey) ?? false;
     final raw = prefs.getString(_employeeKey);
     if (raw == null || raw.isEmpty) {
       currentEmployee = null;
@@ -57,10 +66,12 @@ class AuthSession {
 
   static Future<void> clear() async {
     currentEmployee = null;
+    campActivated = false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_employeeKey);
     await prefs.remove(_fcmTokenKey);
     await prefs.remove(_performanceShownKey);
+    await prefs.remove(_campActivatedKey);
   }
 
   static Future<bool> wasPerformancePopupShown(String employeeCode) async {

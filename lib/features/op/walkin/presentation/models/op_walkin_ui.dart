@@ -69,6 +69,113 @@ class OpWalkinPatientUi {
 
   Color get payStatusColor =>
       payStatus.toUpperCase() == 'PAID' ? OpColors.green : OpColors.orange;
+
+  factory OpWalkinPatientUi.fromJson(
+    Map<String, dynamic> json, {
+    int index = 1,
+  }) {
+    final title = (json['patientTitle']?.toString() ?? '').trim();
+    final pName = (json['patientName']?.toString() ?? '').trim();
+    final displayName = title.isNotEmpty
+        ? (pName.toLowerCase().startsWith(title.toLowerCase())
+            ? pName
+            : '$title $pName')
+        : (pName.isNotEmpty ? pName : 'Unknown Patient');
+
+    final slot = json['slotDetails'] is Map<String, dynamic>
+        ? json['slotDetails'] as Map<String, dynamic>
+        : null;
+
+    final docName = slot?['doctorName']?.toString().trim();
+    final doctor = (docName != null && docName.isNotEmpty) ? docName : 'N/A';
+
+    final startTime = slot?['startTime']?.toString().trim() ?? '';
+    final endTime = slot?['endTime']?.toString().trim() ?? '';
+    String visitDate = 'N/A';
+    if (startTime.isNotEmpty && endTime.isNotEmpty) {
+      visitDate = '$startTime – $endTime';
+    } else if (startTime.isNotEmpty) {
+      visitDate = startTime;
+    }
+
+    final createdRaw = json['createdAt']?.toString() ??
+        json['bookedAt']?.toString() ??
+        '';
+    String createdDate = '';
+    String createdTime = '';
+    if (createdRaw.isNotEmpty) {
+      try {
+        final dt = DateTime.tryParse(createdRaw)?.toLocal();
+        if (dt != null) {
+          createdDate =
+              '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year.toString().substring(2)}';
+          final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+          final minute = dt.minute.toString().padLeft(2, '0');
+          final amPm = dt.hour >= 12 ? 'pm' : 'am';
+          createdTime = '$hour:$minute $amPm';
+        }
+      } catch (_) {}
+    }
+    if (createdDate.isEmpty) {
+      createdDate = json['appointmentDate']?.toString() ?? 'N/A';
+    }
+
+    final catPayment = json['categoryPayment'] is Map<String, dynamic>
+        ? json['categoryPayment'] as Map<String, dynamic>
+        : null;
+    final clinicVal = catPayment?['clinic']?['paidAmount'] ?? 0;
+    final labVal = catPayment?['lab']?['paidAmount'] ?? 0;
+    final pharmVal = catPayment?['pharmacy']?['paidAmount'] ?? 0;
+
+    final totalVal =
+        json['finalPayable'] ?? json['totalAmount'] ?? json['totalFee'] ?? 0;
+    final discountVal = json['discount'] ?? 0;
+    final balanceVal = json['balanceAmount'] ?? 0;
+    final paidVal = json['amountPaid'] ?? 0;
+
+    final addedBy = json['addedBy'] is Map<String, dynamic>
+        ? json['addedBy'] as Map<String, dynamic>
+        : null;
+    final bookedByName = addedBy?['name']?.toString() ?? 'Staff';
+    final bookedByEmpId = addedBy?['empId']?.toString() ?? '';
+
+    final refCustomer = json['referredByCustomer']?.toString().trim() ?? '';
+    final refDoctor = json['referredByDoctor']?.toString().trim() ?? '';
+
+    return OpWalkinPatientUi(
+      index: index,
+      pid: json['customPID']?.toString().trim().isNotEmpty == true
+          ? json['customPID'].toString().trim()
+          : (json['_id']?.toString() ?? 'PID'),
+      createdDate: createdDate,
+      createdTime: createdTime,
+      name: displayName,
+      age: int.tryParse(json['patientAge']?.toString() ?? '') ?? 0,
+      gender: json['patientGender']?.toString().trim().isNotEmpty == true
+          ? json['patientGender'].toString().trim()
+          : 'N/A',
+      phone: json['patientPhone']?.toString().trim() ?? '',
+      doctor: doctor,
+      visitDate: visitDate,
+      rType: (json['bookingType']?.toString() ?? 'R-WALKIN').toUpperCase(),
+      status: (json['status']?.toString() ?? 'CONFIRMED').toUpperCase(),
+      clinic: '₹$clinicVal',
+      lab: '₹$labVal',
+      pharmacy: '₹$pharmVal',
+      total: '₹$totalVal',
+      discount:
+          (discountVal is num && discountVal > 0) ? '₹$discountVal' : '—',
+      due: '₹$balanceVal',
+      paid: '₹$paidVal',
+      payType: (json['paymentType']?.toString() ?? 'CASH').toUpperCase(),
+      payStatus: (json['paymentStatus']?.toString() ?? 'PAID').toUpperCase(),
+      referredCustomer:
+          refCustomer.isNotEmpty ? 'Ref: $refCustomer' : 'Ref: Self',
+      referredDoctor: refDoctor.isNotEmpty ? refDoctor : 'No Doctor',
+      bookedBy: bookedByName,
+      bookedByCode: bookedByEmpId,
+    );
+  }
 }
 
 class OpWalkinUi {
@@ -98,44 +205,45 @@ class OpWalkinUi {
         selectedPeriod: 'Today',
         metrics: [
           OpMetricUi(
-            title: 'Patients',
-            value: '2',
-            subtitle: 'Active: 2',
-            accent: OpColors.green,
-            icon: Icons.groups_rounded,
-            tint: OpColors.greenTint,
+            title: 'TOTAL CLINIC PATIENTS',
+            value: '930',
+            activeLabel: 'Active: 930',
+            inactiveLabel: 'Inactive: 0',
+            accent: Color(0xFF4F46E5),
+            icon: Icons.people_outline_rounded,
+            tint: Color(0xFFEEF2FF),
           ),
           OpMetricUi(
-            title: 'Paid',
-            value: '2',
-            subtitle: 'Completed p...',
-            accent: OpColors.green,
-            icon: Icons.check_circle_rounded,
-            tint: OpColors.greenTint,
+            title: 'PAID',
+            value: '906',
+            subtitle: 'completed payments',
+            accent: Color(0xFF059669),
+            icon: Icons.person_outline_rounded,
+            tint: Color(0xFFECFDF5),
           ),
           OpMetricUi(
-            title: 'Partial',
-            value: '0',
-            subtitle: 'Partially paid',
-            accent: OpColors.orange,
-            icon: Icons.schedule_rounded,
-            tint: OpColors.orangeTint,
+            title: 'PARTIAL',
+            value: '5',
+            subtitle: 'partially paid',
+            accent: Color(0xFF2563EB),
+            icon: Icons.access_time_rounded,
+            tint: Color(0xFFEFF6FF),
           ),
           OpMetricUi(
-            title: 'Due',
-            value: '0',
-            subtitle: 'Overdue payments',
-            accent: OpColors.orange,
-            icon: Icons.warning_amber_rounded,
-            tint: OpColors.orangeTint,
+            title: 'DUE',
+            value: '19',
+            subtitle: 'overdue payments',
+            accent: Color(0xFFEA580C),
+            icon: Icons.cancel_outlined,
+            tint: Color(0xFFFFF7ED),
           ),
           OpMetricUi(
-            title: 'Collected',
-            value: '₹1.3k',
-            subtitle: 'Total revenue',
-            accent: OpColors.primary,
-            icon: Icons.account_balance_wallet_rounded,
-            tint: OpColors.primaryTint,
+            title: 'TOTAL COLLECTED',
+            value: '₹8,72,488',
+            subtitle: '',
+            accent: Color(0xFF059669),
+            icon: Icons.currency_rupee_rounded,
+            tint: Color(0xFFECFDF5),
           ),
         ],
         patients: [

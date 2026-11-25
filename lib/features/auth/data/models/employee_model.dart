@@ -319,7 +319,7 @@ class EmployeeModel {
       firstName: json['firstName']?.toString(),
       lastName: json['lastName']?.toString(),
       email: json['email']?.toString() ?? '',
-      phone: json['phone']?.toString(),
+      phone: (json['phone'] ?? json['mobile'])?.toString(),
       role: EmployeeProfileInfoModel._text(
         json['role'] ?? json['userRole'] ?? json['user_role'],
       ),
@@ -354,10 +354,13 @@ class EmployeeModel {
           : null,
       permissions: _permissions(json['permissions']),
       adminFlag: _asBool(
-        json['isAdmin'] ?? json['is_admin'] ?? json['admin'],
+        json['isAdmin'] ?? json['is_admin'] ?? json['adminFlag'],
       ),
       userType: EmployeeProfileInfoModel._text(
-        json['userType'] ?? json['accountType'] ?? json['accessLevel'],
+        json['userType'] ??
+            json['accountType'] ??
+            json['accessLevel'] ??
+            json['loginType'],
       ),
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
@@ -447,26 +450,80 @@ class LoginResponseModel {
     required this.success,
     required this.message,
     this.employee,
+    this.loginType = '',
+    this.campActivated = false,
   });
 
   final bool success;
   final String message;
   final EmployeeModel? employee;
+  final String loginType;
+  final bool campActivated;
 
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
+    final loginType = EmployeeProfileInfoModel._text(
+      json['loginType'] ?? json['login_type'],
+    ).toLowerCase();
     final data = json['data'];
-    final employeeJson = json['employee'] ??
-        (data is Map<String, dynamic>
-            ? (data['employee'] ?? data['user'] ?? data)
-            : null);
+    final campActivated = EmployeeModel._asBool(
+      json['campActivated'] ??
+          (data is Map ? data['campActivated'] : null),
+    );
+
+    Map<String, dynamic>? userJson;
+    var isAdminLogin = loginType == 'admin';
+
+    if (json['admin'] is Map<String, dynamic>) {
+      userJson = Map<String, dynamic>.from(json['admin'] as Map);
+      isAdminLogin = true;
+    } else if (json['employee'] is Map<String, dynamic>) {
+      userJson = Map<String, dynamic>.from(json['employee'] as Map);
+    } else if (data is Map<String, dynamic>) {
+      if (data['admin'] is Map) {
+        userJson = Map<String, dynamic>.from(data['admin'] as Map);
+        isAdminLogin = true;
+      } else if (data['employee'] is Map) {
+        userJson = Map<String, dynamic>.from(data['employee'] as Map);
+      } else if (data['user'] is Map) {
+        userJson = Map<String, dynamic>.from(data['user'] as Map);
+      } else {
+        userJson = Map<String, dynamic>.from(data);
+      }
+    }
+
+    EmployeeModel? employee;
+    if (userJson != null) {
+      final merged = Map<String, dynamic>.from(userJson);
+      if (isAdminLogin) {
+        merged['isAdmin'] = true;
+        merged['userType'] = EmployeeProfileInfoModel._text(
+          merged['userType'] ?? 'admin',
+        );
+        if (EmployeeProfileInfoModel._text(merged['role']).isEmpty) {
+          merged['role'] = 'admin';
+        }
+        merged['loginType'] = 'admin';
+      } else {
+        merged['userType'] = EmployeeProfileInfoModel._text(
+          merged['userType'] ?? loginType.ifEmpty('employee'),
+        );
+        merged['loginType'] = loginType.ifEmpty('employee');
+      }
+      employee = EmployeeModel.fromJson(merged);
+    }
+
     return LoginResponseModel(
       success: json['success'] as bool? ?? false,
       message: json['message'] as String? ?? '',
-      employee: employeeJson is Map<String, dynamic>
-          ? EmployeeModel.fromJson(employeeJson)
-          : null,
+      employee: employee,
+      loginType: isAdminLogin ? 'admin' : loginType.ifEmpty('employee'),
+      campActivated: campActivated,
     );
   }
+}
+
+extension on String {
+  String ifEmpty(String fallback) => trim().isEmpty ? fallback : this;
 }
 
 class EmployeeDetailResponseModel {

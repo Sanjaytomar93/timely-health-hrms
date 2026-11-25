@@ -98,7 +98,7 @@ class NotificationUiMapper {
       isRead: n.isRead,
       createdAt: n.createdAt,
       timeLabel: relativeTime(n.createdAt),
-      categoryLabel: _categoryLabel(kind),
+      categoryLabel: _categoryLabel(kind, n),
       kind: kind,
       accent: colors.$1,
       accentSoft: colors.$2,
@@ -112,10 +112,13 @@ class NotificationUiMapper {
     final message = n.message.toLowerCase();
 
     if (type.contains('comp_off') || type.contains('compoff')) {
-      return NotificationVisualKind.system;
+      return NotificationVisualKind.leave;
     }
     if (type.contains('leave')) {
       return NotificationVisualKind.leave;
+    }
+    if (type.contains('permission') || title.contains('permission')) {
+      return NotificationVisualKind.attendance;
     }
     if (type.contains('shift') ||
         title.contains('shift') ||
@@ -135,10 +138,20 @@ class NotificationUiMapper {
     return NotificationVisualKind.system;
   }
 
-  static String _categoryLabel(NotificationVisualKind kind) {
+  static String _categoryLabel(NotificationVisualKind kind, [AppNotification? n]) {
+    final type = n?.type.toLowerCase().trim() ?? '';
+    final title = n?.title.toLowerCase().trim() ?? '';
+    if (type.contains('permission') || title.contains('permission')) {
+      return 'PERMISSION REQUEST';
+    }
+    if (type.contains('comp_off') ||
+        type.contains('compoff') ||
+        title.contains('comp-off')) {
+      return 'COMP-OFF REQUEST';
+    }
     return switch (kind) {
       NotificationVisualKind.system => 'SYSTEM ALERT',
-      NotificationVisualKind.leave => 'LEAVE UPDATE',
+      NotificationVisualKind.leave => 'LEAVE REQUEST',
       NotificationVisualKind.attendance => 'ATTENDANCE RECORD',
       NotificationVisualKind.shift => 'SHIFT UPDATE',
       NotificationVisualKind.announcement => 'GENERAL ANNOUNCEMENT',
@@ -172,6 +185,15 @@ class NotificationUiMapper {
 
   static IconData _iconFor(NotificationVisualKind kind, AppNotification n) {
     final title = n.title.toLowerCase();
+    final type = n.type.toLowerCase();
+    if (type.contains('permission') || title.contains('permission')) {
+      return Icons.access_time_rounded;
+    }
+    if (type.contains('comp_off') ||
+        type.contains('compoff') ||
+        title.contains('comp-off')) {
+      return Icons.event_repeat_rounded;
+    }
     return switch (kind) {
       NotificationVisualKind.system => Icons.notifications_rounded,
       NotificationVisualKind.leave => Icons.calendar_month_rounded,

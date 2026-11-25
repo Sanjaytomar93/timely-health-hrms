@@ -261,6 +261,15 @@ class Employee {
 
   bool get isActive => (status ?? 'active').toLowerCase() == 'active';
 
+  bool hasPermission(String key) {
+    final target = key.trim().toLowerCase();
+    if (target.isEmpty) return false;
+    return permissions.any((p) => p.trim().toLowerCase() == target);
+  }
+
+  bool hasAnyPermission(Iterable<String> keys) =>
+      keys.any(hasPermission);
+
   bool get isAdmin {
     if (adminFlag) return true;
 
@@ -269,11 +278,10 @@ class Employee {
         .map((e) => e.trim().toLowerCase())
         .where((e) => e.isNotEmpty)
         .toList();
-    if (fields.any((f) => f == 'management')) return true;
+    if (fields.any((f) => f == 'management' || f == 'admin')) return true;
 
     final blob = fields.join(' ');
     const needles = <String>[
-      'admin',
       'administrator',
       'superadmin',
       'super admin',
@@ -288,6 +296,10 @@ class Employee {
       'hrhead',
     ];
     if (needles.any(blob.contains)) return true;
+    if (fields.any((f) =>
+        f == 'admin' || f.contains(' admin') || f.startsWith('admin '))) {
+      return true;
+    }
 
     return permissions.any((p) {
       final v = p.trim().toLowerCase();

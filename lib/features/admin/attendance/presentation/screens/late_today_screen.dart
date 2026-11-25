@@ -6,6 +6,7 @@ import 'package:timelay_health/core/theme/portal_colors.dart';
 import 'package:timelay_health/core/theme/portal_system_ui.dart';
 import 'package:timelay_health/core/theme/portal_text.dart';
 import 'package:timelay_health/core/widgets/portal_safe_area.dart';
+import 'package:timelay_health/core/widgets/shimmer.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/bloc/late_today_cubit.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/bloc/late_today_state.dart';
 import 'package:timelay_health/features/admin/attendance/presentation/models/late_today_ui.dart';
@@ -260,12 +261,10 @@ class _LateTodayScreenState extends State<LateTodayScreen> {
           statusBarColor: PortalColors.surface,
           child: Column(
             children: [
-              // White Navbar
               _WhiteTopBar(
                 onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
               ),
 
-              // Main Body Content
               Expanded(
                 child: BlocBuilder<LateTodayCubit, LateTodayState>(
                   bloc: _cubit,
@@ -286,11 +285,7 @@ class _LateTodayScreenState extends State<LateTodayScreen> {
                     }.toList();
 
                     if (isLoading) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: PortalColors.brand,
-                        ),
-                      );
+                      return const AdminListShimmer(statCount: 3, cardCount: 5);
                     }
 
                     if (isFailure) {
@@ -366,14 +361,12 @@ class _LateTodayScreenState extends State<LateTodayScreen> {
                       child: ListView(
                         padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
                         children: [
-                          // Search bar
                           _SearchInput(
                             controller: _searchCtrl,
                             onChanged: (_) => setState(() {}),
                           ),
                           const SizedBox(height: 10),
 
-                          // Filter chips row
                           _FilterChipsRow(
                             dateLabel: _dateLabel,
                             monthLabel: _monthOnly,
@@ -394,14 +387,12 @@ class _LateTodayScreenState extends State<LateTodayScreen> {
                           ),
                           const SizedBox(height: 14),
 
-                          // SNAPSHOT SUMMARY Section
                           _SnapshotSummarySection(
                             ui: ui,
                             filteredCount: records.length,
                           ),
                           const SizedBox(height: 18),
 
-                          // Late Employees Section Header
                           Row(
                             children: [
                               const SizedBox(width: 4),
@@ -448,7 +439,6 @@ class _LateTodayScreenState extends State<LateTodayScreen> {
                           ),
                           const SizedBox(height: 12),
 
-                          // List of Late Employee Cards
                           if (records.isEmpty)
                             Container(
                               padding:
@@ -530,9 +520,6 @@ class _LateTodayScreenState extends State<LateTodayScreen> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// White Navbar with Menu, Title and Notifications
-// ---------------------------------------------------------------------------
 class _WhiteTopBar extends StatelessWidget {
   const _WhiteTopBar({required this.onMenuTap});
 
@@ -611,9 +598,6 @@ class _WhiteTopBar extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Search Input Field
-// ---------------------------------------------------------------------------
 class _SearchInput extends StatelessWidget {
   const _SearchInput({
     required this.controller,
@@ -681,9 +665,6 @@ class _SearchInput extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Filter Chips Row
-// ---------------------------------------------------------------------------
 class _FilterChipsRow extends StatelessWidget {
   const _FilterChipsRow({
     required this.dateLabel,
@@ -725,7 +706,6 @@ class _FilterChipsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // 1. Date filter
         Expanded(
           child: _FilterItemButton(
             icon: Icons.calendar_today_outlined,
@@ -738,7 +718,6 @@ class _FilterChipsRow extends StatelessWidget {
         ),
         const SizedBox(width: 6),
 
-        // 2. Month filter
         Expanded(
           child: _FilterItemButton(
             icon: Icons.calendar_month_rounded,
@@ -751,7 +730,6 @@ class _FilterChipsRow extends StatelessWidget {
         ),
         const SizedBox(width: 6),
 
-        // 3. Dept filter
         Expanded(
           child: _FilterItemButton(
             icon: Icons.apartment_rounded,
@@ -764,7 +742,6 @@ class _FilterChipsRow extends StatelessWidget {
         ),
         const SizedBox(width: 6),
 
-        // 4. Design filter
         Expanded(
           child: _FilterItemButton(
             icon: Icons.badge_outlined,
@@ -879,9 +856,6 @@ class _FilterItemButton extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Snapshot Summary Section
-// ---------------------------------------------------------------------------
 class _SnapshotSummarySection extends StatelessWidget {
   const _SnapshotSummarySection({
     required this.ui,
@@ -921,7 +895,6 @@ class _SnapshotSummarySection extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  // 1. TOTAL LATE
                   _MetricSnapshotCard(
                     width: cardWidth,
                     title: 'TOTAL LATE',
@@ -933,7 +906,6 @@ class _SnapshotSummarySection extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
 
-                  // 2. FILTERED LATE
                   _MetricSnapshotCard(
                     width: cardWidth,
                     title: 'FILTERED LATE',
@@ -945,7 +917,6 @@ class _SnapshotSummarySection extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
 
-                  // 3. AVG LATE
                   _MetricSnapshotCard(
                     width: cardWidth,
                     title: 'AVG DELAY',
@@ -957,7 +928,6 @@ class _SnapshotSummarySection extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
 
-                  // 4. TOTAL DELAY
                   _MetricSnapshotCard(
                     width: cardWidth,
                     title: 'TOTAL DELAY',
@@ -969,7 +939,6 @@ class _SnapshotSummarySection extends StatelessWidget {
                   ),
                   if (ui.mostLateName.isNotEmpty) ...[
                     const SizedBox(width: 8),
-                    // 5. MOST LATE
                     _MetricSnapshotCard(
                       width: cardWidth * 1.3,
                       title: 'MOST LATE',
@@ -1084,9 +1053,6 @@ class _MetricSnapshotCard extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Late Employee Card (Impressive Shift Timeline Design)
-// ---------------------------------------------------------------------------
 class _LateEmployeeCard extends StatelessWidget {
   const _LateEmployeeCard({required this.item});
 
@@ -1168,13 +1134,11 @@ class _LateEmployeeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Top Bar: Profile & Delay Capsule
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Modern Squircle Avatar
                 Container(
                   width: 44,
                   height: 44,
@@ -1221,7 +1185,6 @@ class _LateEmployeeCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
 
-                // Name, EmpId, and Dept/Role
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1280,7 +1243,6 @@ class _LateEmployeeCard extends StatelessWidget {
 
                 const SizedBox(width: 8),
 
-                // Glowing Delay Pill Badge
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                   decoration: BoxDecoration(
@@ -1315,7 +1277,6 @@ class _LateEmployeeCard extends StatelessWidget {
             ),
           ),
 
-          // 2. Center: Visual Shift Timeline Bridge
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 14),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
@@ -1330,7 +1291,6 @@ class _LateEmployeeCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Left: Expected time
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1378,7 +1338,6 @@ class _LateEmployeeCard extends StatelessWidget {
                   ),
                 ),
 
-                // Center: Visual Arrow / Gap indicator
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -1414,7 +1373,6 @@ class _LateEmployeeCard extends StatelessWidget {
                   ),
                 ),
 
-                // Right: Actual Check-In time
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -1466,12 +1424,10 @@ class _LateEmployeeCard extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // 3. Bottom Strip: Date & Location Tags
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
             child: Row(
               children: [
-                // Date Chip
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                   decoration: BoxDecoration(
@@ -1502,7 +1458,6 @@ class _LateEmployeeCard extends StatelessWidget {
 
                 const SizedBox(width: 6),
 
-                // Location / Office Chip
                 Flexible(
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
